@@ -1,8 +1,23 @@
 services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: crm
+      POSTGRES_PASSWORD: crm1234
+      POSTGRES_DB: crm_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
   crm:
     build: .
     ports:
       - "8008:8007"
     env_file:
       - .env
+    depends_on:
+      - db
     restart: unless-stopped
+
+volumes:
+  pgdata:
