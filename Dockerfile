@@ -1,8 +1,7 @@
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
 
 # Install dependencies
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -21,13 +20,13 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8007
 
-# Python for extraction pipeline (spawned by /api/gdrive webhook)
-RUN apk add --no-cache python3 py3-pip
+# Python for extraction pipeline
+RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip && rm -rf /var/lib/apt/lists/*
 COPY extraction/requirements.txt ./extraction/requirements.txt
 RUN pip3 install --no-cache-dir --break-system-packages -r extraction/requirements.txt
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN groupadd --system --gid 1001 nodejs
+RUN useradd --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
