@@ -2,7 +2,7 @@ services:
   crm:
     build: .
     ports:
-      - "8007:8007"
+      - "8008:8007"
     env_file:
       - .env
     restart: unless-stopped
