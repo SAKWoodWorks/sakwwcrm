@@ -7,8 +7,5 @@ node_modules
 Dockerfile
 docker-compose.yml
 docs/
-extraction/.venv/
-extraction/__pycache__/
-extraction/**/__pycache__/
-extraction/error_report_*.csv
+extraction/
 *.md
