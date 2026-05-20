@@ -1,0 +1,14 @@
+.git
+.gitignore
+node_modules
+.next
+.env*
+!.env.example
+Dockerfile
+docker-compose.yml
+docs/
+extraction/.venv/
+extraction/__pycache__/
+extraction/**/__pycache__/
+extraction/error_report_*.csv
+*.md
