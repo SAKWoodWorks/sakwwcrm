@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { prisma } from "@/lib/prisma"
 import { Suspense } from "react"
 import ProductFilter from "./ProductFilter"
