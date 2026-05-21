@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { DocTypeBadge } from "../DocTypeBadge"
+import PaymentToggle from "../PaymentToggle"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -78,7 +79,7 @@ export default async function DocumentDetailPage({ params }: Props) {
               <dt className="font-medium text-gray-500">สถานะ</dt>
               <dd className="mt-0.5">
                 {doc.docType === "tax_invoice" ? (
-                  <PaymentBadge status={doc.paymentStatus} />
+                  <PaymentToggle documentId={doc.id} currentStatus={doc.paymentStatus} />
                 ) : (
                   <span className="text-gray-400">—</span>
                 )}
@@ -165,8 +166,3 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-function PaymentBadge({ status }: { status: string | null }) {
-  if (status === "paid")
-    return <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">ชำระแล้ว</span>
-  return <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">รอชำระ</span>
-}
