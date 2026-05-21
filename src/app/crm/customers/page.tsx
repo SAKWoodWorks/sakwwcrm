@@ -84,7 +84,7 @@ export default async function CustomersPage({ searchParams }: Props) {
     if (q) params.set("q", q)
     params.set("sort", sortKey)
     params.set("order", newOrder)
-    return `/crm/customers?${params}`
+    return `/crm/customers?${params.toString()}`
   }
 
   function indicator(sortKey: string) {
