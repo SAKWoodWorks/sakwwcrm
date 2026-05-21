@@ -10,7 +10,7 @@ type Props = {
 
 export default async function CustomerDetailPage({ params }: Props) {
   const { id } = await params
-  const customerId = parseInt(id)
+  const customerId = parseInt(id, 10)
   if (isNaN(customerId)) notFound()
 
   const customer = await prisma.customer.findUnique({
@@ -52,7 +52,15 @@ export default async function CustomerDetailPage({ params }: Props) {
       </div>
 
       <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6">
-        <h1 className="mb-4 text-2xl font-semibold">{customer.name}</h1>
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="text-2xl font-semibold">{customer.name}</h1>
+          <Link
+            href={`/crm/customers/${customer.id}/edit`}
+            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            แก้ไข
+          </Link>
+        </div>
         <dl className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm md:grid-cols-3">
           <InfoRow label="TAX ID" value={customer.taxId ?? "—"} />
           <InfoRow label="จังหวัด" value={customer.province ?? "—"} />
