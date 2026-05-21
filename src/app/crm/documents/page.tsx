@@ -119,7 +119,7 @@ export default async function DocumentsPage({ searchParams }: Props) {
     if (to) params.set("to", to)
     params.set("sort", sortKey)
     params.set("order", newOrder)
-    return `/crm/documents?${params}`
+    return `/crm/documents?${params.toString()}`
   }
 
   function indicator(sortKey: string) {

@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 type Props = {
   salespersons: { id: number; name: string }[]
@@ -11,6 +11,10 @@ export default function DocumentFilters({ salespersons }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [nameValue, setNameValue] = useState(searchParams.get("q") ?? "")
+
+  useEffect(() => {
+    setNameValue(searchParams.get("q") ?? "")
+  }, [searchParams])
 
   const update = useCallback(
     (key: string, value: string) => {
