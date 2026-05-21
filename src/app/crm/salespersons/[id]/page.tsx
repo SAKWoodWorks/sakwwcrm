@@ -53,6 +53,7 @@ export default async function SalespersonDetailPage({ params }: Props) {
           WHERE NOT EXISTS (
             SELECT 1 FROM documents di2
             WHERE di2.customer_id = c2.id
+              AND di2.salesperson_id = s.id
               AND di2.doc_type = 'tax_invoice'
               AND di2.doc_date >= CURRENT_DATE - INTERVAL '90 days'
           )
@@ -74,7 +75,7 @@ export default async function SalespersonDetailPage({ params }: Props) {
       LEFT JOIN LATERAL (
         SELECT doc_date, total
         FROM documents
-        WHERE customer_id = c.id AND doc_type = 'tax_invoice'
+        WHERE customer_id = c.id AND doc_type = 'tax_invoice' AND salesperson_id = ${spId}
         ORDER BY doc_date DESC
         LIMIT 1
       ) last_inv ON TRUE
@@ -208,31 +209,39 @@ export default async function SalespersonDetailPage({ params }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {documents.map((d) => (
-              <tr key={d.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 tabular-nums">
-                  {d.docDate.toLocaleDateString("th-TH")}
-                </td>
-                <td className="px-4 py-3 font-mono text-xs">
-                  <Link href={`/crm/documents/${d.id}`} className="text-blue-600 hover:underline">
-                    {d.docNumber}
-                  </Link>
-                </td>
-                <td className="px-4 py-3">
-                  {d.customer ? (
-                    <Link href={`/crm/customers/${d.customer.id}`} className="text-blue-600 hover:underline">
-                      {d.customer.name}
-                    </Link>
-                  ) : "—"}
-                </td>
-                <td className="px-4 py-3">
-                  <DocTypeBadge docType={d.docType} />
-                </td>
-                <td className="px-4 py-3 text-right tabular-nums">
-                  {d.total != null ? fmt(d.total) : "—"}
+            {documents.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-6 text-center text-gray-400">
+                  ไม่มีเอกสาร
                 </td>
               </tr>
-            ))}
+            ) : (
+              documents.map((d) => (
+                <tr key={d.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 tabular-nums">
+                    {d.docDate.toLocaleDateString("th-TH")}
+                  </td>
+                  <td className="px-4 py-3 font-mono text-xs">
+                    <Link href={`/crm/documents/${d.id}`} className="text-blue-600 hover:underline">
+                      {d.docNumber}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3">
+                    {d.customer ? (
+                      <Link href={`/crm/customers/${d.customer.id}`} className="text-blue-600 hover:underline">
+                        {d.customer.name}
+                      </Link>
+                    ) : "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <DocTypeBadge docType={d.docType} />
+                  </td>
+                  <td className="px-4 py-3 text-right tabular-nums">
+                    {d.total != null ? fmt(d.total) : "—"}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
