@@ -128,7 +128,13 @@ export default async function DashboardPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {topCustomers.map((c, i) => (
+            {topCustomers.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-6 text-center text-gray-400">
+                  ไม่มีข้อมูล
+                </td>
+              </tr>
+            ) : topCustomers.map((c, i) => (
               <tr key={c.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 tabular-nums text-gray-400">{i + 1}</td>
                 <td className="px-4 py-3">

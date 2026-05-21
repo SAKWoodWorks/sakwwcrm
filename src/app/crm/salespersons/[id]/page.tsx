@@ -14,7 +14,6 @@ interface SpStats {
   id: number
   name: string
   line_user_id: string | null
-  channel: string | null
   customer_count: bigint
   total_revenue: Prisma.Decimal
   monthly_revenue: Prisma.Decimal
@@ -39,7 +38,6 @@ export default async function SalespersonDetailPage({ params }: Props) {
         s.id,
         s.name,
         s.line_user_id,
-        s.channel,
         COUNT(DISTINCT c.id)                                                              AS customer_count,
         COALESCE(SUM(d.total) FILTER (WHERE d.doc_type = 'tax_invoice'), 0)               AS total_revenue,
         COALESCE(SUM(d.total) FILTER (
@@ -62,7 +60,7 @@ export default async function SalespersonDetailPage({ params }: Props) {
       LEFT JOIN documents d ON d.salesperson_id = s.id
       LEFT JOIN customers c ON c.id = d.customer_id
       WHERE s.id = ${spId}
-      GROUP BY s.id, s.name, s.line_user_id, s.channel
+      GROUP BY s.id, s.name, s.line_user_id
     `,
     prisma.$queryRaw<CustomerRow[]>`
       SELECT

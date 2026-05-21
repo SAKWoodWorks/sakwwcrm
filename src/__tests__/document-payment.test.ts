@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { NextRequest } from "next/server"
+import { Prisma } from "@prisma/client"
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -76,5 +77,17 @@ describe("PATCH /api/documents/[id]/payment", () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toEqual({ ok: true, status: "pending" })
+  })
+
+  it("returns 404 when document does not exist (P2025)", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: { email: "test@sakww.com" } } as any)
+    const err = Object.assign(
+      new Error("Record not found"),
+      { code: "P2025", clientVersion: "0.0.0" }
+    )
+    Object.setPrototypeOf(err, Prisma.PrismaClientKnownRequestError.prototype)
+    vi.mocked(prisma.document.update).mockRejectedValue(err)
+    const res = await PATCH(makeRequest({ status: "paid" }), makeParams("99"))
+    expect(res.status).toBe(404)
   })
 })

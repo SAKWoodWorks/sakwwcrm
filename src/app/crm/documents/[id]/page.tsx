@@ -12,7 +12,7 @@ type Props = {
 
 export default async function DocumentDetailPage({ params }: Props) {
   const { id } = await params
-  const docId = parseInt(id)
+  const docId = parseInt(id, 10)
   if (isNaN(docId)) notFound()
 
   const doc = await prisma.document.findUnique({
