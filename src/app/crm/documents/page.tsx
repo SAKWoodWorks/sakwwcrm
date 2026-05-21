@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Suspense } from "react"
 import DocumentFilters from "./DocumentFilters"
 import { DocTypeBadge } from "./DocTypeBadge"
+import PaymentToggle from "./PaymentToggle"
 import type { Prisma } from "@prisma/client"
 
 type Props = {
@@ -200,14 +201,8 @@ export default async function DocumentsPage({ searchParams }: Props) {
                     : "—"}
                 </td>
                 <td className="px-4 py-3">
-                  {d.docType === "tax_invoice" && d.paymentStatus === "paid" ? (
-                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-                      ชำระแล้ว
-                    </span>
-                  ) : d.docType === "tax_invoice" ? (
-                    <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
-                      รอชำระ
-                    </span>
+                  {d.docType === "tax_invoice" ? (
+                    <PaymentToggle documentId={d.id} currentStatus={d.paymentStatus} />
                   ) : (
                     <span className="text-gray-400">—</span>
                   )}
