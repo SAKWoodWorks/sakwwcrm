@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic"
 
 import { prisma } from "@/lib/prisma"
 import { Prisma } from "@prisma/client"
+import Link from "next/link"
 
 interface SalespersonRow {
   id: number
@@ -62,7 +63,11 @@ export default async function SalespersonsPage() {
               const revenue = Number(row.total_revenue)
               return (
                 <tr key={row.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium">{row.name}</td>
+                  <td className="px-4 py-3 font-medium">
+                    <Link href={`/crm/salespersons/${row.id}`} className="text-blue-600 hover:underline">
+                      {row.name}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3">
                     {row.line_user_id ? (
                       <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
