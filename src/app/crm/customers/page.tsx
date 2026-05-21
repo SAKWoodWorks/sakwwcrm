@@ -1,56 +1,91 @@
 export const dynamic = "force-dynamic"
 
 import { prisma } from "@/lib/prisma"
+import { Prisma } from "@prisma/client"
 import Link from "next/link"
 import { Suspense } from "react"
 import CustomerSearch from "./CustomerSearch"
 
+interface CustomerRow {
+  id: number
+  name: string
+  tax_id: string | null
+  province: string | null
+  type: string | null
+  status: string
+  salesperson_name: string | null
+  last_purchase_date: Date | null
+  last_purchase_total: Prisma.Decimal | number | null
+}
+
 type Props = {
-  searchParams: Promise<{ q?: string; page?: string }>
+  searchParams: Promise<{ q?: string; page?: string; sort?: string; order?: string }>
 }
 
 const PAGE_SIZE = 50
 
+const SORT_CLAUSES: Record<string, Prisma.Sql> = {
+  "last_purchase:asc":  Prisma.sql`last_purchase_date ASC NULLS LAST`,
+  "last_purchase:desc": Prisma.sql`last_purchase_date DESC NULLS LAST`,
+  "name:asc":           Prisma.sql`c.name ASC`,
+  "name:desc":          Prisma.sql`c.name DESC`,
+  "last_total:asc":     Prisma.sql`last_purchase_total ASC NULLS LAST`,
+  "last_total:desc":    Prisma.sql`last_purchase_total DESC NULLS LAST`,
+}
+
 export default async function CustomersPage({ searchParams }: Props) {
-  const { q, page: pageStr } = await searchParams
+  const { q, page: pageStr, sort = "last_purchase", order = "desc" } = await searchParams
   const page = Math.max(1, parseInt(pageStr ?? "1") || 1)
   const skip = (page - 1) * PAGE_SIZE
 
-  const where = q
-    ? {
-        OR: [
-          { name: { contains: q, mode: "insensitive" as const } },
-          { taxId: { contains: q, mode: "insensitive" as const } },
-        ],
-      }
-    : {}
+  const searchFilter = q
+    ? Prisma.sql`(c.name ILIKE ${`%${q}%`} OR c.tax_id ILIKE ${`%${q}%`})`
+    : Prisma.sql`TRUE`
 
-  const [customers, total] = await Promise.all([
-    prisma.customer.findMany({
-      where,
-      orderBy: { updatedAt: "desc" },
-      skip,
-      take: PAGE_SIZE,
-      select: {
-        id: true,
-        name: true,
-        taxId: true,
-        province: true,
-        type: true,
-        status: true,
-        salesperson: { select: { name: true } },
-        documents: {
-          where: { docType: "tax_invoice" },
-          orderBy: { docDate: "desc" },
-          take: 1,
-          select: { docDate: true, total: true },
-        },
-      },
-    }),
-    prisma.customer.count({ where }),
+  const orderBy =
+    SORT_CLAUSES[`${sort}:${order}`] ?? Prisma.sql`last_purchase_date DESC NULLS LAST`
+
+  const [customers, countResult] = await Promise.all([
+    prisma.$queryRaw<CustomerRow[]>`
+      SELECT
+        c.id,
+        c.name,
+        c.tax_id,
+        c.province,
+        c.type,
+        c.status,
+        s.name AS salesperson_name,
+        MAX(CASE WHEN d.doc_type = 'tax_invoice' THEN d.doc_date END) AS last_purchase_date,
+        MAX(CASE WHEN d.doc_type = 'tax_invoice' THEN d.total END)    AS last_purchase_total
+      FROM customers c
+      LEFT JOIN salespersons s ON s.id = c.salesperson_id
+      LEFT JOIN documents d ON d.customer_id = c.id
+      WHERE ${searchFilter}
+      GROUP BY c.id, c.name, c.tax_id, c.province, c.type, c.status, s.name
+      ORDER BY ${orderBy}
+      LIMIT ${PAGE_SIZE} OFFSET ${skip}
+    `,
+    prisma.$queryRaw<[{ count: bigint }]>`
+      SELECT COUNT(*) AS count FROM customers c WHERE ${searchFilter}
+    `,
   ])
 
+  const total = Number(countResult[0].count)
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+
+  function sortUrl(sortKey: string) {
+    const newOrder = sort === sortKey && order === "desc" ? "asc" : "desc"
+    const params = new URLSearchParams()
+    if (q) params.set("q", q)
+    params.set("sort", sortKey)
+    params.set("order", newOrder)
+    return `/crm/customers?${params}`
+  }
+
+  function indicator(sortKey: string) {
+    if (sort !== sortKey) return null
+    return order === "desc" ? " ↓" : " ↑"
+  }
 
   return (
     <div className="p-6">
@@ -65,69 +100,71 @@ export default async function CustomersPage({ searchParams }: Props) {
         <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ชื่อ</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">
+                <Link href={sortUrl("name")} className="hover:text-gray-800">
+                  ชื่อ{indicator("name")}
+                </Link>
+              </th>
               <th className="px-4 py-3 text-left font-medium text-gray-500">TAX ID</th>
               <th className="px-4 py-3 text-left font-medium text-gray-500">จังหวัด</th>
               <th className="px-4 py-3 text-left font-medium text-gray-500">ประเภท</th>
               <th className="px-4 py-3 text-left font-medium text-gray-500">สถานะ</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ซื้อล่าสุด</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500">ยอดล่าสุด</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">
+                <Link href={sortUrl("last_purchase")} className="hover:text-gray-800">
+                  ซื้อล่าสุด{indicator("last_purchase")}
+                </Link>
+              </th>
+              <th className="px-4 py-3 text-right font-medium text-gray-500">
+                <Link href={sortUrl("last_total")} className="hover:text-gray-800">
+                  ยอดล่าสุด{indicator("last_total")}
+                </Link>
+              </th>
               <th className="px-4 py-3 text-left font-medium text-gray-500">PM</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {customers.map((c) => {
-              const lastDoc = c.documents[0]
-              return (
-                <tr key={c.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/crm/customers/${c.id}`}
-                      className="font-medium text-blue-600 hover:underline"
-                    >
-                      {c.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">{c.taxId ?? "—"}</td>
-                  <td className="px-4 py-3">{c.province ?? "—"}</td>
-                  <td className="px-4 py-3">
-                    <TypeBadge type={c.type} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={c.status} />
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {lastDoc
-                      ? lastDoc.docDate.toLocaleDateString("th-TH")
-                      : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {lastDoc?.total
-                      ? Number(lastDoc.total).toLocaleString("th-TH", {
-                          style: "currency",
-                          currency: "THB",
-                          minimumFractionDigits: 0,
-                        })
-                      : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {c.salesperson?.name ?? "—"}
-                  </td>
-                </tr>
-              )
-            })}
+            {customers.map((c) => (
+              <tr key={c.id} className="hover:bg-gray-50">
+                <td className="px-4 py-3">
+                  <Link href={`/crm/customers/${c.id}`} className="font-medium text-blue-600 hover:underline">
+                    {c.name}
+                  </Link>
+                </td>
+                <td className="px-4 py-3 text-gray-500">{c.tax_id ?? "—"}</td>
+                <td className="px-4 py-3">{c.province ?? "—"}</td>
+                <td className="px-4 py-3"><TypeBadge type={c.type} /></td>
+                <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
+                <td className="px-4 py-3 text-gray-600">
+                  {c.last_purchase_date
+                    ? new Date(c.last_purchase_date).toLocaleDateString("th-TH")
+                    : "—"}
+                </td>
+                <td className="px-4 py-3 text-right tabular-nums">
+                  {c.last_purchase_total
+                    ? Number(c.last_purchase_total).toLocaleString("th-TH", {
+                        style: "currency",
+                        currency: "THB",
+                        minimumFractionDigits: 0,
+                      })
+                    : "—"}
+                </td>
+                <td className="px-4 py-3 text-gray-500">{c.salesperson_name ?? "—"}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
       <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
         <span>
-          {total === 0 ? "ไม่พบรายการ" : `แสดง ${skip + 1}–${Math.min(skip + PAGE_SIZE, total)} จาก ${total} รายการ`}
+          {total === 0
+            ? "ไม่พบรายการ"
+            : `แสดง ${skip + 1}–${Math.min(skip + PAGE_SIZE, total)} จาก ${total} รายการ`}
         </span>
         <div className="flex gap-2">
           {page > 1 && (
             <Link
-              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), page: String(page - 1) })}`}
+              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), sort, order, page: String(page - 1) })}`}
               className="rounded border px-3 py-1 hover:bg-gray-100"
             >
               ← ก่อนหน้า
@@ -135,7 +172,7 @@ export default async function CustomersPage({ searchParams }: Props) {
           )}
           {page < totalPages && (
             <Link
-              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), page: String(page + 1) })}`}
+              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), sort, order, page: String(page + 1) })}`}
               className="rounded border px-3 py-1 hover:bg-gray-100"
             >
               ถัดไป →
@@ -167,11 +204,13 @@ function StatusBadge({ status }: { status: string }) {
     not_purchase_yet: "bg-gray-100 text-gray-600",
     active: "bg-yellow-100 text-yellow-800",
     repeat: "bg-green-100 text-green-800",
+    purchased: "bg-green-100 text-green-800",
   }
   const label: Record<string, string> = {
     not_purchase_yet: "ยังไม่ซื้อ",
     active: "Active",
     repeat: "Repeat",
+    purchased: "ซื้อแล้ว",
   }
   const cls = map[status] ?? "bg-gray-100 text-gray-600"
   return (
