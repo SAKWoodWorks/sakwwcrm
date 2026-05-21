@@ -19,7 +19,7 @@ interface CustomerRow {
 }
 
 type Props = {
-  searchParams: Promise<{ q?: string; page?: string; sort?: string; order?: string }>
+  searchParams: Promise<{ q?: string; page?: string; sort?: string; order?: string; lapsed?: string }>
 }
 
 const PAGE_SIZE = 50
@@ -34,13 +34,18 @@ const SORT_CLAUSES: Record<string, Prisma.Sql> = {
 }
 
 export default async function CustomersPage({ searchParams }: Props) {
-  const { q, page: pageStr, sort = "last_purchase", order = "desc" } = await searchParams
+  const { q, page: pageStr, sort = "last_purchase", order = "desc", lapsed } = await searchParams
+  const isLapsed = lapsed === "1"
   const page = Math.max(1, parseInt(pageStr ?? "1") || 1)
   const skip = (page - 1) * PAGE_SIZE
 
   const searchFilter = q
     ? Prisma.sql`(c.name ILIKE ${`%${q}%`} OR c.tax_id ILIKE ${`%${q}%`})`
     : Prisma.sql`TRUE`
+
+  const lapsedFilter = isLapsed
+    ? Prisma.sql`AND last_inv.doc_date IS NOT NULL AND last_inv.doc_date < CURRENT_DATE - INTERVAL '90 days'`
+    : Prisma.sql``
 
   const orderBy =
     SORT_CLAUSES[`${sort}:${order}`] ?? Prisma.sql`last_purchase_date DESC NULLS LAST`
@@ -67,11 +72,22 @@ export default async function CustomersPage({ searchParams }: Props) {
         LIMIT 1
       ) last_inv ON TRUE
       WHERE ${searchFilter}
+      ${lapsedFilter}
       ORDER BY ${orderBy}
       LIMIT ${PAGE_SIZE} OFFSET ${skip}
     `,
     prisma.$queryRaw<[{ count: bigint }]>`
-      SELECT COUNT(*) AS count FROM customers c WHERE ${searchFilter}
+      SELECT COUNT(*) AS count
+      FROM customers c
+      LEFT JOIN LATERAL (
+        SELECT doc_date
+        FROM documents
+        WHERE customer_id = c.id AND doc_type = 'tax_invoice'
+        ORDER BY doc_date DESC
+        LIMIT 1
+      ) last_inv ON TRUE
+      WHERE ${searchFilter}
+      ${lapsedFilter}
     `,
   ])
 
@@ -84,6 +100,7 @@ export default async function CustomersPage({ searchParams }: Props) {
     if (q) params.set("q", q)
     params.set("sort", sortKey)
     params.set("order", newOrder)
+    if (isLapsed) params.set("lapsed", "1")
     return `/crm/customers?${params.toString()}`
   }
 
@@ -99,6 +116,24 @@ export default async function CustomersPage({ searchParams }: Props) {
         <Suspense>
           <CustomerSearch />
         </Suspense>
+      </div>
+
+      <div className="mb-3 flex gap-2">
+        {isLapsed ? (
+          <Link
+            href={`/crm/customers?${q ? `q=${encodeURIComponent(q)}&` : ""}sort=${sort}&order=${order}`}
+            className="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-700"
+          >
+            Lapsed &gt;90 วัน ✕
+          </Link>
+        ) : (
+          <Link
+            href={`/crm/customers?${q ? `q=${encodeURIComponent(q)}&` : ""}sort=${sort}&order=${order}&lapsed=1`}
+            className="inline-flex items-center gap-1 rounded-full border border-red-300 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
+          >
+            Lapsed &gt;90 วัน
+          </Link>
+        )}
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-gray-200">
@@ -169,7 +204,7 @@ export default async function CustomersPage({ searchParams }: Props) {
         <div className="flex gap-2">
           {page > 1 && (
             <Link
-              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), sort, order, page: String(page - 1) })}`}
+              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), sort, order, ...(isLapsed ? { lapsed: "1" } : {}), page: String(page - 1) })}`}
               className="rounded border px-3 py-1 hover:bg-gray-100"
             >
               ← ก่อนหน้า
@@ -177,7 +212,7 @@ export default async function CustomersPage({ searchParams }: Props) {
           )}
           {page < totalPages && (
             <Link
-              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), sort, order, page: String(page + 1) })}`}
+              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), sort, order, ...(isLapsed ? { lapsed: "1" } : {}), page: String(page + 1) })}`}
               className="rounded border px-3 py-1 hover:bg-gray-100"
             >
               ถัดไป →
