@@ -44,6 +44,12 @@ describe("PATCH /api/documents/[id]/payment", () => {
     expect(res.status).toBe(400)
   })
 
+  it("returns 400 for garbage-prefixed id like '5abc'", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: { email: "test@sakww.com" } } as any)
+    const res = await PATCH(makeRequest({ status: "paid" }), makeParams("5abc"))
+    expect(res.status).toBe(400)
+  })
+
   it("returns 400 for invalid status", async () => {
     vi.mocked(auth).mockResolvedValue({ user: { email: "test@sakww.com" } } as any)
     const res = await PATCH(makeRequest({ status: "invalid" }), makeParams("1"))
