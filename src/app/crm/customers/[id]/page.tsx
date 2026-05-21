@@ -99,7 +99,14 @@ export default async function CustomerDetailPage({ params }: Props) {
                 <td className="px-4 py-3 tabular-nums">
                   {d.docDate.toLocaleDateString("th-TH")}
                 </td>
-                <td className="px-4 py-3 font-mono text-xs">{d.docNumber}</td>
+                <td className="px-4 py-3 font-mono text-xs">
+                  <Link
+                    href={`/crm/documents/${d.id}`}
+                    className="text-blue-600 hover:underline"
+                  >
+                    {d.docNumber}
+                  </Link>
+                </td>
                 <td className="px-4 py-3">
                   {d.docType === "tax_invoice" ? (
                     <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
