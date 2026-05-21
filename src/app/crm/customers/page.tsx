@@ -55,13 +55,18 @@ export default async function CustomersPage({ searchParams }: Props) {
         c.type,
         c.status,
         s.name AS salesperson_name,
-        MAX(CASE WHEN d.doc_type = 'tax_invoice' THEN d.doc_date END) AS last_purchase_date,
-        MAX(CASE WHEN d.doc_type = 'tax_invoice' THEN d.total END)    AS last_purchase_total
+        last_inv.doc_date AS last_purchase_date,
+        last_inv.total    AS last_purchase_total
       FROM customers c
       LEFT JOIN salespersons s ON s.id = c.salesperson_id
-      LEFT JOIN documents d ON d.customer_id = c.id
+      LEFT JOIN LATERAL (
+        SELECT doc_date, total
+        FROM documents
+        WHERE customer_id = c.id AND doc_type = 'tax_invoice'
+        ORDER BY doc_date DESC
+        LIMIT 1
+      ) last_inv ON TRUE
       WHERE ${searchFilter}
-      GROUP BY c.id, c.name, c.tax_id, c.province, c.type, c.status, s.name
       ORDER BY ${orderBy}
       LIMIT ${PAGE_SIZE} OFFSET ${skip}
     `,
@@ -136,7 +141,7 @@ export default async function CustomersPage({ searchParams }: Props) {
                 <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
                 <td className="px-4 py-3 text-gray-600">
                   {c.last_purchase_date
-                    ? new Date(c.last_purchase_date).toLocaleDateString("th-TH")
+                    ? c.last_purchase_date.toLocaleDateString("th-TH")
                     : "—"}
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums">
