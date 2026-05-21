@@ -168,7 +168,14 @@ export default async function DocumentsPage({ searchParams }: Props) {
                 <td className="px-4 py-3 tabular-nums">
                   {d.docDate.toLocaleDateString("th-TH")}
                 </td>
-                <td className="px-4 py-3 font-mono text-xs">{d.docNumber}</td>
+                <td className="px-4 py-3 font-mono text-xs">
+                  <Link
+                    href={`/crm/documents/${d.id}`}
+                    className="text-blue-600 hover:underline"
+                  >
+                    {d.docNumber}
+                  </Link>
+                </td>
                 <td className="px-4 py-3">
                   <DocTypeBadge docType={d.docType} />
                 </td>
@@ -184,7 +191,7 @@ export default async function DocumentsPage({ searchParams }: Props) {
                 <td className="px-4 py-3 text-gray-500">{d.channel ?? "—"}</td>
                 <td className="px-4 py-3">{d.salesperson?.name ?? "—"}</td>
                 <td className="px-4 py-3 text-right tabular-nums">
-                  {d.total
+                  {d.total != null
                     ? Number(d.total).toLocaleString("th-TH", {
                         style: "currency",
                         currency: "THB",
