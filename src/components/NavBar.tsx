@@ -18,11 +18,14 @@ export default function NavBar() {
       <div className="flex items-center gap-6">
         <span className="font-semibold text-gray-800">CRM</span>
         {links.map(({ href, label }) => {
-          const active = pathname.startsWith(href)
+          const active = href === "/crm/dashboard"
+            ? pathname === href
+            : pathname.startsWith(href)
           return (
             <Link
               key={href}
               href={href}
+              aria-current={active ? "page" : undefined}
               className={
                 active
                   ? "text-sm font-semibold text-blue-600"
