@@ -7,14 +7,16 @@ datasource db {
 }
 
 model Salesperson {
-  id          Int        @id @default(autoincrement())
-  name        String
-  channel     String?
-  lineUserId  String?    @map("line_user_id")
-  active      Boolean    @default(true)
-  createdAt   DateTime   @default(now()) @map("created_at")
+  id                Int        @id @default(autoincrement())
+  name              String
+  channel           String?
+  lineUserId        String?    @map("line_user_id")
+  active            Boolean    @default(true)
+  linkCode          String?    @map("link_code")
+  linkCodeExpiresAt DateTime?  @map("link_code_expires_at")
+  createdAt         DateTime   @default(now()) @map("created_at")
 
-  documents   Document[]
+  documents        Document[]
   managedCustomers Customer[] @relation("AccountManager")
 
   @@map("salespersons")
