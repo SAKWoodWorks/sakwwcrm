@@ -65,7 +65,7 @@ export default async function DashboardPage() {
     {
       label: "Lapsed >90 วัน",
       value: Number(stats.lapsed_count).toLocaleString("th-TH"),
-      href: "/crm/customers",
+      href: "/crm/customers?lapsed=1",
       color: "text-red-600",
       border: "border-red-100",
     },
