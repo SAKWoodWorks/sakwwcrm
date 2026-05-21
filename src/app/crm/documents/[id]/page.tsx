@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { DocTypeBadge } from "../DocTypeBadge"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -87,12 +88,12 @@ export default async function DocumentDetailPage({ params }: Props) {
               <InfoRow label="เลขอ้างอิง" value={doc.refDocNumber} />
             )}
             <div className="border-t border-gray-100 pt-2">
-              <InfoRow label="Subtotal" value={doc.subtotal ? fmt(doc.subtotal) : "—"} />
-              <InfoRow label="VAT 7%" value={doc.vat ? fmt(doc.vat) : "—"} />
+              <InfoRow label="Subtotal" value={doc.subtotal != null ? fmt(doc.subtotal) : "—"} />
+              <InfoRow label="VAT 7%" value={doc.vat != null ? fmt(doc.vat) : "—"} />
               <div className="mt-1">
                 <dt className="font-medium text-gray-500">Total</dt>
                 <dd className="mt-0.5 text-base font-bold text-gray-900">
-                  {doc.total ? fmt(doc.total) : "—"}
+                  {doc.total != null ? fmt(doc.total) : "—"}
                 </dd>
               </div>
             </div>
@@ -162,14 +163,6 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       <dd className="mt-0.5 text-gray-900">{value}</dd>
     </div>
   )
-}
-
-function DocTypeBadge({ docType }: { docType: string }) {
-  if (docType === "tax_invoice")
-    return <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">TAX Invoice</span>
-  if (docType === "abb_invoice")
-    return <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800">Abb Invoice</span>
-  return <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">Quotation</span>
 }
 
 function PaymentBadge({ status }: { status: string | null }) {
