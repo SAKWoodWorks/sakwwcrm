@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
 
 type Props = {
   salespersons: { id: number; name: string }[]
@@ -10,6 +10,7 @@ type Props = {
 export default function DocumentFilters({ salespersons }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [nameValue, setNameValue] = useState(searchParams.get("q") ?? "")
 
   const update = useCallback(
     (key: string, value: string) => {
@@ -27,6 +28,15 @@ export default function DocumentFilters({ salespersons }: Props) {
 
   return (
     <div className="flex flex-wrap gap-3">
+      <input
+        type="search"
+        placeholder="ค้นหาชื่อลูกค้า..."
+        value={nameValue}
+        onChange={(e) => setNameValue(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && update("q", nameValue)}
+        className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      />
+
       <select
         value={searchParams.get("type") ?? ""}
         onChange={(e) => update("type", e.target.value)}
@@ -35,6 +45,17 @@ export default function DocumentFilters({ salespersons }: Props) {
         <option value="">ทุกประเภท</option>
         <option value="tax_invoice">TAX Invoice</option>
         <option value="quotation">Quotation</option>
+        <option value="abb_invoice">Abb Invoice</option>
+      </select>
+
+      <select
+        value={searchParams.get("status") ?? ""}
+        onChange={(e) => update("status", e.target.value)}
+        className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none"
+      >
+        <option value="">ทุกสถานะ</option>
+        <option value="paid">ชำระแล้ว</option>
+        <option value="pending">รอชำระ</option>
       </select>
 
       <select

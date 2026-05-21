@@ -8,11 +8,15 @@ import type { Prisma } from "@prisma/client"
 
 type Props = {
   searchParams: Promise<{
+    q?: string
     type?: string
+    status?: string
     channel?: string
     salesperson?: string
     from?: string
     to?: string
+    sort?: string
+    order?: string
     page?: string
   }>
 }
@@ -20,12 +24,24 @@ type Props = {
 const PAGE_SIZE = 50
 
 export default async function DocumentsPage({ searchParams }: Props) {
-  const { type, channel, salesperson, from, to, page: pageStr } = await searchParams
+  const {
+    q,
+    type,
+    status,
+    channel,
+    salesperson,
+    from,
+    to,
+    sort = "docDate",
+    order = "desc",
+    page: pageStr,
+  } = await searchParams
   const page = Math.max(1, parseInt(pageStr ?? "1") || 1)
   const skip = (page - 1) * PAGE_SIZE
 
   const where: Prisma.DocumentWhereInput = {}
   if (type) where.docType = type
+  if (status) where.paymentStatus = status
   if (channel) where.channel = channel
   if (salesperson) {
     const sid = parseInt(salesperson)
@@ -37,11 +53,21 @@ export default async function DocumentsPage({ searchParams }: Props) {
       ...(to ? { lte: new Date(to) } : {}),
     }
   }
+  if (q) {
+    where.customer = { name: { contains: q, mode: "insensitive" } }
+  }
+
+  const validSorts = ["docDate", "total"] as const
+  type SortField = (typeof validSorts)[number]
+  const sortField: SortField = validSorts.includes(sort as SortField)
+    ? (sort as SortField)
+    : "docDate"
+  const sortOrder = order === "asc" ? "asc" : "desc"
 
   const [documents, total, salespersons] = await Promise.all([
     prisma.document.findMany({
       where,
-      orderBy: { docDate: "desc" },
+      orderBy: { [sortField]: sortOrder },
       skip,
       take: PAGE_SIZE,
       select: {
@@ -66,15 +92,39 @@ export default async function DocumentsPage({ searchParams }: Props) {
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
-  const buildPageUrl = (p: number) => {
+  function buildPageUrl(p: number) {
     const params = new URLSearchParams()
+    if (q) params.set("q", q)
     if (type) params.set("type", type)
+    if (status) params.set("status", status)
     if (channel) params.set("channel", channel)
     if (salesperson) params.set("salesperson", salesperson)
     if (from) params.set("from", from)
     if (to) params.set("to", to)
+    params.set("sort", sortField)
+    params.set("order", sortOrder)
     params.set("page", String(p))
     return `/crm/documents?${params.toString()}`
+  }
+
+  function sortUrl(sortKey: string) {
+    const newOrder = sortField === sortKey && sortOrder === "desc" ? "asc" : "desc"
+    const params = new URLSearchParams()
+    if (q) params.set("q", q)
+    if (type) params.set("type", type)
+    if (status) params.set("status", status)
+    if (channel) params.set("channel", channel)
+    if (salesperson) params.set("salesperson", salesperson)
+    if (from) params.set("from", from)
+    if (to) params.set("to", to)
+    params.set("sort", sortKey)
+    params.set("order", newOrder)
+    return `/crm/documents?${params}`
+  }
+
+  function indicator(sortKey: string) {
+    if (sortField !== sortKey) return null
+    return sortOrder === "desc" ? " ↓" : " ↑"
   }
 
   return (
@@ -93,13 +143,21 @@ export default async function DocumentsPage({ searchParams }: Props) {
         <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">วันที่</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">
+                <Link href={sortUrl("docDate")} className="hover:text-gray-800">
+                  วันที่{indicator("docDate")}
+                </Link>
+              </th>
               <th className="px-4 py-3 text-left font-medium text-gray-500">เลขที่</th>
               <th className="px-4 py-3 text-left font-medium text-gray-500">ประเภท</th>
               <th className="px-4 py-3 text-left font-medium text-gray-500">ลูกค้า</th>
               <th className="px-4 py-3 text-left font-medium text-gray-500">ช่องทาง</th>
               <th className="px-4 py-3 text-left font-medium text-gray-500">พนักงาน</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500">ยอด</th>
+              <th className="px-4 py-3 text-right font-medium text-gray-500">
+                <Link href={sortUrl("total")} className="hover:text-gray-800">
+                  ยอด{indicator("total")}
+                </Link>
+              </th>
               <th className="px-4 py-3 text-left font-medium text-gray-500">สถานะ</th>
             </tr>
           </thead>
@@ -111,22 +169,11 @@ export default async function DocumentsPage({ searchParams }: Props) {
                 </td>
                 <td className="px-4 py-3 font-mono text-xs">{d.docNumber}</td>
                 <td className="px-4 py-3">
-                  {d.docType === "tax_invoice" ? (
-                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
-                      TAX Invoice
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
-                      Quotation
-                    </span>
-                  )}
+                  <DocTypeBadge docType={d.docType} />
                 </td>
                 <td className="px-4 py-3">
                   {d.customer ? (
-                    <Link
-                      href={`/crm/customers/${d.customer.id}`}
-                      className="text-blue-600 hover:underline"
-                    >
+                    <Link href={`/crm/customers/${d.customer.id}`} className="text-blue-600 hover:underline">
                       {d.customer.name}
                     </Link>
                   ) : (
@@ -182,4 +229,12 @@ export default async function DocumentsPage({ searchParams }: Props) {
       </div>
     </div>
   )
+}
+
+function DocTypeBadge({ docType }: { docType: string }) {
+  if (docType === "tax_invoice")
+    return <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">TAX Invoice</span>
+  if (docType === "abb_invoice")
+    return <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800">Abb Invoice</span>
+  return <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">Quotation</span>
 }
