@@ -37,6 +37,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# internal docs (contain server IP / infra details)
+CLAUDE.md
+Project.md
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
