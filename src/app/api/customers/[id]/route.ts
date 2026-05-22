@@ -30,6 +30,7 @@ export async function PATCH(
     phone: (body.phone as string) || null,
     email: (body.email as string) || null,
     lineId: (body.lineId as string) || null,
+    otherId: (body.otherId as string) || null,
     salespersonId: body.salespersonId ? Number(body.salespersonId) : null,
   }
 

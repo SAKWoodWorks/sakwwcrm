@@ -15,6 +15,7 @@ interface CustomerData {
   phone: string | null
   email: string | null
   lineId: string | null
+  otherId: string | null
   salespersonId: number | null
 }
 
@@ -49,6 +50,7 @@ export default function CustomerEditForm({ customer, salespersons }: Props) {
       phone: (data.get("phone") as string) || null,
       email: (data.get("email") as string) || null,
       lineId: (data.get("lineId") as string) || null,
+      otherId: (data.get("otherId") as string) || null,
       salespersonId: data.get("salespersonId") ? Number(data.get("salespersonId")) : null,
     }
 
@@ -144,6 +146,11 @@ export default function CustomerEditForm({ customer, salespersons }: Props) {
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">LINE ID</label>
         <input name="lineId" type="text" defaultValue={customer.lineId ?? ""} className={inputCls} />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700">Other ID</label>
+        <input name="otherId" type="text" defaultValue={customer.otherId ?? ""} className={inputCls} />
       </div>
 
       <div>

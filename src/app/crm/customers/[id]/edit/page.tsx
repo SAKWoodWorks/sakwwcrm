@@ -27,10 +27,12 @@ export default async function CustomerEditPage({ params }: Props) {
         phone: true,
         email: true,
         lineId: true,
+        otherId: true,
         salespersonId: true,
       },
     }),
     prisma.salesperson.findMany({
+      where: { active: true },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
