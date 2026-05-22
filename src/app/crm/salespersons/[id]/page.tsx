@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { DocTypeBadge } from "@/app/crm/documents/DocTypeBadge"
+import SalespersonLineManage from "../SalespersonLineManage"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -129,15 +130,7 @@ export default async function SalespersonDetailPage({ params }: Props) {
       {/* Header */}
       <div className="mb-6 flex items-center gap-3">
         <h1 className="text-2xl font-semibold">{sp.name}</h1>
-        {sp.line_user_id ? (
-          <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-            ✅ LINE ลงทะเบียนแล้ว
-          </span>
-        ) : (
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
-            ยังไม่ลงทะเบียน LINE
-          </span>
-        )}
+        <SalespersonLineManage salespersonId={sp.id} lineUserId={sp.line_user_id} />
       </div>
 
       {/* KPI row */}
