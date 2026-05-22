@@ -22,6 +22,13 @@ type Props = {
   searchParams: Promise<{ q?: string; page?: string; sort?: string; order?: string; lapsed?: string }>
 }
 
+const LAPSED_OPTIONS = [
+  { value: "30", label: "ไม่ซื้อ 30–59 วัน", min: 30, max: 59 },
+  { value: "60", label: "ไม่ซื้อ 60–89 วัน", min: 60, max: 89 },
+  { value: "90", label: "ไม่ซื้อ 90–364 วัน", min: 90, max: 364 },
+  { value: "365", label: "ไม่ซื้อ >1 ปี", min: 365, max: null },
+]
+
 const PAGE_SIZE = 50
 
 const SORT_CLAUSES: Record<string, Prisma.Sql> = {
@@ -35,7 +42,7 @@ const SORT_CLAUSES: Record<string, Prisma.Sql> = {
 
 export default async function CustomersPage({ searchParams }: Props) {
   const { q, page: pageStr, sort = "last_purchase", order = "desc", lapsed } = await searchParams
-  const isLapsed = lapsed === "1"
+  const lapsedDays = lapsed && ["30", "60", "90", "365"].includes(lapsed) ? parseInt(lapsed) : null
   const page = Math.max(1, parseInt(pageStr ?? "1") || 1)
   const skip = (page - 1) * PAGE_SIZE
 
@@ -43,8 +50,11 @@ export default async function CustomersPage({ searchParams }: Props) {
     ? Prisma.sql`(c.name ILIKE ${`%${q}%`} OR c.tax_id ILIKE ${`%${q}%`})`
     : Prisma.sql`TRUE`
 
-  const lapsedFilter = isLapsed
-    ? Prisma.sql`AND last_inv.doc_date IS NOT NULL AND last_inv.doc_date < CURRENT_DATE - INTERVAL '90 days'`
+  const lapsedOpt = LAPSED_OPTIONS.find((o) => o.value === lapsed) ?? null
+  const lapsedFilter = lapsedOpt
+    ? lapsedOpt.max !== null
+      ? Prisma.sql`AND last_inv.doc_date IS NOT NULL AND last_inv.doc_date < CURRENT_DATE - INTERVAL '1 day' * ${lapsedOpt.min} AND last_inv.doc_date >= CURRENT_DATE - INTERVAL '1 day' * ${lapsedOpt.max + 1}`
+      : Prisma.sql`AND last_inv.doc_date IS NOT NULL AND last_inv.doc_date < CURRENT_DATE - INTERVAL '1 day' * ${lapsedOpt.min}`
     : Prisma.sql``
 
   const orderBy =
@@ -100,7 +110,7 @@ export default async function CustomersPage({ searchParams }: Props) {
     if (q) params.set("q", q)
     params.set("sort", sortKey)
     params.set("order", newOrder)
-    if (isLapsed) params.set("lapsed", "1")
+    if (lapsedDays) params.set("lapsed", String(lapsedDays))
     return `/crm/customers?${params.toString()}`
   }
 
@@ -119,21 +129,24 @@ export default async function CustomersPage({ searchParams }: Props) {
       </div>
 
       <div className="mb-3 flex gap-2">
-        {isLapsed ? (
-          <Link
-            href={`/crm/customers?${q ? `q=${encodeURIComponent(q)}&` : ""}sort=${sort}&order=${order}`}
-            className="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-700"
-          >
-            Lapsed &gt;90 วัน ✕
-          </Link>
-        ) : (
-          <Link
-            href={`/crm/customers?${q ? `q=${encodeURIComponent(q)}&` : ""}sort=${sort}&order=${order}&lapsed=1`}
-            className="inline-flex items-center gap-1 rounded-full border border-red-300 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
-          >
-            Lapsed &gt;90 วัน
-          </Link>
-        )}
+        {LAPSED_OPTIONS.map((opt) => {
+          const isActive = lapsedDays === parseInt(opt.value)
+          const baseParams = new URLSearchParams({ sort, order, ...(q ? { q } : {}) })
+          if (!isActive) baseParams.set("lapsed", opt.value)
+          return (
+            <Link
+              key={opt.value}
+              href={`/crm/customers?${baseParams.toString()}`}
+              className={
+                isActive
+                  ? "inline-flex items-center rounded-full bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-700"
+                  : "inline-flex items-center rounded-full border border-red-300 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
+              }
+            >
+              {opt.label}{isActive ? " ✕" : ""}
+            </Link>
+          )
+        })}
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-gray-200">
@@ -204,7 +217,7 @@ export default async function CustomersPage({ searchParams }: Props) {
         <div className="flex gap-2">
           {page > 1 && (
             <Link
-              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), sort, order, ...(isLapsed ? { lapsed: "1" } : {}), page: String(page - 1) })}`}
+              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), sort, order, ...(lapsedDays ? { lapsed: String(lapsedDays) } : {}), page: String(page - 1) })}`}
               className="rounded border px-3 py-1 hover:bg-gray-100"
             >
               ← ก่อนหน้า
@@ -212,7 +225,7 @@ export default async function CustomersPage({ searchParams }: Props) {
           )}
           {page < totalPages && (
             <Link
-              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), sort, order, ...(isLapsed ? { lapsed: "1" } : {}), page: String(page + 1) })}`}
+              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), sort, order, ...(lapsedDays ? { lapsed: String(lapsedDays) } : {}), page: String(page + 1) })}`}
               className="rounded border px-3 py-1 hover:bg-gray-100"
             >
               ถัดไป →

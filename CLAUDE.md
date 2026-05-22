@@ -59,15 +59,34 @@ Cron job → `/api/notify` GET (token-authenticated) → raw SQL query for lapse
 - **`src/lib/prisma.ts`** — singleton Prisma client using `@prisma/adapter-pg`. Always import from here, never instantiate directly.
 - **`src/lib/line.ts`** — `verifySignature`, `replyMessage`, `pushMessage` wrappers for LINE API.
 - **API routes** use Next.js App Router (`route.ts`). Webhook routes verify signatures before any DB access.
-- **UI pages** are under `src/app/crm/` — customers list/detail, documents, products. All light mode (dark mode removed from `globals.css`).
+- **UI pages** are under `src/app/crm/` — customers, documents, salespersons, products. All light mode (dark mode removed from `globals.css`).
+- **Shared UI components:** `src/app/crm/documents/DocTypeBadge.tsx` (doc type pill), `src/app/crm/documents/PaymentToggle.tsx` (`"use client"` — renders badge + toggle button, calls PATCH then `router.refresh()`).
+- **`PATCH /api/documents/[id]/payment`** — toggles `paymentStatus` between `paid`/`pending`. Auth-gated via `auth()`. Returns `{ ok: true, status }`.
+
+### Next.js 15 gotchas
+
+- `params` in route/page handlers is `Promise<{ id: string }>` — must `await params` before accessing fields.
+- All pages that query the DB need `export const dynamic = "force-dynamic"` at the top.
+- After a client-side `fetch` mutation, call `router.refresh()` (from `useRouter`) to re-render server components — do not use `window.location.reload()`.
 
 ### Prisma schema key points
 
 Seven models: `Salesperson`, `Customer`, `Product`, `ProductTransformRule`, `Document`, `DocumentItem`, `SyncLog`.
 
-`Document.docType` values: `"tax_invoice"` | `"quotation"`. `Document.paymentStatus`: `"paid"` | `"pending"`.
+`Document.docType` values: `"tax_invoice"` | `"quotation"`. `Document.paymentStatus`: `"paid"` | `"pending"` | `null`. `null` means not applicable (non-invoice doc), not "pending" — never coerce `null` to pending in UI logic.
 
 `$queryRaw` results: PostgreSQL `bigint` columns come back as JavaScript `BigInt`; `Decimal` columns as `Prisma.Decimal`. Wrap with `Number()` before arithmetic or string formatting.
+
+**`Prisma.Decimal` zero trap:** `Decimal(0)` is falsy. Always check `value != null` not `if (value)` before formatting optional Decimal fields — otherwise zero renders as "—".
+
+### API route id validation pattern
+
+```ts
+const docId = parseInt(id, 10)
+if (isNaN(docId) || String(docId) !== id) return 400  // catches "5abc" silently parsed as 5
+```
+
+Use this in every route that takes a numeric `:id` param.
 
 ### Python extraction layer (`extraction/`)
 
@@ -81,7 +100,7 @@ Seven models: `Salesperson`, `Customer`, `Product`, `ProductTransformRule`, `Doc
 
 ### Testing
 
-Vitest (`npm test`). Test files in `src/__tests__/`. Vitest `globals: true` — no need to import `describe`/`it`/`expect`. Prisma and LINE clients are fully mocked — tests never hit the database or LINE API.
+Vitest (`npm test`). Test files in `src/__tests__/`: `prisma-singleton`, `line-client`, `line-webhook`, `notify`, `document-payment`. Vitest `globals: true` — no need to import `describe`/`it`/`expect`. Prisma and LINE clients are fully mocked — tests never hit the database or LINE API.
 
 When `salesperson.findFirst` is called twice in a single webhook handler (lineUserId check then name check), chain mocks: `.mockResolvedValueOnce(null).mockResolvedValueOnce(salesperson)`.
 

@@ -9,6 +9,10 @@ interface Stats {
   monthly_revenue: Prisma.Decimal
   monthly_invoices: bigint
   lapsed_count: bigint
+  pending_invoices: bigint
+  new_customers: bigint
+  monthly_quotations: bigint
+  monthly_quotation_revenue: Prisma.Decimal
 }
 
 interface TopCustomer {
@@ -41,7 +45,22 @@ export default async function DashboardPage() {
              WHERE doc_type = 'tax_invoice'
                AND doc_date >= CURRENT_DATE - INTERVAL '90 days'
                AND customer_id IS NOT NULL
-           ))                                                                     AS lapsed_count
+           ))                                                                     AS lapsed_count,
+        (SELECT COUNT(*)
+         FROM documents
+         WHERE doc_type = 'tax_invoice'
+           AND payment_status = 'pending')                                        AS pending_invoices,
+        (SELECT COUNT(*)
+         FROM customers
+         WHERE created_at >= date_trunc('month', CURRENT_DATE))                  AS new_customers,
+        (SELECT COUNT(*)
+         FROM documents
+         WHERE doc_type = 'quotation'
+           AND doc_date >= date_trunc('month', CURRENT_DATE))                    AS monthly_quotations,
+        (SELECT COALESCE(SUM(total), 0)
+         FROM documents
+         WHERE doc_type = 'quotation'
+           AND doc_date >= date_trunc('month', CURRENT_DATE))                    AS monthly_quotation_revenue
     `,
     prisma.$queryRaw<TopCustomer[]>`
       SELECT
@@ -57,36 +76,50 @@ export default async function DashboardPage() {
     `,
   ])
 
+  const fmt = (n: number) => n.toLocaleString("th-TH")
+  const fmtBaht = (n: number) =>
+    n.toLocaleString("th-TH", { style: "currency", currency: "THB", minimumFractionDigits: 0 })
+
   const cards = [
     {
       label: "ลูกค้าทั้งหมด",
-      value: Number(stats.total_customers).toLocaleString("th-TH"),
+      value: fmt(Number(stats.total_customers)),
       href: "/crm/customers",
       color: "text-blue-700",
       border: "border-blue-100",
     },
     {
+      label: "ลูกค้าใหม่เดือนนี้",
+      value: fmt(Number(stats.new_customers)),
+      href: "/crm/customers",
+      color: "text-blue-500",
+      border: "border-blue-100",
+    },
+    {
       label: "ยอดขายเดือนนี้",
-      value: Number(stats.monthly_revenue).toLocaleString("th-TH", {
-        style: "currency",
-        currency: "THB",
-        minimumFractionDigits: 0,
-      }),
+      value: fmtBaht(Number(stats.monthly_revenue)),
       href: null,
       color: "text-green-700",
       border: "border-green-100",
     },
     {
       label: "Invoice เดือนนี้",
-      value: Number(stats.monthly_invoices).toLocaleString("th-TH"),
+      value: fmt(Number(stats.monthly_invoices)),
       href: "/crm/documents?type=tax_invoice",
       color: "text-gray-800",
       border: "border-gray-100",
     },
     {
+      label: "Invoice ค้างชำระ",
+      value: fmt(Number(stats.pending_invoices)),
+      href: "/crm/documents?type=tax_invoice",
+      color: "text-orange-600",
+      border: "border-orange-100",
+    },
+    {
       label: "Lapsed >90 วัน",
-      value: Number(stats.lapsed_count).toLocaleString("th-TH"),
-      href: "/crm/customers?lapsed=1",
+      value: fmt(Number(stats.lapsed_count)),
+      href: "/crm/customers?lapsed=90",
       color: "text-red-600",
       border: "border-red-100",
     },
@@ -95,7 +128,7 @@ export default async function DashboardPage() {
   return (
     <div className="p-6">
       <h1 className="mb-6 text-2xl font-semibold">Dashboard</h1>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         {cards.map((card) => {
           const inner = (
             <div
@@ -113,6 +146,36 @@ export default async function DashboardPage() {
             <div key={card.label}>{inner}</div>
           )
         })}
+      </div>
+
+      {/* Quotation vs Invoice */}
+      <h2 className="mb-3 mt-8 text-lg font-semibold">Quotation vs Invoice เดือนนี้</h2>
+      <div className="overflow-x-auto rounded-lg border border-gray-200">
+        <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">ประเภท</th>
+              <th className="px-4 py-3 text-right font-medium text-gray-500">จำนวน</th>
+              <th className="px-4 py-3 text-right font-medium text-gray-500">ยอดรวม</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            <tr className="hover:bg-gray-50">
+              <td className="px-4 py-3 font-medium">
+                <Link href="/crm/documents?type=quotation" className="text-blue-600 hover:underline">Quotation</Link>
+              </td>
+              <td className="px-4 py-3 text-right tabular-nums">{fmt(Number(stats.monthly_quotations))}</td>
+              <td className="px-4 py-3 text-right tabular-nums">{fmtBaht(Number(stats.monthly_quotation_revenue))}</td>
+            </tr>
+            <tr className="hover:bg-gray-50">
+              <td className="px-4 py-3 font-medium">
+                <Link href="/crm/documents?type=tax_invoice" className="text-blue-600 hover:underline">Invoice</Link>
+              </td>
+              <td className="px-4 py-3 text-right tabular-nums">{fmt(Number(stats.monthly_invoices))}</td>
+              <td className="px-4 py-3 text-right tabular-nums font-semibold text-green-700">{fmtBaht(Number(stats.monthly_revenue))}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       {/* Top customers */}
