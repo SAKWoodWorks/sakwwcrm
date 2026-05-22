@@ -25,6 +25,10 @@ export async function POST(
   if (isNaN(spId) || String(spId) !== id)
     return NextResponse.json({ error: "Invalid id" }, { status: 400 })
 
+  const sp = await prisma.salesperson.findUnique({ where: { id: spId }, select: { lineUserId: true } })
+  if (!sp) return NextResponse.json({ error: "Not found" }, { status: 404 })
+  if (sp.lineUserId) return NextResponse.json({ error: "Already linked" }, { status: 409 })
+
   const code = generateCode()
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
 

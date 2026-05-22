@@ -135,7 +135,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             })
             await replyMessage(event.replyToken ?? "", "ลงทะเบียนสำเร็จ ✅")
           } else {
-            const codeExists = await prisma.salesperson.findFirst({ where: { linkCode: inputText } })
+            const codeExists = await prisma.salesperson.findFirst({ where: { linkCode: inputText, lineUserId: null } })
             if (codeExists) {
               await replyMessage(event.replyToken ?? "", "รหัสหมดอายุ กรุณาขอรหัสใหม่")
             } else {

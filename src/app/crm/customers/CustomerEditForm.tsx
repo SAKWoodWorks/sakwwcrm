@@ -65,6 +65,7 @@ export default function CustomerEditForm({ customer, salespersons }: Props) {
         setError((json as { error?: string }).error ?? "เกิดข้อผิดพลาด กรุณาลองใหม่")
         return
       }
+      router.refresh()
       router.push(`/crm/customers/${customer.id}`)
     } catch {
       setError("เกิดข้อผิดพลาด กรุณาลองใหม่")

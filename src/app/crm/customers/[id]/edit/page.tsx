@@ -10,7 +10,7 @@ type Props = { params: Promise<{ id: string }> }
 export default async function CustomerEditPage({ params }: Props) {
   const { id } = await params
   const custId = parseInt(id, 10)
-  if (isNaN(custId)) notFound()
+  if (isNaN(custId) || String(custId) !== id) notFound()
 
   const [customer, salespersons] = await Promise.all([
     prisma.customer.findUnique({

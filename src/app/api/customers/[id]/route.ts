@@ -22,7 +22,7 @@ export async function PATCH(
   const data = {
     name: (body.name as string).trim(),
     taxId: (body.taxId as string) || null,
-    vatRegistered: Boolean(body.vatRegistered),
+    vatRegistered: body.vatRegistered === true,
     type: (body.type as string) || null,
     status: (body.status as string) || "not_purchase_yet",
     province: (body.province as string) || null,
@@ -33,6 +33,10 @@ export async function PATCH(
     otherId: (body.otherId as string) || null,
     salespersonId: body.salespersonId ? Number(body.salespersonId) : null,
   }
+
+  const VALID_STATUS = ["not_purchase_yet", "active", "inactive"]
+  if (!VALID_STATUS.includes(data.status))
+    return NextResponse.json({ error: "Invalid status" }, { status: 400 })
 
   try {
     await prisma.customer.update({ where: { id: custId }, data })

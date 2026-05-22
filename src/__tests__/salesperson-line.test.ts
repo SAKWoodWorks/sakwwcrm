@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client"
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    salesperson: { update: vi.fn() },
+    salesperson: { update: vi.fn(), findUnique: vi.fn() },
   },
 }))
 
@@ -92,6 +92,7 @@ describe("POST /api/salespersons/[id]/line/code", () => {
 
   it("returns 200 with 6-char code and expiresAt", async () => {
     vi.mocked(auth).mockResolvedValue({ user: {} } as any)
+    vi.mocked(prisma.salesperson.findUnique).mockResolvedValue({ lineUserId: null } as any)
     vi.mocked(prisma.salesperson.update).mockResolvedValue({} as any)
     const req = new NextRequest("http://localhost/api/salespersons/5/line/code", { method: "POST" })
     const before = Date.now()
@@ -101,14 +102,25 @@ describe("POST /api/salespersons/[id]/line/code", () => {
     const json = await res.json()
     expect(typeof json.code).toBe("string")
     expect(json.code).toHaveLength(6)
-    expect(json.code).toMatch(/^[A-Z2-9]{6}$/)
+    expect(json.code).toMatch(/^[A-HJ-NP-Z2-9]{6}$/)
     const expiresMs = new Date(json.expiresAt).getTime()
     expect(expiresMs).toBeGreaterThan(before + 14 * 60 * 1000)
     expect(expiresMs).toBeLessThan(after + 16 * 60 * 1000)
   })
 
+  it("returns 409 when salesperson is already linked", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: {} } as any)
+    vi.mocked(prisma.salesperson.findUnique).mockResolvedValue({ lineUserId: "U123" } as any)
+    const req = new NextRequest("http://localhost/api/salespersons/5/line/code", { method: "POST" })
+    const res = await POST(req, makeParams("5"))
+    expect(res.status).toBe(409)
+    const json = await res.json()
+    expect(json.error).toBe("Already linked")
+  })
+
   it("saves code and expiresAt to DB", async () => {
     vi.mocked(auth).mockResolvedValue({ user: {} } as any)
+    vi.mocked(prisma.salesperson.findUnique).mockResolvedValue({ lineUserId: null } as any)
     vi.mocked(prisma.salesperson.update).mockResolvedValue({} as any)
     const req = new NextRequest("http://localhost/api/salespersons/5/line/code", { method: "POST" })
     await POST(req, makeParams("5"))
@@ -116,15 +128,24 @@ describe("POST /api/salespersons/[id]/line/code", () => {
       expect.objectContaining({
         where: { id: 5 },
         data: expect.objectContaining({
-          linkCode: expect.stringMatching(/^[A-Z2-9]{6}$/),
+          linkCode: expect.stringMatching(/^[A-HJ-NP-Z2-9]{6}$/),
           linkCodeExpiresAt: expect.any(Date),
         }),
       })
     )
   })
 
-  it("returns 404 on P2025", async () => {
+  it("returns 404 when salesperson does not exist", async () => {
     vi.mocked(auth).mockResolvedValue({ user: {} } as any)
+    vi.mocked(prisma.salesperson.findUnique).mockResolvedValue(null)
+    const req = new NextRequest("http://localhost/api/salespersons/99/line/code", { method: "POST" })
+    const res = await POST(req, makeParams("99"))
+    expect(res.status).toBe(404)
+  })
+
+  it("returns 404 on P2025 during update", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: {} } as any)
+    vi.mocked(prisma.salesperson.findUnique).mockResolvedValue({ lineUserId: null } as any)
     vi.mocked(prisma.salesperson.update).mockRejectedValue(makeP2025())
     const req = new NextRequest("http://localhost/api/salespersons/99/line/code", { method: "POST" })
     const res = await POST(req, makeParams("99"))
