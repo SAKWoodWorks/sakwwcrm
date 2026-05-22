@@ -37,6 +37,15 @@ function makeRequest(body: object, signature = "valid-sig"): NextRequest {
   })
 }
 
+function makeTextEvent(text: string, userId = "Uabc123", replyToken = "reply-token-code") {
+  return {
+    type: "message",
+    replyToken,
+    source: { userId },
+    message: { type: "text", text },
+  }
+}
+
 describe("POST /api/line/webhook", () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -66,6 +75,7 @@ describe("POST /api/line/webhook", () => {
   it("saves line_user_id and replies success when name matches", async () => {
     ;(prisma.salesperson.findFirst as ReturnType<typeof vi.fn>)
       .mockResolvedValueOnce(null)           // lineUserId check → not registered
+      .mockResolvedValueOnce(null)           // linkCode check → no match
       .mockResolvedValueOnce({ id: 5, name: "Pickachu" })  // name check → found
     ;(prisma.salesperson.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
@@ -91,6 +101,7 @@ describe("POST /api/line/webhook", () => {
   it("replies not-found when name does not match", async () => {
     ;(prisma.salesperson.findFirst as ReturnType<typeof vi.fn>)
       .mockResolvedValueOnce(null)   // lineUserId check
+      .mockResolvedValueOnce(null)   // linkCode check
       .mockResolvedValueOnce(null)   // name check
 
     const req = makeRequest({
@@ -110,6 +121,23 @@ describe("POST /api/line/webhook", () => {
       "ไม่พบชื่อในระบบ กรุณาลองใหม่"
     )
     expect(prisma.salesperson.update).not.toHaveBeenCalled()
+  })
+
+  it("links via code when valid code is sent", async () => {
+    ;(prisma.salesperson.findFirst as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce(null)                        // lineUserId → not registered
+      .mockResolvedValueOnce({ id: 7, name: "Test SP" }) // linkCode → match
+    ;(prisma.salesperson.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
+    ;(replyMessage as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
+
+    const req = makeRequest({ events: [makeTextEvent("ABC123")] })
+    await POST(req)
+
+    expect(prisma.salesperson.update).toHaveBeenCalledWith({
+      where: { id: 7 },
+      data: { lineUserId: expect.any(String), linkCode: null, linkCodeExpiresAt: null },
+    })
+    expect(replyMessage).toHaveBeenCalledWith(expect.any(String), "ลงทะเบียนสำเร็จ ✅")
   })
 
   describe("customer search (registered salesperson)", () => {

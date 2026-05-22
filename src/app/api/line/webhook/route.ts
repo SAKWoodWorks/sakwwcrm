@@ -124,18 +124,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         if (registered) {
           await handleCustomerSearch(event.replyToken ?? "", inputText)
         } else {
-          // Registration flow: treat message as salesperson name
-          const salesperson = await prisma.salesperson.findFirst({
-            where: { name: { equals: inputText, mode: "insensitive" } },
+          // Registration flow: check link code first, then name
+          const codeMatch = await prisma.salesperson.findFirst({
+            where: { linkCode: inputText, linkCodeExpiresAt: { gt: new Date() } },
           })
-          if (salesperson) {
+          if (codeMatch) {
             await prisma.salesperson.update({
-              where: { id: salesperson.id },
-              data: { lineUserId: userId },
+              where: { id: codeMatch.id },
+              data: { lineUserId: userId, linkCode: null, linkCodeExpiresAt: null },
             })
             await replyMessage(event.replyToken ?? "", "ลงทะเบียนสำเร็จ ✅")
           } else {
-            await replyMessage(event.replyToken ?? "", "ไม่พบชื่อในระบบ กรุณาลองใหม่")
+            const salesperson = await prisma.salesperson.findFirst({
+              where: { name: { equals: inputText, mode: "insensitive" } },
+            })
+            if (salesperson) {
+              await prisma.salesperson.update({
+                where: { id: salesperson.id },
+                data: { lineUserId: userId },
+              })
+              await replyMessage(event.replyToken ?? "", "ลงทะเบียนสำเร็จ ✅")
+            } else {
+              await replyMessage(event.replyToken ?? "", "ไม่พบชื่อในระบบ กรุณาลองใหม่")
+            }
           }
         }
       }
