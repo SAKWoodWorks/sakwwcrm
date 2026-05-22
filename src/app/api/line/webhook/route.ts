@@ -126,7 +126,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         } else {
           // Registration flow: check link code first, then name
           const codeMatch = await prisma.salesperson.findFirst({
-            where: { linkCode: inputText, linkCodeExpiresAt: { gt: new Date() } },
+            where: { linkCode: inputText, linkCodeExpiresAt: { gt: new Date() }, lineUserId: null },
           })
           if (codeMatch) {
             await prisma.salesperson.update({
@@ -135,17 +135,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             })
             await replyMessage(event.replyToken ?? "", "ลงทะเบียนสำเร็จ ✅")
           } else {
-            const salesperson = await prisma.salesperson.findFirst({
-              where: { name: { equals: inputText, mode: "insensitive" } },
-            })
-            if (salesperson) {
-              await prisma.salesperson.update({
-                where: { id: salesperson.id },
-                data: { lineUserId: userId },
-              })
-              await replyMessage(event.replyToken ?? "", "ลงทะเบียนสำเร็จ ✅")
+            const codeExists = await prisma.salesperson.findFirst({ where: { linkCode: inputText } })
+            if (codeExists) {
+              await replyMessage(event.replyToken ?? "", "รหัสหมดอายุ กรุณาขอรหัสใหม่")
             } else {
-              await replyMessage(event.replyToken ?? "", "ไม่พบชื่อในระบบ กรุณาลองใหม่")
+              const salesperson = await prisma.salesperson.findFirst({
+                where: { name: { equals: inputText, mode: "insensitive" } },
+              })
+              if (salesperson) {
+                await prisma.salesperson.update({
+                  where: { id: salesperson.id },
+                  data: { lineUserId: userId },
+                })
+                await replyMessage(event.replyToken ?? "", "ลงทะเบียนสำเร็จ ✅")
+              } else {
+                await replyMessage(event.replyToken ?? "", "ไม่พบชื่อในระบบ กรุณาลองใหม่")
+              }
             }
           }
         }

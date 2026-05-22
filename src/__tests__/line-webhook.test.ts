@@ -75,7 +75,8 @@ describe("POST /api/line/webhook", () => {
   it("saves line_user_id and replies success when name matches", async () => {
     ;(prisma.salesperson.findFirst as ReturnType<typeof vi.fn>)
       .mockResolvedValueOnce(null)           // lineUserId check → not registered
-      .mockResolvedValueOnce(null)           // linkCode check → no match
+      .mockResolvedValueOnce(null)           // linkCode check (valid+unexpired) → no match
+      .mockResolvedValueOnce(null)           // codeExists check → no expired code
       .mockResolvedValueOnce({ id: 5, name: "Pickachu" })  // name check → found
     ;(prisma.salesperson.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
@@ -101,7 +102,8 @@ describe("POST /api/line/webhook", () => {
   it("replies not-found when name does not match", async () => {
     ;(prisma.salesperson.findFirst as ReturnType<typeof vi.fn>)
       .mockResolvedValueOnce(null)   // lineUserId check
-      .mockResolvedValueOnce(null)   // linkCode check
+      .mockResolvedValueOnce(null)   // linkCode check (valid+unexpired)
+      .mockResolvedValueOnce(null)   // codeExists check
       .mockResolvedValueOnce(null)   // name check
 
     const req = makeRequest({
@@ -135,9 +137,23 @@ describe("POST /api/line/webhook", () => {
 
     expect(prisma.salesperson.update).toHaveBeenCalledWith({
       where: { id: 7 },
-      data: { lineUserId: expect.any(String), linkCode: null, linkCodeExpiresAt: null },
+      data: { lineUserId: "Uabc123", linkCode: null, linkCodeExpiresAt: null },
     })
     expect(replyMessage).toHaveBeenCalledWith(expect.any(String), "ลงทะเบียนสำเร็จ ✅")
+  })
+
+  it("replies expired when code exists but is expired", async () => {
+    ;(prisma.salesperson.findFirst as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce(null)   // lineUserId → not registered
+      .mockResolvedValueOnce(null)   // linkCode (valid+unexpired) → no match
+      .mockResolvedValueOnce({ id: 3, linkCode: "ABC123" }) // codeExists → found (expired)
+    ;(replyMessage as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
+
+    const req = makeRequest({ events: [makeTextEvent("ABC123")] })
+    await POST(req)
+
+    expect(replyMessage).toHaveBeenCalledWith(expect.any(String), "รหัสหมดอายุ กรุณาขอรหัสใหม่")
+    expect(prisma.salesperson.update).not.toHaveBeenCalled()
   })
 
   describe("customer search (registered salesperson)", () => {
