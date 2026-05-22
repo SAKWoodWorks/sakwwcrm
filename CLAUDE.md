@@ -49,7 +49,7 @@ EXTRACTION_DIR              # Absolute path to extraction/ directory
 
 Google Drive (xlsx files) → `/api/gdrive` POST webhook → spawns Python `extract_file.py` as child process → writes to PostgreSQL + Google Sheets.
 
-LINE messages → `/api/line/webhook` POST → registered salesperson: customer search; unregistered: name-based registration.
+LINE messages → `/api/line/webhook` POST → registered salesperson: customer search; unregistered: code-check first (linkCode + expiry), then expired-code reply, then name-match registration.
 
 Cron job → `/api/notify` GET (token-authenticated) → raw SQL query for lapsed customers → LINE push messages.
 
@@ -60,8 +60,11 @@ Cron job → `/api/notify` GET (token-authenticated) → raw SQL query for lapse
 - **`src/lib/line.ts`** — `verifySignature`, `replyMessage`, `pushMessage` wrappers for LINE API.
 - **API routes** use Next.js App Router (`route.ts`). Webhook routes verify signatures before any DB access.
 - **UI pages** are under `src/app/crm/` — customers, documents, salespersons, products. All light mode (dark mode removed from `globals.css`).
-- **Shared UI components:** `src/app/crm/documents/DocTypeBadge.tsx` (doc type pill), `src/app/crm/documents/PaymentToggle.tsx` (`"use client"` — renders badge + toggle button, calls PATCH then `router.refresh()`).
+- **Shared UI components:** `src/app/crm/documents/DocTypeBadge.tsx` (doc type pill), `src/app/crm/documents/PaymentToggle.tsx` (`"use client"` — renders badge + toggle button, calls PATCH then `router.refresh()`), `src/app/crm/salespersons/SalespersonLineManage.tsx` (`"use client"` — LINE link/unlink UI, generate one-time code).
 - **`PATCH /api/documents/[id]/payment`** — toggles `paymentStatus` between `paid`/`pending`. Auth-gated via `auth()`. Returns `{ ok: true, status }`.
+- **`PATCH /api/customers/[id]`** — update customer. `status` validated against allowlist `["not_purchase_yet", "active", "inactive"]`. `vatRegistered` must be `=== true` (not truthy).
+- **`POST /api/salespersons/[id]/line/code`** — generate 6-char link code (crypto.randomInt, charset excludes I/O/0/1, 15 min expiry). Returns 409 if already linked.
+- **`DELETE /api/salespersons/[id]/line`** — unlink LINE (clears lineUserId, linkCode, linkCodeExpiresAt).
 
 ### Next.js 15 gotchas
 
@@ -72,6 +75,8 @@ Cron job → `/api/notify` GET (token-authenticated) → raw SQL query for lapse
 ### Prisma schema key points
 
 Seven models: `Salesperson`, `Customer`, `Product`, `ProductTransformRule`, `Document`, `DocumentItem`, `SyncLog`.
+
+`Salesperson` has `linkCode String?` and `linkCodeExpiresAt DateTime?` for one-time LINE registration codes.
 
 `Document.docType` values: `"tax_invoice"` | `"quotation"`. `Document.paymentStatus`: `"paid"` | `"pending"` | `null`. `null` means not applicable (non-invoice doc), not "pending" — never coerce `null` to pending in UI logic.
 
@@ -88,6 +93,16 @@ if (isNaN(docId) || String(docId) !== id) return 400  // catches "5abc" silently
 
 Use this in every route that takes a numeric `:id` param.
 
+### Deployment
+
+Production: Digital Ocean Droplet running Docker. `docker-compose.yml` defines `db` (postgres:16), `pgadmin` (port 5050), `crm` (Next.js, port 8008→8007).
+
+Deploy: `git pull && docker compose up -d --build` on server.
+
+Schema changes: `prisma migrate dev` has advisory lock issues — run `ALTER TABLE` directly via `docker exec -i <db-container> psql -U crm -d crm_db -c "..."` instead.
+
+Local dev connects to server DB via SSH tunnel: `ssh -L 5432:localhost:5432 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 info@157.245.207.55 -N`. `DATABASE_URL` in `.env.local` points to `localhost:5432`.
+
 ### Python extraction layer (`extraction/`)
 
 - **`extract_file.py`** — entry point for single file. Parses filename metadata (doc type, date, salesperson, customer) then reads xlsx cells for line items. Accepts `salesperson_override` kwarg (used when files are in named subfolders, e.g. `Quoatation/Pickachu/`).
@@ -102,6 +117,6 @@ Use this in every route that takes a numeric `:id` param.
 
 Vitest (`npm test`). Test files in `src/__tests__/`: `prisma-singleton`, `line-client`, `line-webhook`, `notify`, `document-payment`. Vitest `globals: true` — no need to import `describe`/`it`/`expect`. Prisma and LINE clients are fully mocked — tests never hit the database or LINE API.
 
-When `salesperson.findFirst` is called twice in a single webhook handler (lineUserId check then name check), chain mocks: `.mockResolvedValueOnce(null).mockResolvedValueOnce(salesperson)`.
+Webhook `findFirst` call order for unregistered users: (1) lineUserId check, (2) linkCode+expiry check, (3) codeExists check (no expiry filter), (4) name check. Chain 4 mocks for name-match path: `null, null, null, salesperson`. Test files also cover `customer-edit` and `salesperson-line`.
 
 Python tests live in `extraction/tests/` and cover filename_parser, xlsx_parser, product_matcher, and db helpers.
