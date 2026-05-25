@@ -1,5 +1,6 @@
 "use client"
 
+import { formatSalespersonName } from "@/lib/salesperson-display"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -160,7 +161,7 @@ export default function CustomerEditForm({ customer, salespersons }: Props) {
           <option value="">ไม่ระบุ</option>
           {salespersons.map((sp) => (
             <option key={sp.id} value={sp.id}>
-              {sp.name}
+              {formatSalespersonName(sp.name)}
             </option>
           ))}
         </select>

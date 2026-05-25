@@ -1,5 +1,6 @@
 "use client"
 
+import { formatSalespersonName } from "@/lib/salesperson-display"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 
@@ -80,7 +81,7 @@ export default function DocumentFilters({ salespersons }: Props) {
         <option value="">ทุกพนักงาน</option>
         {salespersons.map((s) => (
           <option key={s.id} value={s.id}>
-            {s.name}
+            {formatSalespersonName(s.name)}
           </option>
         ))}
       </select>

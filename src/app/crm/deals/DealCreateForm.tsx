@@ -1,6 +1,7 @@
 "use client"
 
 import { DEAL_STAGE_LABELS, DEAL_STAGES } from "@/lib/deals"
+import { formatSalespersonName } from "@/lib/salesperson-display"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -88,7 +89,7 @@ export default function DealCreateForm({ customers, salespersons }: Props) {
             <option value="">ไม่ระบุ</option>
             {salespersons.map((salesperson) => (
               <option key={salesperson.id} value={salesperson.id}>
-                {salesperson.name}
+                {formatSalespersonName(salesperson.name)}
               </option>
             ))}
           </select>

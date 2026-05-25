@@ -131,7 +131,7 @@ export default async function DealsPage({ searchParams }: Props) {
           <option value="">ทุกพนักงาน</option>
           {salespersons.map((s) => (
             <option key={s.id} value={s.id}>
-              {s.name}
+              {formatSalespersonName(s.name)}
             </option>
           ))}
         </select>
