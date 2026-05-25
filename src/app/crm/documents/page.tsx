@@ -7,6 +7,7 @@ import DocumentFilters from "./DocumentFilters"
 import { DocTypeBadge } from "./DocTypeBadge"
 import PaymentToggle from "./PaymentToggle"
 import type { Prisma } from "@prisma/client"
+import { formatSalespersonName } from "@/lib/salesperson-display"
 
 type Props = {
   searchParams: Promise<{
@@ -130,7 +131,7 @@ export default async function DocumentsPage({ searchParams }: Props) {
   }
 
   return (
-    <div className="p-6">
+    <div className="crm-page">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">เอกสาร</h1>
       </div>
@@ -141,7 +142,52 @@ export default async function DocumentsPage({ searchParams }: Props) {
         </Suspense>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <div className="crm-mobile-list">
+        {documents.map((d) => (
+          <div key={d.id} className="crm-card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <Link href={`/crm/documents/${d.id}`} className="font-mono text-sm font-bold text-[var(--crm-brand)]">
+                  {d.docNumber}
+                </Link>
+                <p className="mt-1 text-xs text-[var(--crm-muted)]">{d.docDate.toLocaleDateString("th-TH")} · {d.channel ?? "—"}</p>
+              </div>
+              <DocTypeBadge docType={d.docType} />
+            </div>
+            <div className="mt-3">
+              <p className="text-xs text-[var(--crm-muted)]">ลูกค้า</p>
+              {d.customer ? (
+                <Link href={`/crm/customers/${d.customer.id}`} className="line-clamp-2 font-semibold text-[var(--crm-ink)]">
+                  {d.customer.name}
+                </Link>
+              ) : (
+                <p className="font-semibold">—</p>
+              )}
+            </div>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs text-[var(--crm-muted)]">พนักงาน</p>
+                <p className="text-sm font-medium">{formatSalespersonName(d.salesperson?.name)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-[var(--crm-muted)]">ยอด</p>
+                <p className="font-semibold tabular-nums">
+                  {d.total != null
+                    ? Number(d.total).toLocaleString("th-TH", { style: "currency", currency: "THB", minimumFractionDigits: 0 })
+                    : "—"}
+                </p>
+              </div>
+            </div>
+            {d.docType === "tax_invoice" && (
+              <div className="mt-3">
+                <PaymentToggle documentId={d.id} currentStatus={d.paymentStatus} />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="crm-table-wrap crm-desktop-table">
         <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
           <thead className="bg-gray-50">
             <tr>
@@ -190,7 +236,7 @@ export default async function DocumentsPage({ searchParams }: Props) {
                   )}
                 </td>
                 <td className="px-4 py-3 text-gray-500">{d.channel ?? "—"}</td>
-                <td className="px-4 py-3">{d.salesperson?.name ?? "—"}</td>
+                <td className="px-4 py-3">{formatSalespersonName(d.salesperson?.name)}</td>
                 <td className="px-4 py-3 text-right tabular-nums">
                   {d.total != null
                     ? Number(d.total).toLocaleString("th-TH", {
@@ -233,4 +279,3 @@ export default async function DocumentsPage({ searchParams }: Props) {
     </div>
   )
 }
-

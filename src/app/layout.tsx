@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="th">
       <body className={geist.className}>
         <NavBar />
-        <main>{children}</main>
+        <main className="crm-main">{children}</main>
       </body>
     </html>
   )

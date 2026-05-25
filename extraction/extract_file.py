@@ -30,6 +30,7 @@ from db import (
     insert_document, insert_document_items, log_sync, fetch_products_by_ids,
 )
 from parsers.filename_parser import parse_filename
+from parsers.province_parser import extract_province_from_address
 from parsers.xlsx_parser import parse_tax_invoice, parse_quotation
 from product_matcher import match_product_id
 from sheets_client import append_document_row, batch_append_items, ensure_items_header
@@ -84,8 +85,9 @@ def process(filepath: str, filename: str, file_id: str, dry_run: bool = False, s
             conn.close()
             return
 
-        sp_id = upsert_salesperson(conn, meta.salesperson, meta.channel)
-        cust_id = upsert_customer(conn, doc_data.customer, meta.province)
+        sp_id = upsert_salesperson(conn, meta.salesperson, meta.channel) if meta.salesperson else None
+        province = extract_province_from_address(doc_data.customer.address)
+        cust_id = upsert_customer(conn, doc_data.customer, province)
         product_ids = [match_product_id(conn, item.description) for item in doc_data.items]
         product_info = fetch_products_by_ids(conn, product_ids)
 

@@ -9,8 +9,8 @@ class FilenameMetadata:
     doc_type: str
     doc_number: str
     doc_date: date
-    channel: str
-    salesperson: str
+    channel: Optional[str]
+    salesperson: Optional[str]
     payment_status: str          # 'paid' | 'pending'
     ref_doc_number: Optional[str]
     customer_short: str
@@ -66,20 +66,39 @@ def _split_customer_province(text: str) -> tuple[str, str]:
 
 
 def _parse_ti(stem: str, filename: str) -> FilenameMetadata:
-    # Stage 1: TI_B No <num> <date> <channel> <rest>
-    m = re.match(r'TI_B No\s+(\S+)\s+(\d{2}-\d{2}-\d{4})\s+(\S+)\s*', stem)
+    # Stage 1: TI_B No <num> <date> <channel?> <rest>
+    m = re.match(r'TI_B No\s+(\S+)\s+(\d{2}-\d{2}-\d{4})\s*', stem)
     if not m:
         raise ValueError(f"Cannot parse TAX Invoice filename: {filename!r}")
     doc_number = m.group(1).strip()
     doc_date = _parse_date(m.group(2))
-    channel = m.group(3).strip()
     rest = stem[m.end():]
+
+    first_token = rest.strip().split(None, 1)[0] if rest.strip() else ''
+    if first_token and not first_token.isascii():
+        return _parse_ti_without_channel_or_salesperson(
+            doc_number=doc_number,
+            doc_date=doc_date,
+            rest=rest,
+            filename=filename,
+        )
+
+    channel_match = re.match(r'(\S+)\s*', rest)
+    if not channel_match:
+        raise ValueError(f"Cannot parse TAX Invoice filename: {filename!r}")
+    channel = channel_match.group(1).strip()
+    rest = rest[channel_match.end():]
 
     # Stage 2: salesperson = everything up to first '('
     m2 = re.match(r'(.*?)\s*\(', rest)
     if not m2:
         raise ValueError(f"Cannot parse TAX Invoice filename: {filename!r}")
     salesperson = m2.group(1).strip()
+    paid_marker = False
+    inline_paid = re.search(r'[_-]PAID[_-]?$', salesperson, re.IGNORECASE)
+    if inline_paid:
+        paid_marker = True
+        salesperson = salesperson[:inline_paid.start()].strip()
     rest = rest[m2.end() - 1:]  # rewind to include '('
 
     # Stage 3: first paren group (payment status)
@@ -99,12 +118,12 @@ def _parse_ti(stem: str, filename: str) -> FilenameMetadata:
         # Single group — treat as ref, payment assumed pending unless group contains PAID
         ref_raw = payment_raw
         ref_doc_number = None if ref_raw in ('--', '', '-') else ref_raw
-        payment_raw = ''  # will evaluate below
+        payment_raw = 'PAID' if paid_marker else ''  # will evaluate below
 
     rest = rest.strip()
     customer, province = _split_customer_province(rest)
 
-    paid = '-PAID-' in payment_raw or payment_raw.startswith('PAID')
+    paid = paid_marker or '-PAID-' in payment_raw or payment_raw.startswith('PAID')
     payment_status = 'paid' if paid else 'pending'
 
     return FilenameMetadata(
@@ -114,6 +133,47 @@ def _parse_ti(stem: str, filename: str) -> FilenameMetadata:
         channel=channel,
         salesperson=salesperson,
         payment_status=payment_status,
+        ref_doc_number=ref_doc_number,
+        customer_short=customer,
+        province=province,
+    )
+
+
+def _parse_ti_without_channel_or_salesperson(
+    doc_number: str,
+    doc_date: date,
+    rest: str,
+    filename: str,
+) -> FilenameMetadata:
+    m = re.match(r'(.*?)\s*\(', rest)
+    if not m:
+        raise ValueError(f"Cannot parse TAX Invoice filename: {filename!r}")
+    customer_prefix = m.group(1).strip()
+    rest = rest[m.end() - 1:]
+
+    m2 = re.match(r'\(([^)]*)\)', rest)
+    if not m2:
+        raise ValueError(f"Cannot parse TAX Invoice filename: {filename!r}")
+    payment_raw = m2.group(1).strip()
+    rest = rest[m2.end():]
+
+    m3 = re.match(r'\(([^)]*)\)', rest)
+    if m3:
+        ref_raw = m3.group(1).strip()
+        ref_doc_number = None if ref_raw in ('--', '', '-') else ref_raw
+        rest = rest[m3.end():]
+    else:
+        ref_doc_number = None
+
+    customer, province = _split_customer_province(f"{customer_prefix} {rest}".strip())
+    paid = '-PAID-' in payment_raw or payment_raw.startswith('PAID')
+    return FilenameMetadata(
+        doc_type='tax_invoice',
+        doc_number=doc_number,
+        doc_date=doc_date,
+        channel=None,
+        salesperson=None,
+        payment_status='paid' if paid else 'pending',
         ref_doc_number=ref_doc_number,
         customer_short=customer,
         province=province,

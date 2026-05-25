@@ -43,10 +43,45 @@ export default async function SalespersonsPage() {
   `
 
   return (
-    <div className="p-6">
+    <div className="crm-page">
       <h1 className="mb-4 text-2xl font-semibold">พนักงานขาย</h1>
 
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <div className="crm-mobile-list">
+        {rows.map((row) => {
+          const lapsed = Number(row.lapsed_count)
+          const revenue = Number(row.total_revenue)
+          return (
+            <Link key={row.id} href={`/crm/salespersons/${row.id}`} className="crm-card block p-4">
+              <div className="flex items-start justify-between gap-3">
+                <h2 className="font-bold text-[var(--crm-ink)]">{row.name}</h2>
+                {row.line_user_id ? (
+                  <span className="rounded-full bg-[var(--crm-brand-soft)] px-2 py-0.5 text-xs font-bold text-[var(--crm-brand-accent)]">
+                    LINE
+                  </span>
+                ) : null}
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                <div>
+                  <p className="text-xs text-[var(--crm-muted)]">ลูกค้า</p>
+                  <p className="font-semibold tabular-nums">{Number(row.customer_count)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-[var(--crm-muted)]">ยอดรวม</p>
+                  <p className="font-semibold tabular-nums">{revenue.toLocaleString("th-TH", { notation: "compact" })}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-[var(--crm-muted)]">Lapsed</p>
+                  <p className={lapsed > 0 ? "font-semibold text-[var(--crm-danger)]" : "font-semibold text-[var(--crm-muted)]"}>
+                    {lapsed || "—"}
+                  </p>
+                </div>
+              </div>
+            </Link>
+          )
+        })}
+      </div>
+
+      <div className="crm-table-wrap crm-desktop-table">
         <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
           <thead className="bg-gray-50">
             <tr>

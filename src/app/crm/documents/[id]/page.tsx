@@ -5,6 +5,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { DocTypeBadge } from "../DocTypeBadge"
 import PaymentToggle from "../PaymentToggle"
+import { formatSalespersonName } from "@/lib/salesperson-display"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -42,7 +43,7 @@ export default async function DocumentDetailPage({ params }: Props) {
     Number(n).toLocaleString("th-TH", { maximumFractionDigits: 3 })
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="crm-page max-w-6xl">
       {/* Back + title row */}
       <div className="mb-4 flex items-center gap-4">
         <Link href="/crm/documents" className="text-sm text-blue-600 hover:underline">
@@ -53,9 +54,9 @@ export default async function DocumentDetailPage({ params }: Props) {
       </div>
 
       {/* Two-column layout */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-start">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         {/* Left: info card */}
-        <div className="w-full shrink-0 rounded-lg border border-gray-200 bg-white p-5 md:w-64">
+        <div className="crm-card w-full shrink-0 p-5 lg:w-72">
           <dl className="space-y-2 text-sm">
             <InfoRow label="วันที่" value={doc.docDate.toLocaleDateString("th-TH")} />
             <div>
@@ -73,8 +74,9 @@ export default async function DocumentDetailPage({ params }: Props) {
                 )}
               </dd>
             </div>
-            <InfoRow label="พนักงาน" value={doc.salesperson?.name ?? "—"} />
+            <InfoRow label="พนักงาน" value={formatSalespersonName(doc.salesperson?.name)} />
             <InfoRow label="ช่องทาง" value={doc.channel ?? "—"} />
+            <InfoRow label="ชื่อไฟล์" value={doc.gdriveFilename ?? "—"} />
             <div>
               <dt className="font-medium text-gray-500">สถานะ</dt>
               <dd className="mt-0.5">
@@ -165,4 +167,3 @@ function InfoRow({ label, value }: { label: string; value: string }) {
     </div>
   )
 }
-

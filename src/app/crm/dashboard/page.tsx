@@ -126,13 +126,13 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <div className="p-6">
+    <div className="crm-page">
       <h1 className="mb-6 text-2xl font-semibold">Dashboard</h1>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         {cards.map((card) => {
           const inner = (
             <div
-              className={`rounded-lg border ${card.border} bg-white p-5 ${card.href ? "hover:shadow-md transition-shadow" : ""}`}
+                className={`crm-card p-4 md:p-5 ${card.href ? "transition-shadow hover:shadow-md" : ""}`}
             >
               <p className="text-sm text-gray-500">{card.label}</p>
               <p className={`mt-1 text-2xl font-bold tabular-nums ${card.color}`}>{card.value}</p>
@@ -150,7 +150,7 @@ export default async function DashboardPage() {
 
       {/* Quotation vs Invoice */}
       <h2 className="mb-3 mt-8 text-lg font-semibold">Quotation vs Invoice เดือนนี้</h2>
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <div className="crm-table-wrap">
         <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
           <thead className="bg-gray-50">
             <tr>
@@ -180,7 +180,7 @@ export default async function DashboardPage() {
 
       {/* Top customers */}
       <h2 className="mb-3 mt-8 text-lg font-semibold">Top 10 ลูกค้า (ยอดซื้อรวม)</h2>
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <div className="crm-table-wrap">
         <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
           <thead className="bg-gray-50">
             <tr>

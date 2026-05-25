@@ -69,6 +69,28 @@ def test_insert_document(conn):
     assert isinstance(doc_id, int)
 
 
+def test_insert_document_allows_unknown_salesperson(conn):
+    from datetime import date
+    cust_id = upsert_customer(conn, CustomerData("Test Co3", "8888888888888", ""), "BKK")
+    doc_id = insert_document(conn, {
+        "doc_type": "tax_invoice",
+        "doc_number": "TEST002",
+        "doc_date": date(2026, 1, 2),
+        "channel": None,
+        "salesperson_id": None,
+        "payment_status": "paid",
+        "ref_doc_number": None,
+        "customer_id": cust_id,
+        "subtotal": 100.00,
+        "vat": 7.00,
+        "total": 107.00,
+        "notes": "",
+        "gdrive_file_id": "test_file_002",
+        "gdrive_filename": "test2.xlsx",
+    })
+    assert isinstance(doc_id, int)
+
+
 def test_log_sync_and_check(conn):
     log_sync(conn, gdrive_file_id="f_test_sync", filename="f.xlsx", status="success", error_msg=None)
     assert is_already_synced(conn, "f_test_sync") is True

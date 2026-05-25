@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client"
 import Link from "next/link"
 import { Suspense } from "react"
 import CustomerSearch from "./CustomerSearch"
+import { formatSalespersonName } from "@/lib/salesperson-display"
 
 interface CustomerRow {
   id: number
@@ -120,15 +121,15 @@ export default async function CustomersPage({ searchParams }: Props) {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="crm-page">
+      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-semibold">ลูกค้า</h1>
         <Suspense>
           <CustomerSearch />
         </Suspense>
       </div>
 
-      <div className="mb-3 flex gap-2">
+      <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
         {LAPSED_OPTIONS.map((opt) => {
           const isActive = lapsedDays === parseInt(opt.value)
           const baseParams = new URLSearchParams({ sort, order, ...(q ? { q } : {}) })
@@ -149,7 +150,43 @@ export default async function CustomersPage({ searchParams }: Props) {
         })}
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <div className="crm-mobile-list">
+        {customers.map((c) => (
+          <Link key={c.id} href={`/crm/customers/${c.id}`} className="crm-card block p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="line-clamp-2 text-base font-bold text-[var(--crm-ink)]">{c.name}</h2>
+                <p className="mt-1 text-xs text-[var(--crm-muted)]">{c.tax_id ?? "ไม่มี TAX ID"}</p>
+              </div>
+              <StatusBadge status={c.status} />
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <p className="text-xs text-[var(--crm-muted)]">จังหวัด</p>
+                <p className="font-medium">{c.province ?? "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--crm-muted)]">ซื้อล่าสุด</p>
+                <p className="font-medium">{c.last_purchase_date ? c.last_purchase_date.toLocaleDateString("th-TH") : "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--crm-muted)]">ยอดล่าสุด</p>
+                <p className="font-medium tabular-nums">
+                  {c.last_purchase_total
+                    ? Number(c.last_purchase_total).toLocaleString("th-TH", { style: "currency", currency: "THB", minimumFractionDigits: 0 })
+                    : "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--crm-muted)]">PM</p>
+                <p className="font-medium">{formatSalespersonName(c.salesperson_name)}</p>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      <div className="crm-table-wrap crm-desktop-table">
         <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
           <thead className="bg-gray-50">
             <tr>

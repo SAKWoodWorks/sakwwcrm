@@ -31,8 +31,8 @@ export default async function ProductsPage({ searchParams }: Props) {
   })
 
   return (
-    <div className="p-6">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="crm-page">
+      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-semibold">สินค้า</h1>
         <Suspense>
           <ProductFilter />
@@ -41,7 +41,39 @@ export default async function ProductsPage({ searchParams }: Props) {
 
       <div className="mb-2 text-sm text-gray-500">{products.length} รายการ</div>
 
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <div className="crm-mobile-list">
+        {products.map((p) => (
+          <div key={p.id} className="crm-card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-mono text-xs font-bold text-[var(--crm-brand)]">{p.skuCode}</p>
+                <h2 className="mt-1 line-clamp-2 font-semibold text-[var(--crm-ink)]">{p.fullName}</h2>
+              </div>
+              {p.category ? <CategoryBadge category={p.category} /> : null}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <p className="text-xs text-[var(--crm-muted)]">เกรด</p>
+                <p className="font-medium">{p.grade ?? "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--crm-muted)]">ขนาด</p>
+                <p className="font-medium tabular-nums">{p.thickness && p.width && p.length ? `${p.thickness}×${p.width}×${p.length}` : "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--crm-muted)]">ขายส่ง</p>
+                <p className="font-semibold tabular-nums">{p.wsCost ? Number(p.wsCost).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--crm-muted)]">ขายปลีก</p>
+                <p className="font-semibold tabular-nums">{p.rtCost ? Number(p.rtCost).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—"}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="crm-table-wrap crm-desktop-table">
         <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
           <thead className="bg-gray-50">
             <tr>
@@ -108,5 +140,4 @@ function CategoryBadge({ category }: { category: string }) {
     </span>
   )
 }
-
 

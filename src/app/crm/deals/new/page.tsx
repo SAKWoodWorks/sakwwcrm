@@ -19,7 +19,7 @@ export default async function NewDealPage() {
   ])
 
   return (
-    <div className="mx-auto max-w-3xl p-6">
+    <div className="crm-page max-w-3xl">
       <div className="mb-4">
         <Link href="/crm/deals" className="text-sm text-blue-600 hover:underline">
           ← ดีล

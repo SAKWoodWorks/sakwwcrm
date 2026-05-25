@@ -41,7 +41,7 @@ export default async function CustomerEditPage({ params }: Props) {
   if (!customer) notFound()
 
   return (
-    <div className="mx-auto max-w-2xl p-6">
+    <div className="crm-page max-w-2xl">
       <div className="mb-4">
         <Link href={`/crm/customers/${custId}`} className="text-sm text-blue-600 hover:underline">
           ← {customer.name}

@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { formatSalespersonName } from "@/lib/salesperson-display"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -42,9 +43,11 @@ export default async function CustomerDetailPage({ params }: Props) {
   const invoices = customer.documents.filter((d) => d.docType === "tax_invoice")
   const totalSpend = invoices.reduce((sum, d) => sum + Number(d.total ?? 0), 0)
   const lastPurchase = invoices[0]?.docDate
+  const salespersonName =
+    customer.salesperson?.name ?? customer.documents.find((d) => d.salesperson?.name)?.salesperson?.name
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="crm-page max-w-5xl">
       <div className="mb-4">
         <Link href="/crm/customers" className="text-sm text-blue-600 hover:underline">
           ← รายชื่อลูกค้า
@@ -67,7 +70,7 @@ export default async function CustomerDetailPage({ params }: Props) {
           <InfoRow label="ประเภท" value={customer.type ?? "—"} />
           <InfoRow label="สถานะ" value={customer.status} />
           <InfoRow label="VAT" value={customer.vatRegistered ? "จดทะเบียน" : "ไม่จดทะเบียน"} />
-          <InfoRow label="Salesperson" value={customer.salesperson?.name ?? "—"} />
+          <InfoRow label="Salesperson" value={formatSalespersonName(salespersonName)} />
           <InfoRow label="โทรศัพท์" value={customer.phone ?? "—"} />
           <InfoRow label="อีเมล" value={customer.email ?? "—"} />
           <InfoRow label="LINE" value={customer.lineId ?? "—"} />
@@ -127,7 +130,7 @@ export default async function CustomerDetailPage({ params }: Props) {
                   )}
                 </td>
                 <td className="px-4 py-3 text-gray-500">{d.channel ?? "—"}</td>
-                <td className="px-4 py-3">{d.salesperson?.name ?? "—"}</td>
+                <td className="px-4 py-3">{formatSalespersonName(d.salesperson?.name)}</td>
                 <td className="px-4 py-3 text-right tabular-nums">
                   {d.total != null
                     ? Number(d.total).toLocaleString("th-TH", {

@@ -31,20 +31,20 @@ export default function DocumentFilters({ salespersons }: Props) {
   )
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="grid gap-3 md:flex md:flex-wrap">
       <input
         type="search"
         placeholder="ค้นหาชื่อลูกค้า..."
         value={nameValue}
         onChange={(e) => setNameValue(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && update("q", nameValue)}
-        className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="crm-input"
       />
 
       <select
         value={searchParams.get("type") ?? ""}
         onChange={(e) => update("type", e.target.value)}
-        className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none"
+        className="crm-input"
       >
         <option value="">ทุกประเภท</option>
         <option value="tax_invoice">TAX Invoice</option>
@@ -55,7 +55,7 @@ export default function DocumentFilters({ salespersons }: Props) {
       <select
         value={searchParams.get("status") ?? ""}
         onChange={(e) => update("status", e.target.value)}
-        className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none"
+        className="crm-input"
       >
         <option value="">ทุกสถานะ</option>
         <option value="paid">ชำระแล้ว</option>
@@ -65,7 +65,7 @@ export default function DocumentFilters({ salespersons }: Props) {
       <select
         value={searchParams.get("channel") ?? ""}
         onChange={(e) => update("channel", e.target.value)}
-        className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none"
+        className="crm-input"
       >
         <option value="">ทุกช่องทาง</option>
         <option value="Web">Web</option>
@@ -75,7 +75,7 @@ export default function DocumentFilters({ salespersons }: Props) {
       <select
         value={searchParams.get("salesperson") ?? ""}
         onChange={(e) => update("salesperson", e.target.value)}
-        className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none"
+        className="crm-input"
       >
         <option value="">ทุกพนักงาน</option>
         {salespersons.map((s) => (
@@ -89,14 +89,14 @@ export default function DocumentFilters({ salespersons }: Props) {
         type="date"
         value={searchParams.get("from") ?? ""}
         onChange={(e) => update("from", e.target.value)}
-        className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none"
+        className="crm-input"
       />
 
       <input
         type="date"
         value={searchParams.get("to") ?? ""}
         onChange={(e) => update("to", e.target.value)}
-        className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none"
+        className="crm-input"
       />
     </div>
   )

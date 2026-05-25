@@ -5,6 +5,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import DealStageBadge from "../DealStageBadge"
 import DealStageSelect from "../DealStageSelect"
+import { formatSalespersonName } from "@/lib/salesperson-display"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -29,7 +30,7 @@ export default async function DealDetailPage({ params }: Props) {
   const weighted = (expectedValue * deal.probability) / 100
 
   return (
-    <div className="mx-auto max-w-5xl p-6">
+    <div className="crm-page max-w-5xl">
       <div className="mb-4 flex items-center gap-4">
         <Link href="/crm/deals" className="text-sm text-blue-600 hover:underline">
           ← ดีล
@@ -61,7 +62,7 @@ export default async function DealDetailPage({ params }: Props) {
               )
             }
           />
-          <InfoRow label="พนักงานขาย" value={deal.salesperson?.name ?? "—"} />
+          <InfoRow label="พนักงานขาย" value={formatSalespersonName(deal.salesperson?.name)} />
           <InfoRow label="Source" value={deal.source ?? "—"} />
           <InfoRow
             label="Expected close"

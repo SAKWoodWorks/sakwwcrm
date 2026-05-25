@@ -29,7 +29,7 @@ export default function CustomerSearch() {
       value={value}
       onChange={(e) => setValue(e.target.value)}
       onKeyDown={(e) => e.key === "Enter" && search(value)}
-      className="w-full max-w-sm rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      className="crm-input w-full md:w-80"
     />
   )
 }

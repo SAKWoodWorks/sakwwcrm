@@ -92,6 +92,7 @@ export default async function SalespersonDetailPage({ params }: Props) {
         docDate: true,
         docType: true,
         total: true,
+        gdriveFilename: true,
         paymentStatus: true,
         customer: { select: { id: true, name: true } },
       },
@@ -120,7 +121,7 @@ export default async function SalespersonDetailPage({ params }: Props) {
   ]
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="crm-page max-w-5xl">
       <div className="mb-4">
         <Link href="/crm/salespersons" className="text-sm text-blue-600 hover:underline">
           ← พนักงานขาย
@@ -216,6 +217,14 @@ export default async function SalespersonDetailPage({ params }: Props) {
                     <Link href={`/crm/documents/${d.id}`} className="text-blue-600 hover:underline">
                       {d.docNumber}
                     </Link>
+                    {d.gdriveFilename && (
+                      <div
+                        className="mt-1 max-w-[22rem] truncate font-sans text-[11px] text-gray-500"
+                        title={d.gdriveFilename}
+                      >
+                        {d.gdriveFilename}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     {d.customer ? (

@@ -13,6 +13,7 @@ import csv
 import io
 import json
 import os
+import re
 import sys
 import time
 from datetime import datetime
@@ -32,6 +33,23 @@ LOCAL_FOLDERS = {
     "tax_invoices": REPO_ROOT / "TAX-Invoices",
     "quotations": REPO_ROOT / "Quoatation",
 }
+
+_MONTH_FOLDER_RE = re.compile(
+    r"^\d{1,2}[-_\s]*(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)",
+    re.IGNORECASE,
+)
+
+
+def get_salesperson_override(filepath: Path, root_folder: Path) -> str | None:
+    """Return a folder-based salesperson override only for named salesperson folders."""
+    if filepath.parent == root_folder:
+        return None
+
+    folder_name = filepath.parent.name.strip()
+    if _MONTH_FOLDER_RE.match(folder_name):
+        return None
+
+    return folder_name or None
 
 
 def run_local():
@@ -139,8 +157,7 @@ if __name__ == "__main__":
         print(f"{len(files)} files in {folder}")
         for filepath in files:
             total += 1
-            # Use subfolder name as salesperson if file is one level deep inside root folder
-            salesperson_override = filepath.parent.name if filepath.parent != folder else None
+            salesperson_override = get_salesperson_override(filepath, folder)
             try:
                 process_local(str(filepath), salesperson_override=salesperson_override)
                 success += 1

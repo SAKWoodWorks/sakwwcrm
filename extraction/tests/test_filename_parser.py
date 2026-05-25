@@ -34,6 +34,33 @@ def test_tax_invoice_long_customer_name():
     assert meta.province == "Pathum Thani"
 
 
+def test_tax_invoice_underscore_paid_format():
+    meta = parse_filename("I_B No 033KL 29-04-2026 KLWI Wanida_PAID_ (--) KLPU.xlsx")
+    assert meta.doc_number == "033KL"
+    assert meta.doc_date == date(2026, 4, 29)
+    assert meta.channel == "KLWI"
+    assert meta.salesperson == "Wanida"
+    assert meta.payment_status == "paid"
+    assert meta.ref_doc_number is None
+    assert meta.customer_short == ""
+    assert meta.province == "KLPU"
+
+
+def test_tax_invoice_without_channel_or_salesperson_keeps_customer_name():
+    meta = parse_filename(
+        "TI_B No 421V  09-10-2020  ห้างหุ้นส่วนจำกัด ทูบี เรนทอล"
+        "(-PAID-)(056JS) (สำนักงานใหญ่) Bangkok.xlsx"
+    )
+    assert meta.doc_number == "421V"
+    assert meta.doc_date == date(2020, 10, 9)
+    assert meta.channel is None
+    assert meta.salesperson is None
+    assert meta.payment_status == "paid"
+    assert meta.ref_doc_number == "056JS"
+    assert meta.customer_short == "ห้างหุ้นส่วนจำกัด ทูบี เรนทอล"
+    assert meta.province == "Bangkok"
+
+
 def test_quotation_basic():
     meta = parse_filename("Quotation No 177PR 14-05-2026 Web Pickachu (--) คุณภูริ PTPU.xlsx")
     assert meta.doc_type == "quotation"

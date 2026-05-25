@@ -5,6 +5,7 @@ import { DEAL_STAGES, isDealStage } from "@/lib/deals"
 import type { Prisma } from "@prisma/client"
 import Link from "next/link"
 import DealStageBadge from "./DealStageBadge"
+import { formatSalespersonName } from "@/lib/salesperson-display"
 
 type Props = {
   searchParams: Promise<{
@@ -82,15 +83,15 @@ export default async function DealsPage({ searchParams }: Props) {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div className="crm-page">
+      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">ดีล</h1>
           <p className="mt-1 text-sm text-gray-500">Pipeline งานขายก่อนออก invoice</p>
         </div>
         <Link
           href="/crm/deals/new"
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="crm-primary-btn w-full md:w-auto"
         >
           สร้างดีล
         </Link>
@@ -102,18 +103,18 @@ export default async function DealsPage({ searchParams }: Props) {
         <MetricCard label="Weighted forecast" value={formatMoney(weightedForecast)} />
       </div>
 
-      <form action="/crm/deals" className="mb-4 flex flex-wrap gap-3">
+      <form action="/crm/deals" className="mb-4 grid gap-3 md:flex md:flex-wrap">
         <input
           name="q"
           defaultValue={q ?? ""}
           type="search"
           placeholder="ค้นหาชื่อดีลหรือลูกค้า..."
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none"
+          className="crm-input"
         />
         <select
           name="stage"
           defaultValue={stage ?? ""}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none"
+          className="crm-input"
         >
           <option value="">ทุก stage</option>
           {DEAL_STAGES.map((s) => (
@@ -125,7 +126,7 @@ export default async function DealsPage({ searchParams }: Props) {
         <select
           name="salesperson"
           defaultValue={salesperson ?? ""}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none"
+          className="crm-input"
         >
           <option value="">ทุกพนักงาน</option>
           {salespersons.map((s) => (
@@ -136,13 +137,50 @@ export default async function DealsPage({ searchParams }: Props) {
         </select>
         <button
           type="submit"
-          className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="rounded-md border border-[var(--crm-line)] bg-white px-4 py-2 text-sm font-bold text-[var(--crm-brand)] hover:bg-[var(--crm-brand-soft)]"
         >
           กรอง
         </button>
       </form>
 
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <div className="crm-mobile-list">
+        {deals.map((deal) => {
+          const value = Number(deal.expectedValue ?? 0)
+          return (
+            <Link key={deal.id} href={`/crm/deals/${deal.id}`} className="crm-card block p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h2 className="line-clamp-2 font-bold text-[var(--crm-ink)]">{deal.title}</h2>
+                  <p className="mt-1 text-xs text-[var(--crm-muted)]">
+                    {deal.customer?.name ?? "ไม่มีลูกค้า"}
+                  </p>
+                </div>
+                <DealStageBadge stage={deal.stage} />
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <p className="text-xs text-[var(--crm-muted)]">พนักงาน</p>
+                  <p className="font-medium">{formatSalespersonName(deal.salesperson?.name)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-[var(--crm-muted)]">Expected close</p>
+                  <p className="font-medium">{deal.expectedCloseDate ? deal.expectedCloseDate.toLocaleDateString("th-TH") : "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-[var(--crm-muted)]">มูลค่า</p>
+                  <p className="font-semibold tabular-nums">{deal.expectedValue != null ? formatMoney(value) : "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-[var(--crm-muted)]">Weighted</p>
+                  <p className="font-semibold tabular-nums">{deal.expectedValue != null ? formatMoney((value * deal.probability) / 100) : "—"}</p>
+                </div>
+              </div>
+            </Link>
+          )
+        })}
+      </div>
+
+      <div className="crm-table-wrap crm-desktop-table">
         <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
           <thead className="bg-gray-50">
             <tr>
@@ -184,7 +222,7 @@ export default async function DealsPage({ searchParams }: Props) {
                         "—"
                       )}
                     </td>
-                    <td className="px-4 py-3">{deal.salesperson?.name ?? "—"}</td>
+                    <td className="px-4 py-3">{formatSalespersonName(deal.salesperson?.name)}</td>
                     <td className="px-4 py-3 text-right tabular-nums">
                       {deal.expectedValue != null ? formatMoney(value) : "—"}
                     </td>
