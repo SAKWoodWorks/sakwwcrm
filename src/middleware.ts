@@ -1,8 +1,13 @@
 import { auth } from "@/auth";
+import { isAuthBypassed } from "@/lib/auth-bypass";
 import { NextResponse } from "next/server";
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
+
+  if (isAuthBypassed()) {
+    return NextResponse.next();
+  }
 
   // Allow auth routes and public assets
   if (

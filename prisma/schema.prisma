@@ -18,6 +18,7 @@ model Salesperson {
 
   documents        Document[]
   managedCustomers Customer[] @relation("AccountManager")
+  deals            Deal[]
 
   @@map("salespersons")
 }
@@ -41,6 +42,7 @@ model Customer {
 
   salesperson      Salesperson? @relation("AccountManager", fields: [salespersonId], references: [id])
   documents        Document[]
+  deals            Deal[]
 
   @@map("customers")
 }
@@ -108,6 +110,30 @@ model Document {
   items          DocumentItem[]
 
   @@map("documents")
+}
+
+model Deal {
+  id                Int          @id @default(autoincrement())
+  title             String
+  customerId        Int?         @map("customer_id")
+  salespersonId     Int?         @map("salesperson_id")
+  stage             String       @default("lead")
+  expectedValue     Decimal?     @map("expected_value") @db.Decimal(12, 2)
+  probability       Int          @default(10)
+  expectedCloseDate DateTime?    @map("expected_close_date") @db.Date
+  source            String?
+  notes             String?
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  customer          Customer?    @relation(fields: [customerId], references: [id])
+  salesperson       Salesperson? @relation(fields: [salespersonId], references: [id])
+
+  @@map("deals")
+  @@index([stage])
+  @@index([customerId])
+  @@index([salespersonId])
+  @@index([expectedCloseDate])
 }
 
 model DocumentItem {
