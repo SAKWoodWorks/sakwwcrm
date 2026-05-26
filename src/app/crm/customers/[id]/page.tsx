@@ -9,34 +9,49 @@ type Props = {
   params: Promise<{ id: string }>
 }
 
+type CustomerAliasRow = {
+  alias_name: string
+  alias_type: string
+  tax_id: string | null
+  note: string | null
+}
+
 export default async function CustomerDetailPage({ params }: Props) {
   const { id } = await params
   const customerId = parseInt(id, 10)
   if (isNaN(customerId)) notFound()
 
-  const customer = await prisma.customer.findUnique({
-    where: { id: customerId },
-    include: {
-      salesperson: { select: { name: true } },
-      documents: {
-        orderBy: { docDate: "desc" },
-        select: {
-          id: true,
-          docType: true,
-          docNumber: true,
-          docDate: true,
-          channel: true,
-          paymentStatus: true,
-          refDocNumber: true,
-          subtotal: true,
-          vat: true,
-          total: true,
-          notes: true,
-          salesperson: { select: { name: true } },
+  const [customer, aliases] = await Promise.all([
+    prisma.customer.findUnique({
+      where: { id: customerId },
+      include: {
+        salesperson: { select: { name: true } },
+        documents: {
+          orderBy: { docDate: "desc" },
+          select: {
+            id: true,
+            docType: true,
+            docNumber: true,
+            docDate: true,
+            channel: true,
+            paymentStatus: true,
+            refDocNumber: true,
+            subtotal: true,
+            vat: true,
+            total: true,
+            notes: true,
+            salesperson: { select: { name: true } },
+          },
         },
       },
-    },
-  })
+    }),
+    prisma.$queryRaw<CustomerAliasRow[]>`
+      SELECT alias_name, alias_type, tax_id, note
+      FROM customer_aliases
+      WHERE customer_id = ${customerId}
+      ORDER BY alias_name ASC
+    `,
+  ])
 
   if (!customer) notFound()
 
@@ -88,6 +103,23 @@ export default async function CustomerDetailPage({ params }: Props) {
             })}
           />
         </dl>
+        {aliases.length > 0 ? (
+          <div className="mt-5 border-t border-gray-100 pt-4">
+            <h2 className="text-sm font-semibold text-gray-700">ชื่อเดิม / ชื่อที่ใช้ค้นหา</h2>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {aliases.map((alias) => (
+                <span
+                  key={`${alias.alias_type}-${alias.alias_name}`}
+                  className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-800"
+                  title={alias.note ?? undefined}
+                >
+                  {alias.alias_name}
+                  {alias.tax_id ? ` (${alias.tax_id})` : ""}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <h2 className="mb-3 text-lg font-semibold">เอกสารทั้งหมด ({customer.documents.length})</h2>

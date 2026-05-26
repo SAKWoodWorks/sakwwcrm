@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 
 const links = [
   { href: "/crm/dashboard", label: "Dashboard", short: "แดช" },
+  { href: "/crm/top-customers", label: "Top 100", short: "Top" },
   { href: "/crm/deals", label: "ดีล", short: "ดีล" },
   { href: "/crm/customers", label: "ลูกค้า", short: "ลูกค้า" },
   { href: "/crm/documents", label: "เอกสาร", short: "เอกสาร" },
@@ -54,27 +55,27 @@ export default function NavBar() {
       </nav>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--crm-line)] bg-[rgb(248_251_255_/_96%)] px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-12px_30px_rgb(29_78_216_/_10%)] backdrop-blur md:hidden">
-        <div className="grid grid-cols-6 gap-1">
-        {links.map(({ href, label }) => {
-          const active = href === "/crm/dashboard"
-            ? pathname === href
-            : pathname.startsWith(href)
-          return (
-            <Link
-              key={href}
-              href={href}
-              aria-current={active ? "page" : undefined}
-              className={
-                active
-                  ? "rounded-md bg-[var(--crm-brand-accent)] px-1.5 py-2 text-center text-[11px] font-bold text-white"
-                  : "rounded-md px-1.5 py-2 text-center text-[11px] font-semibold text-[var(--crm-muted)]"
-              }
-            >
-              {label === "Dashboard" ? "แดช" : label}
-            </Link>
-          )
-        })}
-      </div>
+        <div className="grid grid-cols-7 gap-1">
+          {links.map(({ href, short }) => {
+            const active = href === "/crm/dashboard"
+              ? pathname === href
+              : pathname.startsWith(href)
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={active ? "page" : undefined}
+                className={
+                  active
+                    ? "rounded-md bg-[var(--crm-brand-accent)] px-1.5 py-2 text-center text-[11px] font-bold text-white"
+                    : "rounded-md px-1.5 py-2 text-center text-[11px] font-semibold text-[var(--crm-muted)]"
+                }
+              >
+                {short}
+              </Link>
+            )
+          })}
+        </div>
       </nav>
     </>
   )

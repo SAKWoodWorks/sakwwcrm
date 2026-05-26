@@ -30,7 +30,16 @@ def upsert_customer(conn, customer: CustomerData, province: str) -> int:
             """, (customer.name, customer.tax_id, customer.address, province))
             return cur.fetchone()[0]
         else:
-            cur.execute("SELECT id FROM customers WHERE name = %s LIMIT 1", (customer.name,))
+            cur.execute("""
+                SELECT c.id
+                FROM customers c
+                WHERE c.name = %s
+                UNION
+                SELECT ca.customer_id
+                FROM customer_aliases ca
+                WHERE ca.alias_name = %s
+                LIMIT 1
+            """, (customer.name, customer.name))
             row = cur.fetchone()
             if row:
                 return row[0]

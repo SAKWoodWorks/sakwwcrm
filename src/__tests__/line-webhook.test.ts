@@ -257,5 +257,51 @@ describe("POST /api/line/webhook", () => {
       expect(call[1]).toContain("258V")
       expect(call[1]).toContain("✅")
     })
+
+    it("searches and displays customer former names", async () => {
+      ;(prisma.customer.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+        {
+          id: 1843,
+          name: "บริษัท กิจมั่งมีโฮม จำกัด (สำนักงานใหญ่)",
+          province: "อุดรธานี",
+          type: "dealer",
+          aliases: [{ aliasName: "บริษัท มาโฮมพิบูลกิจ จำกัด (สำนักงานใหญ่)" }],
+          documents: [],
+        },
+      ])
+      ;(prisma.document.aggregate as ReturnType<typeof vi.fn>).mockResolvedValue({
+        _sum: { total: 0 },
+      })
+      ;(prisma.document.count as ReturnType<typeof vi.fn>).mockResolvedValue(0)
+
+      const req = makeRequest({
+        events: [
+          {
+            type: "message",
+            replyToken: "reply-token-former-name",
+            source: { userId: "Uabc123" },
+            message: { type: "text", text: "มาโฮม" },
+          },
+        ],
+      })
+      const res = await POST(req)
+      expect(res.status).toBe(200)
+      expect(prisma.customer.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            OR: expect.arrayContaining([
+              expect.objectContaining({
+                aliases: expect.objectContaining({
+                  some: expect.any(Object),
+                }),
+              }),
+            ]),
+          }),
+        })
+      )
+      const call = (replyMessage as ReturnType<typeof vi.fn>).mock.calls[0]
+      expect(call[1]).toContain("บริษัท กิจมั่งมีโฮม จำกัด")
+      expect(call[1]).toContain("ชื่อเดิม: บริษัท มาโฮมพิบูลกิจ จำกัด")
+    })
   })
 })

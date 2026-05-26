@@ -1,6 +1,16 @@
 export const dynamic = "force-dynamic"
 
 import { prisma } from "@/lib/prisma"
+import { Badge } from "@/components/ui/badge"
+import { Card } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Prisma } from "@prisma/client"
 import Link from "next/link"
 import { Suspense } from "react"
@@ -15,6 +25,7 @@ interface CustomerRow {
   type: string | null
   status: string
   salesperson_name: string | null
+  alias_names: string | null
   last_purchase_date: Date | null
   last_purchase_total: Prisma.Decimal | number | null
 }
@@ -42,13 +53,22 @@ const SORT_CLAUSES: Record<string, Prisma.Sql> = {
 }
 
 export default async function CustomersPage({ searchParams }: Props) {
-  const { q, page: pageStr, sort = "last_purchase", order = "desc", lapsed } = await searchParams
+  const { q, page: pageStr, sort = "last_total", order = "desc", lapsed } = await searchParams
   const lapsedDays = lapsed && ["30", "60", "90", "365"].includes(lapsed) ? parseInt(lapsed) : null
   const page = Math.max(1, parseInt(pageStr ?? "1") || 1)
   const skip = (page - 1) * PAGE_SIZE
 
   const searchFilter = q
-    ? Prisma.sql`(c.name ILIKE ${`%${q}%`} OR c.tax_id ILIKE ${`%${q}%`})`
+    ? Prisma.sql`(
+        c.name ILIKE ${`%${q}%`}
+        OR c.tax_id ILIKE ${`%${q}%`}
+        OR EXISTS (
+          SELECT 1
+          FROM customer_aliases ca
+          WHERE ca.customer_id = c.id
+            AND (ca.alias_name ILIKE ${`%${q}%`} OR ca.tax_id ILIKE ${`%${q}%`})
+        )
+      )`
     : Prisma.sql`TRUE`
 
   const lapsedOpt = LAPSED_OPTIONS.find((o) => o.value === lapsed) ?? null
@@ -59,7 +79,27 @@ export default async function CustomersPage({ searchParams }: Props) {
     : Prisma.sql``
 
   const orderBy =
-    SORT_CLAUSES[`${sort}:${order}`] ?? Prisma.sql`last_purchase_date DESC NULLS LAST`
+    SORT_CLAUSES[`${sort}:${order}`] ?? Prisma.sql`last_purchase_total DESC NULLS LAST`
+
+  const countQuery = lapsedOpt
+    ? prisma.$queryRaw<[{ count: bigint }]>`
+        SELECT COUNT(*) AS count
+        FROM customers c
+        LEFT JOIN LATERAL (
+          SELECT doc_date
+          FROM documents
+          WHERE customer_id = c.id AND doc_type = 'tax_invoice'
+          ORDER BY doc_date DESC
+          LIMIT 1
+        ) last_inv ON TRUE
+        WHERE ${searchFilter}
+        ${lapsedFilter}
+      `
+    : prisma.$queryRaw<[{ count: bigint }]>`
+        SELECT COUNT(*) AS count
+        FROM customers c
+        WHERE ${searchFilter}
+      `
 
   const [customers, countResult] = await Promise.all([
     prisma.$queryRaw<CustomerRow[]>`
@@ -71,10 +111,16 @@ export default async function CustomersPage({ searchParams }: Props) {
         c.type,
         c.status,
         s.name AS salesperson_name,
+        aliases.alias_names,
         last_inv.doc_date AS last_purchase_date,
         last_inv.total    AS last_purchase_total
       FROM customers c
       LEFT JOIN salespersons s ON s.id = c.salesperson_id
+      LEFT JOIN LATERAL (
+        SELECT string_agg(alias_name, ', ' ORDER BY alias_name) AS alias_names
+        FROM customer_aliases
+        WHERE customer_id = c.id
+      ) aliases ON TRUE
       LEFT JOIN LATERAL (
         SELECT doc_date, total
         FROM documents
@@ -87,19 +133,7 @@ export default async function CustomersPage({ searchParams }: Props) {
       ORDER BY ${orderBy}
       LIMIT ${PAGE_SIZE} OFFSET ${skip}
     `,
-    prisma.$queryRaw<[{ count: bigint }]>`
-      SELECT COUNT(*) AS count
-      FROM customers c
-      LEFT JOIN LATERAL (
-        SELECT doc_date
-        FROM documents
-        WHERE customer_id = c.id AND doc_type = 'tax_invoice'
-        ORDER BY doc_date DESC
-        LIMIT 1
-      ) last_inv ON TRUE
-      WHERE ${searchFilter}
-      ${lapsedFilter}
-    `,
+    countQuery,
   ])
 
   const total = Number(countResult[0].count)
@@ -135,101 +169,114 @@ export default async function CustomersPage({ searchParams }: Props) {
           const baseParams = new URLSearchParams({ sort, order, ...(q ? { q } : {}) })
           if (!isActive) baseParams.set("lapsed", opt.value)
           return (
-            <Link
+            <Badge
               key={opt.value}
-              href={`/crm/customers?${baseParams.toString()}`}
+              asChild
+              variant="outline"
               className={
                 isActive
-                  ? "inline-flex items-center rounded-full bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-700"
-                  : "inline-flex items-center rounded-full border border-red-300 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
+                  ? "border-red-600 bg-red-600 px-3 py-1 text-white hover:bg-red-700"
+                  : "border-red-300 px-3 py-1 text-red-700 hover:bg-red-50"
               }
             >
-              {opt.label}{isActive ? " ✕" : ""}
-            </Link>
+              <Link
+                href={`/crm/customers?${baseParams.toString()}`}
+              >
+                {opt.label}{isActive ? " ✕" : ""}
+              </Link>
+            </Badge>
           )
         })}
       </div>
 
       <div className="crm-mobile-list">
         {customers.map((c) => (
-          <Link key={c.id} href={`/crm/customers/${c.id}`} className="crm-card block p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h2 className="line-clamp-2 text-base font-bold text-[var(--crm-ink)]">{c.name}</h2>
-                <p className="mt-1 text-xs text-[var(--crm-muted)]">{c.tax_id ?? "ไม่มี TAX ID"}</p>
+          <Card key={c.id} className="rounded-lg border-[var(--crm-line)] bg-white p-4 shadow-[var(--crm-shadow)]">
+            <Link href={`/crm/customers/${c.id}`} className="block">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h2 className="line-clamp-2 text-base font-bold text-[var(--crm-ink)]">{c.name}</h2>
+                  <p className="mt-1 text-xs text-[var(--crm-muted)]">{c.tax_id ?? "ไม่มี TAX ID"}</p>
+                  {c.alias_names ? (
+                    <p className="mt-1 line-clamp-1 text-xs text-[var(--crm-muted)]">ชื่อเดิม: {c.alias_names}</p>
+                  ) : null}
+                </div>
+                <StatusBadge status={c.status} />
               </div>
-              <StatusBadge status={c.status} />
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-              <div>
-                <p className="text-xs text-[var(--crm-muted)]">จังหวัด</p>
-                <p className="font-medium">{c.province ?? "—"}</p>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <p className="text-xs text-[var(--crm-muted)]">จังหวัด</p>
+                  <p className="font-medium">{c.province ?? "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-[var(--crm-muted)]">ซื้อล่าสุด</p>
+                  <p className="font-medium">{c.last_purchase_date ? c.last_purchase_date.toLocaleDateString("th-TH") : "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-[var(--crm-muted)]">ยอดล่าสุด</p>
+                  <p className="font-medium tabular-nums">
+                    {c.last_purchase_total
+                      ? Number(c.last_purchase_total).toLocaleString("th-TH", { style: "currency", currency: "THB", minimumFractionDigits: 0 })
+                      : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-[var(--crm-muted)]">PM</p>
+                  <p className="font-medium">{formatSalespersonName(c.salesperson_name)}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-[var(--crm-muted)]">ซื้อล่าสุด</p>
-                <p className="font-medium">{c.last_purchase_date ? c.last_purchase_date.toLocaleDateString("th-TH") : "—"}</p>
-              </div>
-              <div>
-                <p className="text-xs text-[var(--crm-muted)]">ยอดล่าสุด</p>
-                <p className="font-medium tabular-nums">
-                  {c.last_purchase_total
-                    ? Number(c.last_purchase_total).toLocaleString("th-TH", { style: "currency", currency: "THB", minimumFractionDigits: 0 })
-                    : "—"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-[var(--crm-muted)]">PM</p>
-                <p className="font-medium">{formatSalespersonName(c.salesperson_name)}</p>
-              </div>
-            </div>
-          </Link>
+            </Link>
+          </Card>
         ))}
       </div>
 
       <div className="crm-table-wrap crm-desktop-table">
-        <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">
+        <Table>
+          <TableHeader className="bg-gray-50">
+            <TableRow>
+              <TableHead className="px-4 py-3 text-gray-500">
                 <Link href={sortUrl("name")} className="hover:text-gray-800">
                   ชื่อ{indicator("name")}
                 </Link>
-              </th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">TAX ID</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">จังหวัด</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ประเภท</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">สถานะ</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">
+              </TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">TAX ID</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">จังหวัด</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">ประเภท</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">สถานะ</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">
                 <Link href={sortUrl("last_purchase")} className="hover:text-gray-800">
                   ซื้อล่าสุด{indicator("last_purchase")}
                 </Link>
-              </th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500">
+              </TableHead>
+              <TableHead className="px-4 py-3 text-right text-gray-500">
                 <Link href={sortUrl("last_total")} className="hover:text-gray-800">
                   ยอดล่าสุด{indicator("last_total")}
                 </Link>
-              </th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">PM</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
+              </TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">PM</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {customers.map((c) => (
-              <tr key={c.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3">
+              <TableRow key={c.id} className="hover:bg-gray-50">
+                <TableCell className="px-4 py-3">
                   <Link href={`/crm/customers/${c.id}`} className="font-medium text-blue-600 hover:underline">
                     {c.name}
                   </Link>
-                </td>
-                <td className="px-4 py-3 text-gray-500">{c.tax_id ?? "—"}</td>
-                <td className="px-4 py-3">{c.province ?? "—"}</td>
-                <td className="px-4 py-3"><TypeBadge type={c.type} /></td>
-                <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
-                <td className="px-4 py-3 text-gray-600">
+                  {c.alias_names ? (
+                    <div className="mt-1 text-xs text-gray-400">ชื่อเดิม: {c.alias_names}</div>
+                  ) : null}
+                </TableCell>
+                <TableCell className="px-4 py-3 text-gray-500">{c.tax_id ?? "—"}</TableCell>
+                <TableCell className="px-4 py-3">{c.province ?? "—"}</TableCell>
+                <TableCell className="px-4 py-3"><TypeBadge type={c.type} /></TableCell>
+                <TableCell className="px-4 py-3"><StatusBadge status={c.status} /></TableCell>
+                <TableCell className="px-4 py-3 text-gray-600">
                   {c.last_purchase_date
                     ? c.last_purchase_date.toLocaleDateString("th-TH")
                     : "—"}
-                </td>
-                <td className="px-4 py-3 text-right tabular-nums">
+                </TableCell>
+                <TableCell className="px-4 py-3 text-right tabular-nums">
                   {c.last_purchase_total
                     ? Number(c.last_purchase_total).toLocaleString("th-TH", {
                         style: "currency",
@@ -237,12 +284,12 @@ export default async function CustomersPage({ searchParams }: Props) {
                         minimumFractionDigits: 0,
                       })
                     : "—"}
-                </td>
-                <td className="px-4 py-3 text-gray-500">{c.salesperson_name ?? "—"}</td>
-              </tr>
+                </TableCell>
+                <TableCell className="px-4 py-3 text-gray-500">{c.salesperson_name ?? "—"}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
@@ -283,9 +330,9 @@ function TypeBadge({ type }: { type: string | null }) {
   }
   const cls = (type && map[type]) ?? "bg-gray-100 text-gray-800"
   return (
-    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>
+    <Badge variant="outline" className={`border-transparent ${cls}`}>
       {type ?? "ไม่ระบุ"}
-    </span>
+    </Badge>
   )
 }
 
@@ -304,8 +351,8 @@ function StatusBadge({ status }: { status: string }) {
   }
   const cls = map[status] ?? "bg-gray-100 text-gray-600"
   return (
-    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>
+    <Badge variant="outline" className={`border-transparent ${cls}`}>
       {label[status] ?? status}
-    </span>
+    </Badge>
   )
 }

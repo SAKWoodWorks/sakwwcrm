@@ -1,5 +1,6 @@
 "use client"
 
+import { Input } from "@/components/ui/input"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useState } from "react"
 
@@ -23,13 +24,13 @@ export default function CustomerSearch() {
   )
 
   return (
-    <input
+    <Input
       type="search"
       placeholder="ค้นหาชื่อลูกค้า หรือ TAX ID..."
       value={value}
       onChange={(e) => setValue(e.target.value)}
       onKeyDown={(e) => e.key === "Enter" && search(value)}
-      className="crm-input w-full md:w-80"
+      className="h-11 w-full bg-white md:w-80"
     />
   )
 }

@@ -1,7 +1,9 @@
+import { Badge } from "@/components/ui/badge"
+
 export function DocTypeBadge({ docType }: { docType: string }) {
   if (docType === "tax_invoice")
-    return <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">TAX Invoice</span>
+    return <Badge variant="outline" className="border-blue-200 bg-blue-100 text-blue-800">TAX Invoice</Badge>
   if (docType === "abb_invoice")
-    return <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800">Abb Invoice</span>
-  return <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">Quotation</span>
+    return <Badge variant="outline" className="border-orange-200 bg-orange-100 text-orange-800">Abb Invoice</Badge>
+  return <Badge variant="outline" className="border-gray-200 bg-gray-100 text-gray-700">Quotation</Badge>
 }

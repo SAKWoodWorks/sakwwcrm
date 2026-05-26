@@ -1,5 +1,15 @@
 export const dynamic = "force-dynamic"
 
+import { Badge } from "@/components/ui/badge"
+import { Card } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { prisma } from "@/lib/prisma"
 import { Suspense } from "react"
 import ProductFilter from "./ProductFilter"
@@ -43,7 +53,7 @@ export default async function ProductsPage({ searchParams }: Props) {
 
       <div className="crm-mobile-list">
         {products.map((p) => (
-          <div key={p.id} className="crm-card p-4">
+          <Card key={p.id} className="rounded-lg border-[var(--crm-line)] bg-white p-4 shadow-[var(--crm-shadow)]">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="font-mono text-xs font-bold text-[var(--crm-brand)]">{p.skuCode}</p>
@@ -62,64 +72,64 @@ export default async function ProductsPage({ searchParams }: Props) {
               </div>
               <div>
                 <p className="text-xs text-[var(--crm-muted)]">ขายส่ง</p>
-                <p className="font-semibold tabular-nums">{p.wsCost ? Number(p.wsCost).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—"}</p>
+                <p className="font-semibold tabular-nums">{p.wsCost != null ? Number(p.wsCost).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—"}</p>
               </div>
               <div>
                 <p className="text-xs text-[var(--crm-muted)]">ขายปลีก</p>
-                <p className="font-semibold tabular-nums">{p.rtCost ? Number(p.rtCost).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—"}</p>
+                <p className="font-semibold tabular-nums">{p.rtCost != null ? Number(p.rtCost).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—"}</p>
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
       <div className="crm-table-wrap crm-desktop-table">
-        <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">SKU</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ชื่อสินค้า</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ประเภท</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">เกรด</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500">ขนาด (มม.)</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500">ราคาขายส่ง</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500">ราคาขายปลีก</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
+        <Table>
+          <TableHeader className="bg-gray-50">
+            <TableRow>
+              <TableHead className="px-4 py-3 text-gray-500">SKU</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">ชื่อสินค้า</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">ประเภท</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">เกรด</TableHead>
+              <TableHead className="px-4 py-3 text-right text-gray-500">ขนาด (มม.)</TableHead>
+              <TableHead className="px-4 py-3 text-right text-gray-500">ราคาขายส่ง</TableHead>
+              <TableHead className="px-4 py-3 text-right text-gray-500">ราคาขายปลีก</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {products.map((p) => (
-              <tr key={p.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-mono text-xs text-gray-600">{p.skuCode}</td>
-                <td className="px-4 py-3 text-gray-900">{p.fullName}</td>
-                <td className="px-4 py-3">
+              <TableRow key={p.id} className="hover:bg-gray-50">
+                <TableCell className="px-4 py-3 font-mono text-xs text-gray-600">{p.skuCode}</TableCell>
+                <TableCell className="px-4 py-3 text-gray-900">{p.fullName}</TableCell>
+                <TableCell className="px-4 py-3">
                   {p.category ? <CategoryBadge category={p.category} /> : "—"}
-                </td>
-                <td className="px-4 py-3 text-gray-500">{p.grade ?? "—"}</td>
-                <td className="px-4 py-3 text-right tabular-nums text-gray-600">
+                </TableCell>
+                <TableCell className="px-4 py-3 text-gray-500">{p.grade ?? "—"}</TableCell>
+                <TableCell className="px-4 py-3 text-right tabular-nums text-gray-600">
                   {p.thickness && p.width && p.length
                     ? `${p.thickness}×${p.width}×${p.length}`
                     : "—"}
-                </td>
-                <td className="px-4 py-3 text-right tabular-nums">
-                  {p.wsCost
+                </TableCell>
+                <TableCell className="px-4 py-3 text-right tabular-nums">
+                  {p.wsCost != null
                     ? Number(p.wsCost).toLocaleString("th-TH", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })
                     : "—"}
-                </td>
-                <td className="px-4 py-3 text-right tabular-nums">
-                  {p.rtCost
+                </TableCell>
+                <TableCell className="px-4 py-3 text-right tabular-nums">
+                  {p.rtCost != null
                     ? Number(p.rtCost).toLocaleString("th-TH", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })
                     : "—"}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )
@@ -135,9 +145,9 @@ function CategoryBadge({ category }: { category: string }) {
   }
   const cls = map[category] ?? "bg-gray-100 text-gray-700"
   return (
-    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>
+    <Badge variant="outline" className={`border-transparent ${cls}`}>
       {category}
-    </span>
+    </Badge>
   )
 }
 

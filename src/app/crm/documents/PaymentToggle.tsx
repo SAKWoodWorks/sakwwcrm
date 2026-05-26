@@ -1,5 +1,7 @@
 "use client"
 
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -34,21 +36,24 @@ export default function PaymentToggle({
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {isPaid ? (
-        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+        <Badge variant="outline" className="border-green-200 bg-green-100 text-green-800">
           ชำระแล้ว
-        </span>
+        </Badge>
       ) : (
-        <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
+        <Badge variant="outline" className="border-yellow-200 bg-yellow-100 text-yellow-800">
           รอชำระ
-        </span>
+        </Badge>
       )}
-      <button
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
         onClick={toggle}
         disabled={loading}
-        className="text-xs text-gray-400 hover:text-gray-600 disabled:opacity-50 underline-offset-2 hover:underline"
+        className="h-7 px-2 text-xs text-gray-500 hover:text-gray-700"
       >
         {loading ? "..." : isPaid ? "ยกเลิก" : "ทำเครื่องหมายชำระแล้ว"}
-      </button>
+      </Button>
     </div>
   )
 }

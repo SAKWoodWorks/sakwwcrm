@@ -38,29 +38,29 @@ describe("SalespersonsPage", () => {
   it("renders salesperson names", async () => {
     const jsx = await SalespersonsPage()
     render(jsx)
-    expect(screen.getByText("Pickachu")).toBeInTheDocument()
-    expect(screen.getByText("Yaowalee")).toBeInTheDocument()
+    expect(screen.getAllByText("Pickachu").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Yaowalee").length).toBeGreaterThan(0)
   })
 
   it("shows LINE registered badge for registered salesperson", async () => {
     const jsx = await SalespersonsPage()
     render(jsx)
-    expect(screen.getByText("✅ ลงทะเบียนแล้ว")).toBeInTheDocument()
+    expect(screen.getByText("ลงทะเบียนแล้ว")).toBeInTheDocument()
   })
 
   it("shows dash for unregistered LINE for unregistered salesperson", async () => {
     const jsx = await SalespersonsPage()
     render(jsx)
-    // Yaowalee is unregistered — LINE badge should not appear, only 1 registered badge exists
-    const badges = screen.queryAllByText("✅ ลงทะเบียนแล้ว")
+    // Yaowalee is unregistered; only 1 registered badge exists.
+    const badges = screen.queryAllByText("ลงทะเบียนแล้ว")
     expect(badges).toHaveLength(1)
   })
 
   it("renders customer count and lapsed count", async () => {
     const jsx = await SalespersonsPage()
     render(jsx)
-    expect(screen.getByText("245")).toBeInTheDocument()
-    expect(screen.getByText("12")).toBeInTheDocument()
+    expect(screen.getAllByText("245").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("12").length).toBeGreaterThan(0)
   })
 
   it("shows 0 salespersons when query returns empty", async () => {

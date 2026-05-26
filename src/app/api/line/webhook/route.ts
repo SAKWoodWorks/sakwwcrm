@@ -22,9 +22,27 @@ function fmtMoney(n: number): string {
 
 async function handleCustomerSearch(replyToken: string, text: string): Promise<void> {
   const customers = await prisma.customer.findMany({
-    where: { name: { contains: text, mode: "insensitive" } },
+    where: {
+      OR: [
+        { name: { contains: text, mode: "insensitive" } },
+        { taxId: { contains: text, mode: "insensitive" } },
+        {
+          aliases: {
+            some: {
+              OR: [
+                { aliasName: { contains: text, mode: "insensitive" } },
+                { taxId: { contains: text, mode: "insensitive" } },
+              ],
+            },
+          },
+        },
+      ],
+    },
     take: 10,
     include: {
+      aliases: {
+        select: { aliasName: true },
+      },
       documents: {
         where: { docType: "tax_invoice" },
         orderBy: { docDate: "desc" },
@@ -75,13 +93,14 @@ async function handleCustomerSearch(replyToken: string, text: string): Promise<v
 
       return [
         `👤 ${c.name}`,
+        c.aliases?.length ? `ชื่อเดิม: ${c.aliases.map((a) => a.aliasName).join(", ")}` : null,
         `📍 ${c.province ?? "—"} | ${c.type ?? "—"}`,
         `🛒 ซื้อ ${invoiceCount} ครั้ง | ล่าสุด ${lastDateStr}`,
         `💰 ยอดรวม ฿${fmtMoney(totalSpend)}`,
         ``,
         `เอกสาร 5 รายการล่าสุด:`,
         docLines || "—",
-      ].join("\n")
+      ].filter(Boolean).join("\n")
     })
   )
 

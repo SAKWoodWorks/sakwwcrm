@@ -1,9 +1,16 @@
 "use client"
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useRouter, useSearchParams } from "next/navigation"
 
 const CATEGORIES = [
-  { value: "", label: "ทุกประเภท" },
+  { value: "all", label: "ทุกประเภท" },
   { value: "ไม้สน", label: "ไม้สน" },
   { value: "ไม้ยาง", label: "ไม้ยาง" },
   { value: "bamboo", label: "Bamboo" },
@@ -18,7 +25,7 @@ export default function ProductFilter() {
 
   function onChange(value: string) {
     const params = new URLSearchParams(searchParams.toString())
-    if (value) {
+    if (value && value !== "all") {
       params.set("category", value)
     } else {
       params.delete("category")
@@ -27,16 +34,17 @@ export default function ProductFilter() {
   }
 
   return (
-    <select
-      value={current}
-      onChange={(e) => onChange(e.target.value)}
-      className="crm-input w-full md:w-auto"
-    >
-      {CATEGORIES.map((c) => (
-        <option key={c.value} value={c.value}>
-          {c.label}
-        </option>
-      ))}
-    </select>
+    <Select value={current || "all"} onValueChange={onChange}>
+      <SelectTrigger className="h-11 w-full bg-white md:w-44">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {CATEGORIES.map((c) => (
+          <SelectItem key={c.value} value={c.value}>
+            {c.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }

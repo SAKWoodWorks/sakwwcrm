@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { spawn } from 'child_process'
 import path from 'path'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const state = request.headers.get('x-goog-resource-state')
 
@@ -28,8 +31,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   const pythonExe = process.env.PYTHON_VENV_PATH ?? 'python'
-  const extractDir = process.env.EXTRACTION_DIR ?? path.join(process.cwd(), 'extraction')
-  const scriptPath = path.join(extractDir, 'extract_file.py')
+  const extractDir = process.env.EXTRACTION_DIR ?? path.join(/* turbopackIgnore: true */ process.cwd(), 'extraction')
+  const scriptPath = path.join(/* turbopackIgnore: true */ extractDir, 'extract_file.py')
 
   // Spawn async — webhook must return fast
   const child = spawn(pythonExe, [

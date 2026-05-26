@@ -43,8 +43,24 @@ model Customer {
   salesperson      Salesperson? @relation("AccountManager", fields: [salespersonId], references: [id])
   documents        Document[]
   deals            Deal[]
+  aliases          CustomerAlias[]
 
   @@map("customers")
+}
+
+model CustomerAlias {
+  id        Int      @id @default(autoincrement())
+  customerId Int     @map("customer_id")
+  aliasName String   @map("alias_name")
+  aliasType String   @default("former_name") @map("alias_type")
+  taxId     String?  @map("tax_id")
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("customer_aliases")
+  @@index([customerId])
 }
 
 model Product {

@@ -1,5 +1,15 @@
 export const dynamic = "force-dynamic"
 
+import { Badge } from "@/components/ui/badge"
+import { Card } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { prisma } from "@/lib/prisma"
 import { Prisma } from "@prisma/client"
 import Link from "next/link"
@@ -51,89 +61,91 @@ export default async function SalespersonsPage() {
           const lapsed = Number(row.lapsed_count)
           const revenue = Number(row.total_revenue)
           return (
-            <Link key={row.id} href={`/crm/salespersons/${row.id}`} className="crm-card block p-4">
-              <div className="flex items-start justify-between gap-3">
-                <h2 className="font-bold text-[var(--crm-ink)]">{row.name}</h2>
-                {row.line_user_id ? (
-                  <span className="rounded-full bg-[var(--crm-brand-soft)] px-2 py-0.5 text-xs font-bold text-[var(--crm-brand-accent)]">
-                    LINE
-                  </span>
-                ) : null}
-              </div>
-              <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
-                <div>
-                  <p className="text-xs text-[var(--crm-muted)]">ลูกค้า</p>
-                  <p className="font-semibold tabular-nums">{Number(row.customer_count)}</p>
+            <Card key={row.id} className="rounded-lg border-[var(--crm-line)] bg-white p-4 shadow-[var(--crm-shadow)]">
+              <Link href={`/crm/salespersons/${row.id}`} className="block">
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="font-bold text-[var(--crm-ink)]">{row.name}</h2>
+                  {row.line_user_id ? (
+                    <Badge variant="outline" className="border-[var(--crm-brand-soft)] bg-[var(--crm-brand-soft)] text-[var(--crm-brand-accent)]">
+                      LINE
+                    </Badge>
+                  ) : null}
                 </div>
-                <div>
-                  <p className="text-xs text-[var(--crm-muted)]">ยอดรวม</p>
-                  <p className="font-semibold tabular-nums">{revenue.toLocaleString("th-TH", { notation: "compact" })}</p>
+                <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                  <div>
+                    <p className="text-xs text-[var(--crm-muted)]">ลูกค้า</p>
+                    <p className="font-semibold tabular-nums">{Number(row.customer_count)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[var(--crm-muted)]">ยอดรวม</p>
+                    <p className="font-semibold tabular-nums">{revenue.toLocaleString("th-TH", { notation: "compact" })}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[var(--crm-muted)]">Lapsed</p>
+                    <p className={lapsed > 0 ? "font-semibold text-[var(--crm-danger)]" : "font-semibold text-[var(--crm-muted)]"}>
+                      {lapsed || "—"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-[var(--crm-muted)]">Lapsed</p>
-                  <p className={lapsed > 0 ? "font-semibold text-[var(--crm-danger)]" : "font-semibold text-[var(--crm-muted)]"}>
-                    {lapsed || "—"}
-                  </p>
-                </div>
-              </div>
-            </Link>
+              </Link>
+            </Card>
           )
         })}
       </div>
 
       <div className="crm-table-wrap crm-desktop-table">
-        <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ชื่อ</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">LINE</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500">ลูกค้า</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500">ยอดรวม</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500">lapsed &gt;90 วัน</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
+        <Table>
+          <TableHeader className="bg-gray-50">
+            <TableRow>
+              <TableHead className="px-4 py-3 text-gray-500">ชื่อ</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">LINE</TableHead>
+              <TableHead className="px-4 py-3 text-right text-gray-500">ลูกค้า</TableHead>
+              <TableHead className="px-4 py-3 text-right text-gray-500">ยอดรวม</TableHead>
+              <TableHead className="px-4 py-3 text-right text-gray-500">lapsed &gt;90 วัน</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {rows.map((row) => {
               const lapsed = Number(row.lapsed_count)
               const revenue = Number(row.total_revenue)
               return (
-                <tr key={row.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium">
+                <TableRow key={row.id} className="hover:bg-gray-50">
+                  <TableCell className="px-4 py-3 font-medium">
                     <Link href={`/crm/salespersons/${row.id}`} className="text-blue-600 hover:underline">
                       {row.name}
                     </Link>
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     {row.line_user_id ? (
-                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-                        ✅ ลงทะเบียนแล้ว
-                      </span>
+                      <Badge variant="outline" className="border-green-200 bg-green-100 text-green-800">
+                        ลงทะเบียนแล้ว
+                      </Badge>
                     ) : (
                       <span className="text-gray-400">—</span>
                     )}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right tabular-nums">
                     {Number(row.customer_count)}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right tabular-nums">
                     {revenue.toLocaleString("th-TH", {
                       style: "currency",
                       currency: "THB",
                       minimumFractionDigits: 0,
                     })}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right tabular-nums">
                     {lapsed > 0 ? (
                       <span className="font-medium text-red-600">{lapsed}</span>
                     ) : (
                       <span className="text-gray-400">—</span>
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <p className="mt-3 text-sm text-gray-500">

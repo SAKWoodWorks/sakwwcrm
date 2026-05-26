@@ -16,6 +16,9 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { PATCH } from "@/app/api/customers/[id]/route"
 
+const mockSession = { user: {} } as Awaited<ReturnType<typeof auth>>
+const mockCustomer = {} as Awaited<ReturnType<typeof prisma.customer.update>>
+
 const validBody = {
   name: "บริษัท ABC จำกัด",
   taxId: "1234567890123",
@@ -52,41 +55,43 @@ describe("PATCH /api/customers/[id]", () => {
   })
 
   it("returns 400 for non-numeric id", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: {} } as any)
+    vi.mocked(auth).mockResolvedValue(mockSession)
     const res = await PATCH(makeReq(validBody), makeParams("abc"))
     expect(res.status).toBe(400)
   })
 
   it("returns 400 for garbage-prefixed id like '1abc'", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: {} } as any)
+    vi.mocked(auth).mockResolvedValue(mockSession)
     const res = await PATCH(makeReq(validBody), makeParams("1abc"))
     expect(res.status).toBe(400)
   })
 
   it("returns 400 when name is missing", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: {} } as any)
-    const { name: _, ...noName } = validBody
+    vi.mocked(auth).mockResolvedValue(mockSession)
+    const noName = Object.fromEntries(
+      Object.entries(validBody).filter(([key]) => key !== "name")
+    )
     const res = await PATCH(makeReq(noName), makeParams("1"))
     expect(res.status).toBe(400)
   })
 
   it("returns 400 when name is blank whitespace", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: {} } as any)
+    vi.mocked(auth).mockResolvedValue(mockSession)
     const res = await PATCH(makeReq({ ...validBody, name: "   " }), makeParams("1"))
     expect(res.status).toBe(400)
   })
 
   it("returns 200 and ok:true on success", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: {} } as any)
-    vi.mocked(prisma.customer.update).mockResolvedValue({} as any)
+    vi.mocked(auth).mockResolvedValue(mockSession)
+    vi.mocked(prisma.customer.update).mockResolvedValue(mockCustomer)
     const res = await PATCH(makeReq(validBody), makeParams("5"))
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ ok: true })
   })
 
   it("calls prisma.customer.update with correct id and trimmed name", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: {} } as any)
-    vi.mocked(prisma.customer.update).mockResolvedValue({} as any)
+    vi.mocked(auth).mockResolvedValue(mockSession)
+    vi.mocked(prisma.customer.update).mockResolvedValue(mockCustomer)
     await PATCH(makeReq({ ...validBody, name: "  บริษัท XYZ  " }), makeParams("7"))
     expect(prisma.customer.update).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -97,7 +102,7 @@ describe("PATCH /api/customers/[id]", () => {
   })
 
   it("returns 400 on P2002 duplicate taxId", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: {} } as any)
+    vi.mocked(auth).mockResolvedValue(mockSession)
     const err = Object.assign(
       new Error("Unique constraint"),
       { code: "P2002", clientVersion: "0.0.0" }
@@ -111,7 +116,7 @@ describe("PATCH /api/customers/[id]", () => {
   })
 
   it("returns 404 on P2025 not found", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: {} } as any)
+    vi.mocked(auth).mockResolvedValue(mockSession)
     const err = Object.assign(
       new Error("Record not found"),
       { code: "P2025", clientVersion: "0.0.0" }

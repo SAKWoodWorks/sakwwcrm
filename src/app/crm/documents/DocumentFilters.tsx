@@ -1,26 +1,29 @@
 "use client"
 
-import { formatSalespersonName } from "@/lib/salesperson-display"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback } from "react"
 
 type Props = {
-  salespersons: { id: number; name: string }[]
+  salespersons: { value: string; label: string }[]
 }
 
 export default function DocumentFilters({ salespersons }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [nameValue, setNameValue] = useState(searchParams.get("q") ?? "")
-
-  useEffect(() => {
-    setNameValue(searchParams.get("q") ?? "")
-  }, [searchParams])
+  const queryValue = searchParams.get("q") ?? ""
 
   const update = useCallback(
     (key: string, value: string) => {
       const params = new URLSearchParams(searchParams.toString())
-      if (value) {
+      if (value && value !== "all") {
         params.set(key, value)
       } else {
         params.delete(key)
@@ -33,71 +36,75 @@ export default function DocumentFilters({ salespersons }: Props) {
 
   return (
     <div className="grid gap-3 md:flex md:flex-wrap">
-      <input
+      <Input
+        key={queryValue}
         type="search"
         placeholder="ค้นหาชื่อลูกค้า..."
-        value={nameValue}
-        onChange={(e) => setNameValue(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && update("q", nameValue)}
-        className="crm-input"
+        defaultValue={queryValue}
+        onKeyDown={(e) => e.key === "Enter" && update("q", e.currentTarget.value)}
+        className="h-11 bg-white md:w-64"
       />
 
-      <select
-        value={searchParams.get("type") ?? ""}
-        onChange={(e) => update("type", e.target.value)}
-        className="crm-input"
-      >
-        <option value="">ทุกประเภท</option>
-        <option value="tax_invoice">TAX Invoice</option>
-        <option value="quotation">Quotation</option>
-        <option value="abb_invoice">Abb Invoice</option>
-      </select>
+      <Select value={searchParams.get("type") ?? "all"} onValueChange={(value) => update("type", value)}>
+        <SelectTrigger className="h-11 bg-white md:w-44">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">ทุกประเภท</SelectItem>
+          <SelectItem value="tax_invoice">TAX Invoice</SelectItem>
+          <SelectItem value="quotation">Quotation</SelectItem>
+          <SelectItem value="abb_invoice">Abb Invoice</SelectItem>
+        </SelectContent>
+      </Select>
 
-      <select
-        value={searchParams.get("status") ?? ""}
-        onChange={(e) => update("status", e.target.value)}
-        className="crm-input"
-      >
-        <option value="">ทุกสถานะ</option>
-        <option value="paid">ชำระแล้ว</option>
-        <option value="pending">รอชำระ</option>
-      </select>
+      <Select value={searchParams.get("status") ?? "all"} onValueChange={(value) => update("status", value)}>
+        <SelectTrigger className="h-11 bg-white md:w-40">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">ทุกสถานะ</SelectItem>
+          <SelectItem value="paid">ชำระแล้ว</SelectItem>
+          <SelectItem value="pending">รอชำระ</SelectItem>
+        </SelectContent>
+      </Select>
 
-      <select
-        value={searchParams.get("channel") ?? ""}
-        onChange={(e) => update("channel", e.target.value)}
-        className="crm-input"
-      >
-        <option value="">ทุกช่องทาง</option>
-        <option value="Web">Web</option>
-        <option value="Incall099">Incall099</option>
-      </select>
+      <Select value={searchParams.get("channel") ?? "all"} onValueChange={(value) => update("channel", value)}>
+        <SelectTrigger className="h-11 bg-white md:w-40">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">ทุกช่องทาง</SelectItem>
+          <SelectItem value="Web">Web</SelectItem>
+          <SelectItem value="Incall099">Incall099</SelectItem>
+        </SelectContent>
+      </Select>
 
-      <select
-        value={searchParams.get("salesperson") ?? ""}
-        onChange={(e) => update("salesperson", e.target.value)}
-        className="crm-input"
-      >
-        <option value="">ทุกพนักงาน</option>
-        {salespersons.map((s) => (
-          <option key={s.id} value={s.id}>
-            {formatSalespersonName(s.name)}
-          </option>
-        ))}
-      </select>
+      <Select value={searchParams.get("salesperson") ?? "all"} onValueChange={(value) => update("salesperson", value)}>
+        <SelectTrigger className="h-11 bg-white md:w-48">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">ทุกพนักงาน</SelectItem>
+          {salespersons.map((s) => (
+            <SelectItem key={s.value} value={s.value}>
+              {s.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-      <input
+      <Input
         type="date"
         value={searchParams.get("from") ?? ""}
         onChange={(e) => update("from", e.target.value)}
-        className="crm-input"
+        className="h-11 bg-white md:w-40"
       />
 
-      <input
+      <Input
         type="date"
         value={searchParams.get("to") ?? ""}
         onChange={(e) => update("to", e.target.value)}
-        className="crm-input"
+        className="h-11 bg-white md:w-40"
       />
     </div>
   )

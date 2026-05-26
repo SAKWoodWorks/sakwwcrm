@@ -1,6 +1,15 @@
 export const dynamic = "force-dynamic"
 
 import { prisma } from "@/lib/prisma"
+import { Card } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import Link from "next/link"
 import { Suspense } from "react"
 import DocumentFilters from "./DocumentFilters"
@@ -39,6 +48,15 @@ export default async function DocumentsPage({ searchParams }: Props) {
     order = "desc",
     page: pageStr,
   } = await searchParams
+
+  const salespersonsQuery = prisma.salesperson.findMany({
+    where: { active: true },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  })
+  const salespersonGroups = salesperson ? buildSalespersonGroups(await salespersonsQuery) : []
+  const salespersonFilter = getSalespersonFilter(salesperson, salespersonGroups)
+
   const page = Math.max(1, parseInt(pageStr ?? "1") || 1)
   const skip = (page - 1) * PAGE_SIZE
 
@@ -46,10 +64,7 @@ export default async function DocumentsPage({ searchParams }: Props) {
   if (type) where.docType = type
   if (status) where.paymentStatus = status
   if (channel) where.channel = channel
-  if (salesperson) {
-    const sid = parseInt(salesperson)
-    if (!isNaN(sid)) where.salespersonId = sid
-  }
+  if (salespersonFilter) where.salespersonId = salespersonFilter
   if (from || to) {
     where.docDate = {
       ...(from ? { gte: new Date(from) } : {}),
@@ -86,12 +101,9 @@ export default async function DocumentsPage({ searchParams }: Props) {
       },
     }),
     prisma.document.count({ where }),
-    prisma.salesperson.findMany({
-      where: { active: true },
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
-    }),
+    salesperson ? Promise.resolve([]) : salespersonsQuery,
   ])
+  const filterSalespersonGroups = salesperson ? salespersonGroups : buildSalespersonGroups(salespersons)
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
@@ -138,13 +150,13 @@ export default async function DocumentsPage({ searchParams }: Props) {
 
       <div className="mb-4">
         <Suspense>
-          <DocumentFilters salespersons={salespersons} />
+          <DocumentFilters salespersons={filterSalespersonGroups} />
         </Suspense>
       </div>
 
       <div className="crm-mobile-list">
         {documents.map((d) => (
-          <div key={d.id} className="crm-card p-4">
+          <Card key={d.id} className="rounded-lg border-[var(--crm-line)] bg-white p-4 shadow-[var(--crm-shadow)]">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <Link href={`/crm/documents/${d.id}`} className="font-mono text-sm font-bold text-[var(--crm-brand)]">
@@ -183,50 +195,50 @@ export default async function DocumentsPage({ searchParams }: Props) {
                 <PaymentToggle documentId={d.id} currentStatus={d.paymentStatus} />
               </div>
             )}
-          </div>
+          </Card>
         ))}
       </div>
 
       <div className="crm-table-wrap crm-desktop-table">
-        <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">
+        <Table>
+          <TableHeader className="bg-gray-50">
+            <TableRow>
+              <TableHead className="px-4 py-3 text-gray-500">
                 <Link href={sortUrl("docDate")} className="hover:text-gray-800">
                   วันที่{indicator("docDate")}
                 </Link>
-              </th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">เลขที่</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ประเภท</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ลูกค้า</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ช่องทาง</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">พนักงาน</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500">
+              </TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">เลขที่</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">ประเภท</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">ลูกค้า</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">ช่องทาง</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">พนักงาน</TableHead>
+              <TableHead className="px-4 py-3 text-right text-gray-500">
                 <Link href={sortUrl("total")} className="hover:text-gray-800">
                   ยอด{indicator("total")}
                 </Link>
-              </th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">สถานะ</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
+              </TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">สถานะ</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {documents.map((d) => (
-              <tr key={d.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 tabular-nums">
+              <TableRow key={d.id} className="hover:bg-gray-50">
+                <TableCell className="px-4 py-3 tabular-nums">
                   {d.docDate.toLocaleDateString("th-TH")}
-                </td>
-                <td className="px-4 py-3 font-mono text-xs">
+                </TableCell>
+                <TableCell className="px-4 py-3 font-mono text-xs">
                   <Link
                     href={`/crm/documents/${d.id}`}
                     className="text-blue-600 hover:underline"
                   >
                     {d.docNumber}
                   </Link>
-                </td>
-                <td className="px-4 py-3">
+                </TableCell>
+                <TableCell className="px-4 py-3">
                   <DocTypeBadge docType={d.docType} />
-                </td>
-                <td className="px-4 py-3">
+                </TableCell>
+                <TableCell className="px-4 py-3">
                   {d.customer ? (
                     <Link href={`/crm/customers/${d.customer.id}`} className="text-blue-600 hover:underline">
                       {d.customer.name}
@@ -234,10 +246,10 @@ export default async function DocumentsPage({ searchParams }: Props) {
                   ) : (
                     "—"
                   )}
-                </td>
-                <td className="px-4 py-3 text-gray-500">{d.channel ?? "—"}</td>
-                <td className="px-4 py-3">{formatSalespersonName(d.salesperson?.name)}</td>
-                <td className="px-4 py-3 text-right tabular-nums">
+                </TableCell>
+                <TableCell className="px-4 py-3 text-gray-500">{d.channel ?? "—"}</TableCell>
+                <TableCell className="px-4 py-3">{formatSalespersonName(d.salesperson?.name)}</TableCell>
+                <TableCell className="px-4 py-3 text-right tabular-nums">
                   {d.total != null
                     ? Number(d.total).toLocaleString("th-TH", {
                         style: "currency",
@@ -245,18 +257,18 @@ export default async function DocumentsPage({ searchParams }: Props) {
                         minimumFractionDigits: 0,
                       })
                     : "—"}
-                </td>
-                <td className="px-4 py-3">
+                </TableCell>
+                <TableCell className="px-4 py-3">
                   {d.docType === "tax_invoice" ? (
                     <PaymentToggle documentId={d.id} currentStatus={d.paymentStatus} />
                   ) : (
                     <span className="text-gray-400">—</span>
                   )}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
@@ -278,4 +290,30 @@ export default async function DocumentsPage({ searchParams }: Props) {
       </div>
     </div>
   )
+}
+
+function buildSalespersonGroups(salespersons: { id: number; name: string }[]) {
+  const groups = new Map<string, number[]>()
+  for (const salesperson of salespersons) {
+    const label = formatSalespersonName(salesperson.name)
+    groups.set(label, [...(groups.get(label) ?? []), salesperson.id])
+  }
+
+  return Array.from(groups.entries())
+    .map(([label, ids]) => ({ value: label, label, ids }))
+    .sort((a, b) => a.label.localeCompare(b.label))
+}
+
+function getSalespersonFilter(
+  salesperson: string | undefined,
+  groups: { value: string; ids: number[] }[]
+): Prisma.DocumentWhereInput["salespersonId"] | null {
+  if (!salesperson) return null
+
+  const legacyId = parseInt(salesperson, 10)
+  if (!isNaN(legacyId) && String(legacyId) === salesperson) return legacyId
+
+  const group = groups.find((option) => option.value === salesperson)
+  if (!group) return null
+  return { in: group.ids }
 }
