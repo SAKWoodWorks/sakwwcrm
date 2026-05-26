@@ -1,5 +1,15 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { DEAL_STAGE_LABELS, DEAL_STAGES } from "@/lib/deals"
 import { formatSalespersonName } from "@/lib/salesperson-display"
 import Link from "next/link"
@@ -10,9 +20,6 @@ type Props = {
   customers: { id: number; name: string }[]
   salespersons: { id: number; name: string }[]
 }
-
-const inputCls =
-  "w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
 
 export default function DealCreateForm({ customers, salespersons }: Props) {
   const router = useRouter()
@@ -25,10 +32,12 @@ export default function DealCreateForm({ customers, salespersons }: Props) {
     setLoading(true)
 
     const form = new FormData(e.currentTarget)
+    const customerId = form.get("customerId")
+    const salespersonId = form.get("salespersonId")
     const body = {
       title: form.get("title") as string,
-      customerId: form.get("customerId") ? Number(form.get("customerId")) : null,
-      salespersonId: form.get("salespersonId") ? Number(form.get("salespersonId")) : null,
+      customerId: customerId && customerId !== "none" ? Number(customerId) : null,
+      salespersonId: salespersonId && salespersonId !== "none" ? Number(salespersonId) : null,
       stage: form.get("stage") as string,
       expectedValue: form.get("expectedValue") ? Number(form.get("expectedValue")) : null,
       probability: form.get("probability") ? Number(form.get("probability")) : 10,
@@ -67,89 +76,101 @@ export default function DealCreateForm({ customers, salespersons }: Props) {
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">ชื่อดีล *</label>
-        <input name="title" required className={inputCls} placeholder="เช่น ไม้อัดล็อตใหม่ - บริษัท ABC" />
+        <Input name="title" required className="h-11 bg-white" placeholder="เช่น ไม้อัดล็อตใหม่ - บริษัท ABC" />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">ลูกค้า</label>
-          <select name="customerId" className={inputCls}>
-            <option value="">ยังไม่ผูกลูกค้า</option>
+          <Select name="customerId" defaultValue="none">
+            <SelectTrigger className="h-11 bg-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+            <SelectItem value="none">ยังไม่ผูกลูกค้า</SelectItem>
             {customers.map((customer) => (
-              <option key={customer.id} value={customer.id}>
+              <SelectItem key={customer.id} value={String(customer.id)}>
                 {customer.name}
-              </option>
+              </SelectItem>
             ))}
-          </select>
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">พนักงานขาย</label>
-          <select name="salespersonId" className={inputCls}>
-            <option value="">ไม่ระบุ</option>
+          <Select name="salespersonId" defaultValue="none">
+            <SelectTrigger className="h-11 bg-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+            <SelectItem value="none">ไม่ระบุ</SelectItem>
             {salespersons.map((salesperson) => (
-              <option key={salesperson.id} value={salesperson.id}>
+              <SelectItem key={salesperson.id} value={String(salesperson.id)}>
                 {formatSalespersonName(salesperson.name)}
-              </option>
+              </SelectItem>
             ))}
-          </select>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Stage</label>
-          <select name="stage" defaultValue="lead" className={inputCls}>
+          <Select name="stage" defaultValue="lead">
+            <SelectTrigger className="h-11 bg-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
             {DEAL_STAGES.map((stage) => (
-              <option key={stage} value={stage}>
+              <SelectItem key={stage} value={stage}>
                 {DEAL_STAGE_LABELS[stage]}
-              </option>
+              </SelectItem>
             ))}
-          </select>
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">มูลค่าคาดการณ์</label>
-          <input name="expectedValue" type="number" min="0" step="0.01" className={inputCls} />
+          <Input name="expectedValue" type="number" min="0" step="0.01" className="h-11 bg-white" />
         </div>
 
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">โอกาสปิด (%)</label>
-          <input name="probability" type="number" min="0" max="100" defaultValue="10" className={inputCls} />
+          <Input name="probability" type="number" min="0" max="100" defaultValue="10" className="h-11 bg-white" />
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Expected close</label>
-          <input name="expectedCloseDate" type="date" className={inputCls} />
+          <Input name="expectedCloseDate" type="date" className="h-11 bg-white" />
         </div>
 
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Source</label>
-          <input name="source" className={inputCls} placeholder="LINE, walk-in, referral" />
+          <Input name="source" className="h-11 bg-white" placeholder="LINE, walk-in, referral" />
         </div>
       </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">Notes</label>
-        <textarea name="notes" rows={4} className={inputCls} />
+        <Textarea name="notes" rows={4} className="bg-white" />
       </div>
 
       <div className="flex gap-3 pt-2">
-        <button
+        <Button
           type="submit"
           disabled={loading}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+          className="bg-[var(--crm-brand)] text-white hover:bg-[var(--crm-brand-dark)]"
         >
           {loading ? "กำลังสร้าง..." : "สร้างดีล"}
-        </button>
-        <Link
-          href="/crm/deals"
-          className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          ยกเลิก
-        </Link>
+        </Button>
+        <Button asChild type="button" variant="outline">
+          <Link href="/crm/deals">ยกเลิก</Link>
+        </Button>
       </div>
     </form>
   )

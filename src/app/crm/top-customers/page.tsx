@@ -68,26 +68,30 @@ function getRecencyTone(date: Date): RecencyTone {
   return "red"
 }
 
-const recencyStyles: Record<RecencyTone, { row: string; badge: string; label: string }> = {
+const recencyStyles: Record<RecencyTone, { row: string; badge: string; label: string; compactLabel: string }> = {
   green: {
     row: "border-l-4 border-l-emerald-500",
     badge: "border-emerald-200 bg-emerald-100 text-emerald-800",
     label: "ใน 3 เดือน",
+    compactLabel: "3ด.",
   },
   yellow: {
     row: "border-l-4 border-l-yellow-400",
     badge: "border-yellow-200 bg-yellow-100 text-yellow-800",
     label: "ใน 6 เดือน",
+    compactLabel: "6ด.",
   },
   orange: {
     row: "border-l-4 border-l-orange-500",
     badge: "border-orange-200 bg-orange-100 text-orange-800",
     label: "ใน 12 เดือน",
+    compactLabel: "12ด.",
   },
   red: {
     row: "border-l-4 border-l-red-600",
     badge: "border-red-200 bg-red-100 text-red-800",
     label: "เกิน 12 เดือน",
+    compactLabel: ">12ด.",
   },
 }
 
@@ -267,42 +271,50 @@ function PaidCustomersTable({
       </div>
 
       <div className="crm-table-wrap crm-desktop-table">
-        <Table>
+        <Table className="w-full table-fixed text-xs xl:text-sm">
+          <colgroup>
+            <col className="w-10" />
+            <col className="w-[36%]" />
+            <col className="w-[12%]" />
+            <col className="w-[16%]" />
+            <col className="w-[9%]" />
+            <col className="w-[13%]" />
+            <col className="w-[8%]" />
+          </colgroup>
           <TableHeader className="bg-gray-50">
             <TableRow>
-              <TableHead className="px-4 py-3 text-gray-500">#</TableHead>
-              <TableHead className="px-4 py-3 text-gray-500">
+              <TableHead className="px-2 py-3 text-gray-500">#</TableHead>
+              <TableHead className="px-2 py-3 text-gray-500">
                 <SortLink href={sortHrefs.customerName} active={sortValue === "customer_name_asc"}>
                   ลูกค้า
                 </SortLink>
               </TableHead>
-              <TableHead className="px-4 py-3 text-gray-500">Salesperson</TableHead>
-              <TableHead className="px-4 py-3 text-gray-500">เบอร์โทร</TableHead>
-              <TableHead className="px-4 py-3 text-right text-gray-500">
+              <TableHead className="px-2 py-3 text-gray-500">Salesperson</TableHead>
+              <TableHead className="px-2 py-3 text-right text-gray-500">
                 <SortLink
                   href={sortHrefs.totalPaid}
                   active={sortValue === "total_paid_desc" || sortValue === "total_paid_asc"}
                 >
-                  TotalPaid
+                  ยอดซื้อ
                 </SortLink>
               </TableHead>
-              <TableHead className="px-4 py-3 text-right text-gray-500">
+              <TableHead className="px-2 py-3 text-right text-gray-500">
                 <SortLink href={sortHrefs.invoiceCount} active={sortValue === "invoice_count_desc"}>
-                  TotalInvoices
+                  Inv.
                 </SortLink>
               </TableHead>
-              <TableHead className="px-4 py-3 text-gray-500">
+              <TableHead className="px-2 py-3 text-gray-500">
                 <SortLink href={sortHrefs.lastPaid} active={sortValue === "last_paid_desc"}>
-                  LastInvoicePaidDate
+                  ซื้อล่าสุด
                 </SortLink>
               </TableHead>
-              <TableHead className="px-4 py-3 text-gray-500">สถานะ</TableHead>
+              <TableHead className="px-2 py-3 text-gray-500">สถานะ</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="px-4 py-6 text-center text-gray-400">
+                <TableCell colSpan={7} className="px-4 py-6 text-center text-gray-400">
                   ไม่มีข้อมูล
                 </TableCell>
               </TableRow>
@@ -311,22 +323,25 @@ function PaidCustomersTable({
                 const tone = getRecencyTone(row.last_invoice_paid_date)
                 return (
                   <TableRow key={row.customer_id} className={recencyStyles[tone].row}>
-                    <TableCell className="px-4 py-3 tabular-nums text-gray-400">{index + 1}</TableCell>
-                    <TableCell className="px-4 py-3">
+                    <TableCell className="px-2 py-3 tabular-nums text-gray-400">{index + 1}</TableCell>
+                    <TableCell className="whitespace-normal px-2 py-3">
                       <Link href={`/crm/customers/${row.customer_id}`} className="font-medium text-blue-600 hover:underline">
                         {row.customer_name}
                       </Link>
+                      <div className="mt-1 truncate text-[11px] text-gray-400">{row.phone_number ?? "ไม่มีเบอร์โทร"}</div>
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-gray-600">{formatSalespersonList(row.salesperson_names)}</TableCell>
-                    <TableCell className="px-4 py-3 text-gray-600">{row.phone_number ?? "ไม่มีเบอร์โทร"}</TableCell>
-                    <TableCell className="px-4 py-3 text-right tabular-nums font-semibold text-[var(--crm-ink)]">
+                    <TableCell className="whitespace-normal break-words px-2 py-3 text-gray-600">
+                      {formatSalespersonList(row.salesperson_names)}
+                    </TableCell>
+                    <TableCell className="px-2 py-3 text-right tabular-nums font-semibold text-[var(--crm-ink)]">
                       {formatBaht(row.total_paid)}
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-right tabular-nums">{Number(row.total_invoices).toLocaleString("th-TH")}</TableCell>
-                    <TableCell className="px-4 py-3 text-gray-600">{formatThaiDate(row.last_invoice_paid_date)}</TableCell>
-                    <TableCell className="px-4 py-3">
+                    <TableCell className="px-2 py-3 text-right tabular-nums">{Number(row.total_invoices).toLocaleString("th-TH")}</TableCell>
+                    <TableCell className="px-2 py-3 tabular-nums text-gray-600">{formatThaiShortDate(row.last_invoice_paid_date)}</TableCell>
+                    <TableCell className="px-2 py-3">
                       <Badge variant="outline" className={recencyStyles[tone].badge}>
-                        {recencyStyles[tone].label}
+                        <span className="xl:hidden">{recencyStyles[tone].compactLabel}</span>
+                        <span className="hidden xl:inline">{recencyStyles[tone].label}</span>
                       </Badge>
                     </TableCell>
                   </TableRow>
@@ -421,6 +436,14 @@ function formatThaiDate(value: Date) {
     day: "numeric",
     month: "long",
     year: "numeric",
+  })
+}
+
+function formatThaiShortDate(value: Date) {
+  return new Date(value).toLocaleDateString("th-TH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
   })
 }
 

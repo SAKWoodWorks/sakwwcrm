@@ -56,10 +56,9 @@ describe("TopCustomersPage", () => {
 
     expect(screen.getAllByText("ลูกค้า").length).toBeGreaterThan(0)
     expect(screen.getAllByText("Salesperson").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("เบอร์โทร").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("TotalPaid").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("TotalInvoices").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("LastInvoicePaidDate").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("ยอดซื้อ").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Inv.").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("ซื้อล่าสุด").length).toBeGreaterThan(0)
     expect(screen.getAllByText("May Period Buyer").length).toBeGreaterThan(0)
     expect(screen.getAllByText("15 สิงหาคม 2568").length).toBeGreaterThan(0)
     expect(screen.getAllByText("ไม่มีเบอร์โทร").length).toBeGreaterThan(0)

@@ -1,5 +1,17 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { formatSalespersonName } from "@/lib/salesperson-display"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -34,9 +46,6 @@ interface Props {
   aliases: CustomerAliasData[]
 }
 
-const inputCls =
-  "w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-
 export default function CustomerEditForm({ customer, salespersons, aliases }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -63,7 +72,7 @@ export default function CustomerEditForm({ customer, salespersons, aliases }: Pr
       email: (data.get("email") as string) || null,
       lineId: (data.get("lineId") as string) || null,
       otherId: (data.get("otherId") as string) || null,
-      salespersonId: data.get("salespersonId") ? Number(data.get("salespersonId")) : null,
+      salespersonId: data.get("salespersonId") && data.get("salespersonId") !== "none" ? Number(data.get("salespersonId")) : null,
     }
 
     try {
@@ -148,21 +157,19 @@ export default function CustomerEditForm({ customer, salespersons, aliases }: Pr
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">ชื่อ *</label>
-        <input name="name" type="text" defaultValue={customer.name} required className={inputCls} />
+        <Input name="name" type="text" defaultValue={customer.name} required className="h-11 bg-white" />
       </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">TAX ID</label>
-        <input name="taxId" type="text" defaultValue={customer.taxId ?? ""} className={inputCls} />
+        <Input name="taxId" type="text" defaultValue={customer.taxId ?? ""} className="h-11 bg-white" />
       </div>
 
       <div className="flex items-center gap-2">
-        <input
+        <Checkbox
           name="vatRegistered"
-          type="checkbox"
           id="vatRegistered"
           defaultChecked={customer.vatRegistered}
-          className="h-4 w-4 rounded border-gray-300 text-blue-600"
         />
         <label htmlFor="vatRegistered" className="text-sm font-medium text-gray-700">
           จดทะเบียน VAT
@@ -171,79 +178,86 @@ export default function CustomerEditForm({ customer, salespersons, aliases }: Pr
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">ประเภท</label>
-        <input name="type" type="text" defaultValue={customer.type ?? ""} className={inputCls} />
+        <Input name="type" type="text" defaultValue={customer.type ?? ""} className="h-11 bg-white" />
       </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">สถานะ</label>
-        <select name="status" defaultValue={customer.status} className={inputCls}>
-          <option value="not_purchase_yet">ยังไม่ซื้อ</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+        <Select name="status" defaultValue={customer.status}>
+          <SelectTrigger className="h-11 bg-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="not_purchase_yet">ยังไม่ซื้อ</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">จังหวัด</label>
-        <input name="province" type="text" defaultValue={customer.province ?? ""} className={inputCls} />
+        <Input name="province" type="text" defaultValue={customer.province ?? ""} className="h-11 bg-white" />
       </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">ที่อยู่</label>
-        <textarea
+        <Textarea
           name="address"
           defaultValue={customer.address ?? ""}
           rows={3}
-          className={inputCls}
+          className="bg-white"
         />
       </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">โทรศัพท์</label>
-        <input name="phone" type="text" defaultValue={customer.phone ?? ""} className={inputCls} />
+        <Input name="phone" type="text" defaultValue={customer.phone ?? ""} className="h-11 bg-white" />
       </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">อีเมล</label>
-        <input name="email" type="email" defaultValue={customer.email ?? ""} className={inputCls} />
+        <Input name="email" type="email" defaultValue={customer.email ?? ""} className="h-11 bg-white" />
       </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">LINE ID</label>
-        <input name="lineId" type="text" defaultValue={customer.lineId ?? ""} className={inputCls} />
+        <Input name="lineId" type="text" defaultValue={customer.lineId ?? ""} className="h-11 bg-white" />
       </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">Other ID</label>
-        <input name="otherId" type="text" defaultValue={customer.otherId ?? ""} className={inputCls} />
+        <Input name="otherId" type="text" defaultValue={customer.otherId ?? ""} className="h-11 bg-white" />
       </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">พนักงานขาย</label>
-        <select name="salespersonId" defaultValue={customer.salespersonId ?? ""} className={inputCls}>
-          <option value="">ไม่ระบุ</option>
-          {salespersons.map((sp) => (
-            <option key={sp.id} value={sp.id}>
-              {formatSalespersonName(sp.name)}
-            </option>
-          ))}
-        </select>
+        <Select name="salespersonId" defaultValue={customer.salespersonId ? String(customer.salespersonId) : "none"}>
+          <SelectTrigger className="h-11 bg-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">ไม่ระบุ</SelectItem>
+            {salespersons.map((sp) => (
+              <SelectItem key={sp.id} value={String(sp.id)}>
+                {formatSalespersonName(sp.name)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex gap-3 pt-2">
-        <button
+        <Button
           type="submit"
           disabled={loading}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+          className="bg-[var(--crm-brand)] text-white hover:bg-[var(--crm-brand-dark)]"
         >
           {loading ? "กำลังบันทึก..." : "บันทึก"}
-        </button>
-        <a
-          href={`/crm/customers/${customer.id}`}
-          className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          ยกเลิก
-        </a>
+        </Button>
+        <Button asChild variant="outline">
+          <a href={`/crm/customers/${customer.id}`}>ยกเลิก</a>
+        </Button>
       </div>
     </form>
     <section className="border-t border-gray-200 pt-5">
@@ -274,45 +288,48 @@ export default function CustomerEditForm({ customer, salespersons, aliases }: Pr
                   {alias.note ? ` · ${alias.note}` : ""}
                 </p>
               </div>
-              <button
+              <Button
                 type="button"
                 disabled={aliasLoading}
                 onClick={() => handleDeleteAlias(alias.id)}
-                className="self-start rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
+                variant="outline"
+                size="sm"
+                className="self-start border-red-200 text-red-700 hover:bg-red-50"
               >
                 ลบ
-              </button>
+              </Button>
             </div>
           ))
         ) : (
-          <p className="rounded-md border border-dashed border-gray-300 px-3 py-4 text-sm text-gray-500">
+          <Card className="border-dashed border-gray-300 px-3 py-4 text-sm text-gray-500">
             ยังไม่มีชื่อเดิม
-          </p>
+          </Card>
         )}
       </div>
 
       <form onSubmit={handleAddAlias} className="mt-4 grid gap-3">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">เพิ่มชื่อเดิม</label>
-          <input name="aliasName" type="text" required className={inputCls} />
+          <Input name="aliasName" type="text" required className="h-11 bg-white" />
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">TAX ID ของชื่อเดิม</label>
-            <input name="aliasTaxId" type="text" className={inputCls} />
+            <Input name="aliasTaxId" type="text" className="h-11 bg-white" />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">หมายเหตุ</label>
-            <input name="aliasNote" type="text" placeholder="เช่น ชื่อเก่าก่อนเปลี่ยนบริษัท" className={inputCls} />
+            <Input name="aliasNote" type="text" placeholder="เช่น ชื่อเก่าก่อนเปลี่ยนบริษัท" className="h-11 bg-white" />
           </div>
         </div>
-        <button
+        <Button
           type="submit"
           disabled={aliasLoading}
-          className="w-fit rounded-md border border-blue-200 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-60"
+          variant="outline"
+          className="w-fit border-blue-200 text-blue-700 hover:bg-blue-50"
         >
           {aliasLoading ? "กำลังบันทึก..." : "เพิ่มชื่อเดิม"}
-        </button>
+        </Button>
       </form>
     </section>
     </div>

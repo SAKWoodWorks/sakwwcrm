@@ -1,17 +1,22 @@
 "use client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white rounded-xl shadow p-10 flex flex-col items-center gap-6 w-80">
-        <h1 className="text-xl font-semibold text-gray-800">SAK CRM</h1>
-        <p className="text-sm text-gray-500 text-center">
-          เข้าสู่ระบบด้วย Google Workspace (@sakww.com)
-        </p>
-        <button
+    <div className="flex min-h-screen items-center justify-center bg-[var(--crm-bg)] p-4">
+      <Card className="w-full max-w-80 rounded-lg border-[var(--crm-line)] bg-white shadow-[var(--crm-shadow)]">
+        <CardContent className="flex flex-col items-center gap-6 p-8">
+          <h1 className="text-xl font-semibold text-gray-800">SAK CRM</h1>
+          <p className="text-center text-sm text-gray-500">
+            เข้าสู่ระบบด้วย Google Workspace (@sakww.com)
+          </p>
+          <Button
+            type="button"
           onClick={() => signIn("google", { callbackUrl: "/crm" })}
-          className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+            variant="outline"
+            className="flex w-full items-center justify-center gap-3"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -20,8 +25,9 @@ export default function LoginPage() {
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
           </svg>
           Sign in with Google
-        </button>
-      </div>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

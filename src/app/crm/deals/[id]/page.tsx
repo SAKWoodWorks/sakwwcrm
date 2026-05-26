@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic"
 
+import { Card, CardContent } from "@/components/ui/card"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -38,7 +39,8 @@ export default async function DealDetailPage({ params }: Props) {
         <DealStageBadge stage={deal.stage} />
       </div>
 
-      <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6">
+      <Card className="mb-6 rounded-lg border-[var(--crm-line)] bg-white shadow-[var(--crm-shadow)]">
+        <CardContent className="p-6">
         <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold">{deal.title}</h1>
@@ -90,7 +92,8 @@ export default async function DealDetailPage({ params }: Props) {
             <p className="whitespace-pre-wrap text-sm text-gray-700">{deal.notes}</p>
           </div>
         )}
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

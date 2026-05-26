@@ -1,5 +1,8 @@
 "use client"
 
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -44,16 +47,19 @@ export default function SalespersonLineManage({ salespersonId, lineUserId }: Pro
   if (lineUserId) {
     return (
       <div className="flex items-center gap-3">
-        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-          ✅ LINE ลงทะเบียนแล้ว
-        </span>
-        <button
+        <Badge variant="outline" className="border-green-200 bg-green-100 text-green-800">
+          LINE ลงทะเบียนแล้ว
+        </Badge>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
           onClick={handleUnlink}
           disabled={loading}
-          className="text-xs text-red-600 hover:underline disabled:opacity-50"
+          className="h-7 px-2 text-xs text-red-600 hover:text-red-700"
         >
           {loading ? "..." : "ยกเลิก LINE"}
-        </button>
+        </Button>
       </div>
     )
   }
@@ -61,30 +67,33 @@ export default function SalespersonLineManage({ salespersonId, lineUserId }: Pro
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3">
-        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+        <Badge variant="outline" className="border-gray-200 bg-gray-100 text-gray-500">
           ยังไม่ลงทะเบียน LINE
-        </span>
+        </Badge>
         {!codeInfo && (
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
             onClick={handleGenerateCode}
             disabled={loading}
-            className="text-xs text-blue-600 hover:underline disabled:opacity-50"
+            className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700"
           >
             {loading ? "..." : "สร้าง Link Code"}
-          </button>
+          </Button>
         )}
       </div>
       {codeInfo && (
-        <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm">
+        <Card className="border-blue-200 bg-blue-50 p-3 text-sm">
           <p className="mb-1 text-gray-600">ให้พนักงานพิมพ์ข้อความนี้ใน LINE ภายใน 15 นาที:</p>
           <p className="font-mono text-2xl font-bold tracking-widest text-blue-700">{codeInfo.code}</p>
           <p className="mt-1 text-xs text-gray-400">
             หมดอายุ: {new Date(codeInfo.expiresAt).toLocaleTimeString("th-TH")}
           </p>
-          <button onClick={() => setCodeInfo(null)} className="mt-2 text-xs text-gray-500 hover:underline">
+          <Button type="button" variant="ghost" size="sm" onClick={() => setCodeInfo(null)} className="mt-2 h-7 px-2 text-xs text-gray-500">
             ปิด
-          </button>
-        </div>
+          </Button>
+        </Card>
       )}
     </div>
   )

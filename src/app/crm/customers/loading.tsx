@@ -15,14 +15,14 @@ function LoadingCards() {
   return (
     <div className="crm-mobile-list">
       {Array.from({ length: 6 }).map((_, index) => (
-        <div key={index} className="crm-card p-4">
+        <Card key={index} className="rounded-lg border-[var(--crm-line)] bg-white p-4 shadow-[var(--crm-shadow)]">
           <div className="mb-3 h-5 w-3/4 animate-pulse rounded bg-blue-100" />
           <div className="grid grid-cols-2 gap-3">
             {Array.from({ length: 4 }).map((__, itemIndex) => (
               <div key={itemIndex} className="h-9 animate-pulse rounded bg-blue-50" />
             ))}
           </div>
-        </div>
+        </Card>
       ))}
     </div>
   )
@@ -43,3 +43,4 @@ function LoadingTable() {
     </div>
   )
 }
+import { Card } from "@/components/ui/card"

@@ -44,16 +44,28 @@ export default function PaymentToggle({
           รอชำระ
         </Badge>
       )}
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={toggle}
-        disabled={loading}
-        className="h-7 px-2 text-xs text-gray-500 hover:text-gray-700"
-      >
-        {loading ? "..." : isPaid ? "ยกเลิก" : "ทำเครื่องหมายชำระแล้ว"}
-      </Button>
+      {isPaid ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={toggle}
+          disabled={loading}
+          className="h-8 border-red-200 bg-white px-3 text-xs font-semibold text-red-700 hover:bg-red-50 hover:text-red-800"
+        >
+          {loading ? "..." : "ยกเลิก"}
+        </Button>
+      ) : (
+        <Button
+          type="button"
+          size="sm"
+          onClick={toggle}
+          disabled={loading}
+          className="h-8 bg-[var(--crm-brand)] px-3 text-xs font-semibold text-white hover:bg-[var(--crm-brand-dark)]"
+        >
+          {loading ? "..." : "ทำเครื่องหมายชำระแล้ว"}
+        </Button>
+      )}
     </div>
   )
 }

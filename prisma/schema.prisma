@@ -179,3 +179,17 @@ model SyncLog {
 
   @@map("sync_log")
 }
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  action     String
+  actorEmail String?  @map("actor_email")
+  targetType String   @map("target_type")
+  targetId   Int      @map("target_id")
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+  @@index([action, createdAt])
+  @@index([targetType, targetId])
+}

@@ -1,5 +1,12 @@
 "use client"
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { DEAL_STAGE_LABELS, DEAL_STAGES } from "@/lib/deals"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -43,18 +50,22 @@ export default function DealStageSelect({ dealId, currentStage }: Props) {
 
   return (
     <div className="space-y-1">
-      <select
+      <Select
         value={stage}
         disabled={loading}
-        onChange={(e) => updateStage(e.target.value)}
-        className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none disabled:opacity-60"
+        onValueChange={updateStage}
       >
-        {DEAL_STAGES.map((s) => (
-          <option key={s} value={s}>
-            {DEAL_STAGE_LABELS[s]}
-          </option>
-        ))}
-      </select>
+        <SelectTrigger className="h-10 bg-white">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {DEAL_STAGES.map((s) => (
+            <SelectItem key={s} value={s}>
+              {DEAL_STAGE_LABELS[s]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   )

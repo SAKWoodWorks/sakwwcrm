@@ -1,7 +1,25 @@
 export const dynamic = "force-dynamic"
 
-import { prisma } from "@/lib/prisma"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { DEAL_STAGES, isDealStage } from "@/lib/deals"
+import { prisma } from "@/lib/prisma"
 import type { Prisma } from "@prisma/client"
 import Link from "next/link"
 import DealStageBadge from "./DealStageBadge"
@@ -89,12 +107,9 @@ export default async function DealsPage({ searchParams }: Props) {
           <h1 className="text-2xl font-semibold">ดีล</h1>
           <p className="mt-1 text-sm text-gray-500">Pipeline งานขายก่อนออก invoice</p>
         </div>
-        <Link
-          href="/crm/deals/new"
-          className="crm-primary-btn w-full md:w-auto"
-        >
-          สร้างดีล
-        </Link>
+        <Button asChild className="h-11 w-full bg-[var(--crm-brand)] font-bold text-white hover:bg-[var(--crm-brand-dark)] md:w-auto">
+          <Link href="/crm/deals/new">สร้างดีล</Link>
+        </Button>
       </div>
 
       <div className="mb-4 grid gap-3 md:grid-cols-3">
@@ -104,50 +119,50 @@ export default async function DealsPage({ searchParams }: Props) {
       </div>
 
       <form action="/crm/deals" className="mb-4 grid gap-3 md:flex md:flex-wrap">
-        <input
+        <Input
           name="q"
           defaultValue={q ?? ""}
           type="search"
           placeholder="ค้นหาชื่อดีลหรือลูกค้า..."
-          className="crm-input"
+          className="h-11 bg-white md:w-72"
         />
-        <select
-          name="stage"
-          defaultValue={stage ?? ""}
-          className="crm-input"
-        >
-          <option value="">ทุก stage</option>
-          {DEAL_STAGES.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-        <select
-          name="salesperson"
-          defaultValue={salesperson ?? ""}
-          className="crm-input"
-        >
-          <option value="">ทุกพนักงาน</option>
-          {salespersons.map((s) => (
-            <option key={s.id} value={s.id}>
-              {formatSalespersonName(s.name)}
-            </option>
-          ))}
-        </select>
-        <button
-          type="submit"
-          className="rounded-md border border-[var(--crm-line)] bg-white px-4 py-2 text-sm font-bold text-[var(--crm-brand)] hover:bg-[var(--crm-brand-soft)]"
-        >
+        <Select name="stage" defaultValue={stage ?? "all"}>
+          <SelectTrigger className="h-11 bg-white md:w-44">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">ทุก stage</SelectItem>
+            {DEAL_STAGES.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select name="salesperson" defaultValue={salesperson ?? "all"}>
+          <SelectTrigger className="h-11 bg-white md:w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">ทุกพนักงาน</SelectItem>
+            {salespersons.map((s) => (
+              <SelectItem key={s.id} value={String(s.id)}>
+                {formatSalespersonName(s.name)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button type="submit" variant="outline" className="h-11 border-[var(--crm-line)] bg-white font-bold text-[var(--crm-brand)] hover:bg-[var(--crm-brand-soft)]">
           กรอง
-        </button>
+        </Button>
       </form>
 
       <div className="crm-mobile-list">
         {deals.map((deal) => {
           const value = Number(deal.expectedValue ?? 0)
           return (
-            <Link key={deal.id} href={`/crm/deals/${deal.id}`} className="crm-card block p-4">
+            <Link key={deal.id} href={`/crm/deals/${deal.id}`}>
+              <Card className="rounded-lg border-[var(--crm-line)] bg-white p-4 shadow-[var(--crm-shadow)]">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="line-clamp-2 font-bold text-[var(--crm-ink)]">{deal.title}</h2>
@@ -175,45 +190,46 @@ export default async function DealsPage({ searchParams }: Props) {
                   <p className="font-semibold tabular-nums">{deal.expectedValue != null ? formatMoney((value * deal.probability) / 100) : "—"}</p>
                 </div>
               </div>
+              </Card>
             </Link>
           )
         })}
       </div>
 
       <div className="crm-table-wrap crm-desktop-table">
-        <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ดีล</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Stage</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ลูกค้า</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">พนักงาน</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500">มูลค่า</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500">Weighted</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Expected close</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
+        <Table>
+          <TableHeader className="bg-gray-50">
+            <TableRow>
+              <TableHead className="px-4 py-3 text-gray-500">ดีล</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">Stage</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">ลูกค้า</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">พนักงาน</TableHead>
+              <TableHead className="px-4 py-3 text-right text-gray-500">มูลค่า</TableHead>
+              <TableHead className="px-4 py-3 text-right text-gray-500">Weighted</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">Expected close</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {deals.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
+              <TableRow>
+                <TableCell colSpan={7} className="px-4 py-8 text-center text-gray-400">
                   ยังไม่มีดีล
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               deals.map((deal) => {
                 const value = Number(deal.expectedValue ?? 0)
                 return (
-                  <tr key={deal.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
+                  <TableRow key={deal.id} className="hover:bg-gray-50">
+                    <TableCell className="px-4 py-3">
                       <Link href={`/crm/deals/${deal.id}`} className="font-medium text-blue-600 hover:underline">
                         {deal.title}
                       </Link>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <DealStageBadge stage={deal.stage} />
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       {deal.customer ? (
                         <Link href={`/crm/customers/${deal.customer.id}`} className="text-blue-600 hover:underline">
                           {deal.customer.name}
@@ -221,23 +237,23 @@ export default async function DealsPage({ searchParams }: Props) {
                       ) : (
                         "—"
                       )}
-                    </td>
-                    <td className="px-4 py-3">{formatSalespersonName(deal.salesperson?.name)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">{formatSalespersonName(deal.salesperson?.name)}</TableCell>
+                    <TableCell className="px-4 py-3 text-right tabular-nums">
                       {deal.expectedValue != null ? formatMoney(value) : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-right tabular-nums">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-right tabular-nums">
                       {deal.expectedValue != null ? formatMoney((value * deal.probability) / 100) : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-gray-600">
                       {deal.expectedCloseDate ? deal.expectedCloseDate.toLocaleDateString("th-TH") : "—"}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )
               })
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
@@ -263,10 +279,12 @@ export default async function DealsPage({ searchParams }: Props) {
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
-      <div className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</div>
-      <div className="mt-1 text-xl font-semibold text-gray-900">{value}</div>
-    </div>
+    <Card className="rounded-lg border-[var(--crm-line)] bg-white shadow-[var(--crm-shadow)]">
+      <CardContent className="p-4">
+        <div className="text-xs font-medium uppercase text-gray-500">{label}</div>
+        <div className="mt-1 text-xl font-semibold text-gray-900">{value}</div>
+      </CardContent>
+    </Card>
   )
 }
 

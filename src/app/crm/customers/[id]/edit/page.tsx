@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic"
 
+import { Card, CardContent } from "@/components/ui/card"
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Link from "next/link"
@@ -70,9 +71,11 @@ export default async function CustomerEditPage({ params }: Props) {
         </Link>
       </div>
       <h1 className="mb-6 text-2xl font-semibold">แก้ไขข้อมูลลูกค้า</h1>
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <Card className="rounded-lg border-[var(--crm-line)] bg-white shadow-[var(--crm-shadow)]">
+        <CardContent className="p-6">
         <CustomerEditForm customer={customer} salespersons={salespersons} aliases={aliases} />
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

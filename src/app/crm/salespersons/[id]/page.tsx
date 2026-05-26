@@ -1,5 +1,14 @@
 export const dynamic = "force-dynamic"
 
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { prisma } from "@/lib/prisma"
 import { Prisma } from "@prisma/client"
 import Link from "next/link"
@@ -137,83 +146,85 @@ export default async function SalespersonDetailPage({ params }: Props) {
       {/* KPI row */}
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {kpis.map((k) => (
-          <div key={k.label} className="rounded-lg border border-gray-200 bg-white p-4">
-            <p className="text-xs text-gray-500">{k.label}</p>
-            <p className={`mt-1 text-lg font-bold tabular-nums ${k.red ? "text-red-600" : "text-gray-800"}`}>
-              {k.value}
-            </p>
-          </div>
+          <Card key={k.label} className="rounded-lg border-[var(--crm-line)] bg-white shadow-[var(--crm-shadow)]">
+            <CardContent className="p-4">
+              <p className="text-xs text-gray-500">{k.label}</p>
+              <p className={`mt-1 text-lg font-bold tabular-nums ${k.red ? "text-red-600" : "text-gray-800"}`}>
+                {k.value}
+              </p>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       {/* Customers table */}
       <h2 className="mb-3 text-lg font-semibold">ลูกค้า ({customers.length} รายการ)</h2>
-      <div className="mb-8 overflow-x-auto rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ชื่อ</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ซื้อล่าสุด</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500">ยอดล่าสุด</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
+      <div className="crm-table-wrap mb-8">
+        <Table>
+          <TableHeader className="bg-gray-50">
+            <TableRow>
+              <TableHead className="px-4 py-3 text-gray-500">ชื่อ</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">ซื้อล่าสุด</TableHead>
+              <TableHead className="px-4 py-3 text-right text-gray-500">ยอดล่าสุด</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {customers.length === 0 ? (
-              <tr>
-                <td colSpan={3} className="px-4 py-6 text-center text-gray-400">
+              <TableRow>
+                <TableCell colSpan={3} className="px-4 py-6 text-center text-gray-400">
                   ไม่มีลูกค้า
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               customers.map((c) => (
-                <tr key={c.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
+                <TableRow key={c.id} className="hover:bg-gray-50">
+                  <TableCell className="px-4 py-3">
                     <Link href={`/crm/customers/${c.id}`} className="text-blue-600 hover:underline">
                       {c.name}
                     </Link>
-                  </td>
-                  <td className="px-4 py-3 tabular-nums text-gray-600">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 tabular-nums text-gray-600">
                     {c.last_purchase_date
                       ? c.last_purchase_date.toLocaleDateString("th-TH")
                       : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right tabular-nums">
                     {c.last_purchase_total != null ? fmt(c.last_purchase_total) : "—"}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {/* Recent documents table */}
       <h2 className="mb-3 text-lg font-semibold">เอกสารล่าสุด ({documents.length} รายการ)</h2>
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">วันที่</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">เลขที่</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ลูกค้า</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ประเภท</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500">ยอด</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
+      <div className="crm-table-wrap">
+        <Table>
+          <TableHeader className="bg-gray-50">
+            <TableRow>
+              <TableHead className="px-4 py-3 text-gray-500">วันที่</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">เลขที่</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">ลูกค้า</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">ประเภท</TableHead>
+              <TableHead className="px-4 py-3 text-right text-gray-500">ยอด</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {documents.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-gray-400">
+              <TableRow>
+                <TableCell colSpan={5} className="px-4 py-6 text-center text-gray-400">
                   ไม่มีเอกสาร
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               documents.map((d) => (
-                <tr key={d.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 tabular-nums">
+                <TableRow key={d.id} className="hover:bg-gray-50">
+                  <TableCell className="px-4 py-3 tabular-nums">
                     {d.docDate.toLocaleDateString("th-TH")}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 font-mono text-xs">
                     <Link href={`/crm/documents/${d.id}`} className="text-blue-600 hover:underline">
                       {d.docNumber}
                     </Link>
@@ -225,25 +236,25 @@ export default async function SalespersonDetailPage({ params }: Props) {
                         {d.gdriveFilename}
                       </div>
                     )}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     {d.customer ? (
                       <Link href={`/crm/customers/${d.customer.id}`} className="text-blue-600 hover:underline">
                         {d.customer.name}
                       </Link>
                     ) : "—"}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     <DocTypeBadge docType={d.docType} />
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right tabular-nums">
                     {d.total != null ? fmt(d.total) : "—"}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

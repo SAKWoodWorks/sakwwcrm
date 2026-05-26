@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic"
 
 import { prisma } from "@/lib/prisma"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import {
   Table,
@@ -158,9 +159,14 @@ export default async function CustomersPage({ searchParams }: Props) {
     <div className="crm-page">
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-semibold">ลูกค้า</h1>
-        <Suspense>
-          <CustomerSearch />
-        </Suspense>
+        <div className="flex flex-col gap-2 md:flex-row md:items-center">
+          <Button asChild variant="outline" className="h-11 border-orange-200 bg-white font-semibold text-orange-700 hover:bg-orange-50">
+            <Link href="/crm/customers/duplicates">เช็คลูกค้าซ้ำ</Link>
+          </Button>
+          <Suspense>
+            <CustomerSearch />
+          </Suspense>
+        </div>
       </div>
 
       <div className="mb-3 flex gap-2 overflow-x-auto pb-1">

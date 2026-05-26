@@ -1,5 +1,14 @@
 export const dynamic = "force-dynamic"
 
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -56,7 +65,8 @@ export default async function DocumentDetailPage({ params }: Props) {
       {/* Two-column layout */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         {/* Left: info card */}
-        <div className="crm-card w-full shrink-0 p-5 lg:w-72">
+        <Card className="w-full shrink-0 rounded-lg border-[var(--crm-line)] bg-white shadow-[var(--crm-shadow)] lg:w-72">
+          <CardContent className="p-5">
           <dl className="space-y-2 text-sm">
             <InfoRow label="วันที่" value={doc.docDate.toLocaleDateString("th-TH")} />
             <div>
@@ -107,52 +117,53 @@ export default async function DocumentDetailPage({ params }: Props) {
               </div>
             )}
           </dl>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Right: items table */}
-        <div className="flex-1 overflow-x-auto rounded-lg border border-gray-200">
-          <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-3 py-3 text-left font-medium text-gray-500">#</th>
-                <th className="px-3 py-3 text-left font-medium text-gray-500">รายการ</th>
-                <th className="px-3 py-3 text-right font-medium text-gray-500">จำนวน</th>
-                <th className="px-3 py-3 text-left font-medium text-gray-500">หน่วย</th>
-                <th className="px-3 py-3 text-right font-medium text-gray-500">ราคา/หน่วย</th>
-                <th className="px-3 py-3 text-right font-medium text-gray-500">รวม</th>
-                <th className="px-3 py-3 text-left font-medium text-gray-500">SKU</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
+        <div className="crm-table-wrap flex-1">
+          <Table>
+            <TableHeader className="bg-gray-50">
+              <TableRow>
+                <TableHead className="px-3 py-3 text-gray-500">#</TableHead>
+                <TableHead className="px-3 py-3 text-gray-500">รายการ</TableHead>
+                <TableHead className="px-3 py-3 text-right text-gray-500">จำนวน</TableHead>
+                <TableHead className="px-3 py-3 text-gray-500">หน่วย</TableHead>
+                <TableHead className="px-3 py-3 text-right text-gray-500">ราคา/หน่วย</TableHead>
+                <TableHead className="px-3 py-3 text-right text-gray-500">รวม</TableHead>
+                <TableHead className="px-3 py-3 text-gray-500">SKU</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {doc.items.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-3 py-6 text-center text-gray-400">
+                <TableRow>
+                  <TableCell colSpan={7} className="px-3 py-6 text-center text-gray-400">
                     ไม่มีรายการสินค้า
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : (
                 doc.items.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="px-3 py-2 tabular-nums text-gray-400">{item.lineNo ?? "—"}</td>
-                    <td className="px-3 py-2">{item.description ?? "—"}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">
+                  <TableRow key={item.id} className="hover:bg-gray-50">
+                    <TableCell className="px-3 py-2 tabular-nums text-gray-400">{item.lineNo ?? "—"}</TableCell>
+                    <TableCell className="px-3 py-2">{item.description ?? "—"}</TableCell>
+                    <TableCell className="px-3 py-2 text-right tabular-nums">
                       {item.quantity != null ? fmtQty(item.quantity) : "—"}
-                    </td>
-                    <td className="px-3 py-2 text-gray-500">{item.unit ?? "—"}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-gray-500">{item.unit ?? "—"}</TableCell>
+                    <TableCell className="px-3 py-2 text-right tabular-nums">
                       {item.unitPrice != null ? fmt(item.unitPrice) : "—"}
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums font-medium">
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-right tabular-nums font-medium">
                       {item.total != null ? fmt(item.total) : "—"}
-                    </td>
-                    <td className="px-3 py-2 text-xs text-gray-400 font-mono">
+                    </TableCell>
+                    <TableCell className="px-3 py-2 font-mono text-xs text-gray-400">
                       {item.product?.skuCode ?? "—"}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
     </div>

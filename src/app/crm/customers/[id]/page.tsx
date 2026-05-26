@@ -1,5 +1,17 @@
 export const dynamic = "force-dynamic"
 
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { DocTypeBadge } from "@/app/crm/documents/DocTypeBadge"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -16,12 +28,18 @@ type CustomerAliasRow = {
   note: string | null
 }
 
+type CustomerMergeAuditRow = {
+  actor_email: string | null
+  created_at: Date
+  metadata: unknown
+}
+
 export default async function CustomerDetailPage({ params }: Props) {
   const { id } = await params
   const customerId = parseInt(id, 10)
   if (isNaN(customerId)) notFound()
 
-  const [customer, aliases] = await Promise.all([
+  const [customer, aliases, mergeAudits] = await Promise.all([
     prisma.customer.findUnique({
       where: { id: customerId },
       include: {
@@ -51,6 +69,15 @@ export default async function CustomerDetailPage({ params }: Props) {
       WHERE customer_id = ${customerId}
       ORDER BY alias_name ASC
     `,
+    prisma.$queryRaw<CustomerMergeAuditRow[]>`
+      SELECT actor_email, created_at, metadata
+      FROM audit_logs
+      WHERE action = 'customer.merge'
+        AND target_type = 'customer'
+        AND target_id = ${customerId}
+      ORDER BY created_at DESC
+      LIMIT 10
+    `,
   ])
 
   if (!customer) notFound()
@@ -69,15 +96,13 @@ export default async function CustomerDetailPage({ params }: Props) {
         </Link>
       </div>
 
-      <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6">
+      <Card className="mb-6 rounded-lg border-[var(--crm-line)] bg-white shadow-[var(--crm-shadow)]">
+        <CardContent className="p-6">
         <div className="mb-4 flex items-center justify-between">
           <h1 className="text-2xl font-semibold">{customer.name}</h1>
-          <Link
-            href={`/crm/customers/${customer.id}/edit`}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            แก้ไข
-          </Link>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/crm/customers/${customer.id}/edit`}>แก้ไข</Link>
+          </Button>
         </div>
         <dl className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm md:grid-cols-3">
           <InfoRow label="TAX ID" value={customer.taxId ?? "—"} />
@@ -108,62 +133,78 @@ export default async function CustomerDetailPage({ params }: Props) {
             <h2 className="text-sm font-semibold text-gray-700">ชื่อเดิม / ชื่อที่ใช้ค้นหา</h2>
             <div className="mt-2 flex flex-wrap gap-2">
               {aliases.map((alias) => (
-                <span
+                <Badge
                   key={`${alias.alias_type}-${alias.alias_name}`}
-                  className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-800"
+                  variant="outline"
+                  className="border-blue-100 bg-blue-50 text-blue-800"
                   title={alias.note ?? undefined}
                 >
                   {alias.alias_name}
                   {alias.tax_id ? ` (${alias.tax_id})` : ""}
-                </span>
+                </Badge>
               ))}
             </div>
           </div>
         ) : null}
-      </div>
+        {mergeAudits.length > 0 ? (
+          <div className="mt-5 border-t border-gray-100 pt-4">
+            <h2 className="text-sm font-semibold text-gray-700">ประวัติ merge</h2>
+            <div className="mt-2 grid gap-2">
+              {mergeAudits.map((audit, index) => {
+                const mergedIds = getMergedIds(audit.metadata)
+                return (
+                  <div
+                    key={`${audit.created_at.toISOString()}-${index}`}
+                    className="rounded-md border border-gray-100 bg-gray-50 p-3 text-xs text-gray-600"
+                  >
+                    <p className="font-medium text-gray-900">
+                      รวม {formatMergedIds(mergedIds)} เข้า record นี้
+                    </p>
+                    <p className="mt-1">{audit.actor_email ?? "ไม่ทราบผู้ใช้"}</p>
+                    <p>{audit.created_at.toLocaleString("th-TH")}</p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
+        </CardContent>
+      </Card>
 
       <h2 className="mb-3 text-lg font-semibold">เอกสารทั้งหมด ({customer.documents.length})</h2>
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">วันที่</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">เลขที่</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ประเภท</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">ช่องทาง</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">พนักงาน</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-500">ยอด</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">สถานะ</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
+      <div className="crm-table-wrap">
+        <Table>
+          <TableHeader className="bg-gray-50">
+            <TableRow>
+              <TableHead className="px-4 py-3 text-gray-500">วันที่</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">เลขที่</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">ประเภท</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">ช่องทาง</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">พนักงาน</TableHead>
+              <TableHead className="px-4 py-3 text-right text-gray-500">ยอด</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">สถานะ</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {customer.documents.map((d) => (
-              <tr key={d.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 tabular-nums">
+              <TableRow key={d.id} className="hover:bg-gray-50">
+                <TableCell className="px-4 py-3 tabular-nums">
                   {d.docDate.toLocaleDateString("th-TH")}
-                </td>
-                <td className="px-4 py-3 font-mono text-xs">
+                </TableCell>
+                <TableCell className="px-4 py-3 font-mono text-xs">
                   <Link
                     href={`/crm/documents/${d.id}`}
                     className="text-blue-600 hover:underline"
                   >
                     {d.docNumber}
                   </Link>
-                </td>
-                <td className="px-4 py-3">
-                  {d.docType === "tax_invoice" ? (
-                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
-                      TAX Invoice
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
-                      Quotation
-                    </span>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-gray-500">{d.channel ?? "—"}</td>
-                <td className="px-4 py-3">{formatSalespersonName(d.salesperson?.name)}</td>
-                <td className="px-4 py-3 text-right tabular-nums">
+                </TableCell>
+                <TableCell className="px-4 py-3">
+                  <DocTypeBadge docType={d.docType} />
+                </TableCell>
+                <TableCell className="px-4 py-3 text-gray-500">{d.channel ?? "—"}</TableCell>
+                <TableCell className="px-4 py-3">{formatSalespersonName(d.salesperson?.name)}</TableCell>
+                <TableCell className="px-4 py-3 text-right tabular-nums">
                   {d.total != null
                     ? Number(d.total).toLocaleString("th-TH", {
                         style: "currency",
@@ -171,18 +212,18 @@ export default async function CustomerDetailPage({ params }: Props) {
                         minimumFractionDigits: 0,
                       })
                     : "—"}
-                </td>
-                <td className="px-4 py-3">
+                </TableCell>
+                <TableCell className="px-4 py-3">
                   {d.docType === "tax_invoice" ? (
                     <PaymentBadge status={d.paymentStatus} />
                   ) : (
                     <span className="text-gray-400">—</span>
                   )}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )
@@ -197,17 +238,31 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   )
 }
 
+function getMergedIds(metadata: unknown) {
+  if (!metadata || typeof metadata !== "object" || !("mergedIds" in metadata)) return []
+
+  const ids = (metadata as { mergedIds?: unknown }).mergedIds
+  if (!Array.isArray(ids)) return []
+
+  return ids.map(Number).filter(Number.isInteger)
+}
+
+function formatMergedIds(ids: number[]) {
+  if (ids.length === 0) return "record อื่น"
+  return ids.map((id) => `#${id}`).join(", ")
+}
+
 function PaymentBadge({ status }: { status: string | null }) {
   if (status === "paid") {
     return (
-      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+      <Badge variant="outline" className="border-green-200 bg-green-100 text-green-800">
         ชำระแล้ว
-      </span>
+      </Badge>
     )
   }
   return (
-    <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
+    <Badge variant="outline" className="border-yellow-200 bg-yellow-100 text-yellow-800">
       รอชำระ
-    </span>
+    </Badge>
   )
 }
