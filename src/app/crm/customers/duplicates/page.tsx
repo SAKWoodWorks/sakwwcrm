@@ -161,13 +161,18 @@ function DuplicateSection({
             <CardContent className="p-6 text-sm text-[var(--crm-muted)]">{emptyText}</CardContent>
           </Card>
         ) : (
-          groups.map((group) => (
+          groups.map((group, groupIndex) => (
             <Card key={group.group_key} className="rounded-lg border-[var(--crm-line)] bg-white shadow-[var(--crm-shadow)]">
               <CardContent className="p-4">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <h2 className="font-semibold text-[var(--crm-ink)]">{group.group_key}</h2>
-                    <p className="text-xs text-[var(--crm-muted)]">{Number(group.customer_count)} records</p>
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-8 min-w-8 items-center justify-center rounded-lg bg-blue-50 text-sm font-semibold text-[var(--crm-brand)] ring-1 ring-blue-100">
+                      {groupIndex + 1}
+                    </div>
+                    <div>
+                      <h2 className="font-semibold text-[var(--crm-ink)]">{group.group_key}</h2>
+                      <p className="text-xs text-[var(--crm-muted)]">{Number(group.customer_count)} records</p>
+                    </div>
                   </div>
                   <Badge variant="outline" className="border-orange-200 bg-orange-100 text-orange-800">
                     ตรวจสอบ
@@ -178,8 +183,11 @@ function DuplicateSection({
                   {group.customer_ids.map((id, index) => (
                     <div
                       key={id}
-                      className="grid gap-2 rounded-md border border-gray-100 bg-gray-50 p-3 text-sm md:grid-cols-[1fr_auto_auto_minmax(12rem,auto)]"
+                      className="grid gap-2 rounded-md border border-gray-100 bg-gray-50 p-3 text-sm md:grid-cols-[auto_1fr_auto_auto_minmax(12rem,auto)]"
                     >
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-xs font-semibold text-gray-500 ring-1 ring-gray-200">
+                        {index + 1}
+                      </div>
                       <div className="min-w-0">
                         <p className="font-medium text-gray-900">{group.customer_names[index]}</p>
                         <p className="mt-1 text-xs text-gray-500">TAX ID: {group.tax_ids[index] ?? "-"}</p>

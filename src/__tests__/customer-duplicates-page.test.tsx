@@ -40,6 +40,8 @@ describe("CustomerDuplicatesPage", () => {
 
     expect(screen.getByText("ลูกค้าซ้ำ")).toBeInTheDocument()
     expect(screen.getByText("ยูพัซเซิล")).toBeInTheDocument()
+    expect(screen.getAllByText("1").length).toBeGreaterThan(0)
+    expect(screen.getByText("2")).toBeInTheDocument()
     expect(screen.getByText("ยู พัซเซิล")).toBeInTheDocument()
     expect(screen.getByText("ยู พัซเซิล (สำนักงานใหญ่)")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "เปิด #10" })).toHaveAttribute("href", "/crm/customers/10")
