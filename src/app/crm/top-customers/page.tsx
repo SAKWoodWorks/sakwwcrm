@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import DatePickerField from "@/components/DatePickerField"
 import {
   Select,
   SelectContent,
@@ -199,11 +199,11 @@ function DateRangeForm({
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
             <label className="block">
               <span className="mb-1 block text-sm font-medium text-[var(--crm-muted)]">จากวันที่</span>
-              <Input type="date" name="from" defaultValue={fromValue} className="h-11 border-[var(--crm-line)] bg-white" />
+              <DatePickerField name="from" defaultValue={fromValue} placeholder="จากวันที่" />
             </label>
             <label className="block">
               <span className="mb-1 block text-sm font-medium text-[var(--crm-muted)]">ถึงวันที่</span>
-              <Input type="date" name="to" defaultValue={toValue} className="h-11 border-[var(--crm-line)] bg-white" />
+              <DatePickerField name="to" defaultValue={toValue} placeholder="ถึงวันที่" />
             </label>
             <label className="block">
               <span className="mb-1 block text-sm font-medium text-[var(--crm-muted)]">Salesperson</span>

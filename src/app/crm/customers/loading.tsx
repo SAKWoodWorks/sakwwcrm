@@ -1,9 +1,12 @@
+import { Card } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+
 export default function CustomersLoading() {
   return (
     <div className="crm-page">
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="h-8 w-28 animate-pulse rounded bg-blue-100" />
-        <div className="h-11 w-full animate-pulse rounded bg-blue-100 md:w-80" />
+        <Skeleton className="h-8 w-28 bg-blue-100" />
+        <Skeleton className="h-11 w-full bg-blue-100 md:w-80" />
       </div>
       <LoadingCards />
       <LoadingTable />
@@ -16,10 +19,10 @@ function LoadingCards() {
     <div className="crm-mobile-list">
       {Array.from({ length: 6 }).map((_, index) => (
         <Card key={index} className="rounded-lg border-[var(--crm-line)] bg-white p-4 shadow-[var(--crm-shadow)]">
-          <div className="mb-3 h-5 w-3/4 animate-pulse rounded bg-blue-100" />
+          <Skeleton className="mb-3 h-5 w-3/4 bg-blue-100" />
           <div className="grid grid-cols-2 gap-3">
             {Array.from({ length: 4 }).map((__, itemIndex) => (
-              <div key={itemIndex} className="h-9 animate-pulse rounded bg-blue-50" />
+              <Skeleton key={itemIndex} className="h-9 bg-blue-50" />
             ))}
           </div>
         </Card>
@@ -35,7 +38,7 @@ function LoadingTable() {
         {Array.from({ length: 10 }).map((_, index) => (
           <div key={index} className="grid grid-cols-8 gap-3">
             {Array.from({ length: 8 }).map((__, itemIndex) => (
-              <div key={itemIndex} className="h-5 animate-pulse rounded bg-blue-50" />
+              <Skeleton key={itemIndex} className="h-5 bg-blue-50" />
             ))}
           </div>
         ))}
@@ -43,4 +46,3 @@ function LoadingTable() {
     </div>
   )
 }
-import { Card } from "@/components/ui/card"

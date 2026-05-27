@@ -38,6 +38,14 @@ export default async function CustomerEditPage({ params }: Props) {
         lineId: true,
         otherId: true,
         salespersonId: true,
+        documents: {
+          orderBy: { docDate: "desc" },
+          take: 1,
+          select: {
+            salespersonId: true,
+            salesperson: { select: { name: true } },
+          },
+        },
       },
     }),
     prisma.salesperson.findMany({
@@ -54,6 +62,24 @@ export default async function CustomerEditPage({ params }: Props) {
   ])
 
   if (!customer) notFound()
+
+  const inferredSalesperson = customer.documents.find((doc) => doc.salespersonId && doc.salesperson)
+  const editCustomer = {
+    ...customer,
+    salespersonId: customer.salespersonId ?? inferredSalesperson?.salespersonId ?? null,
+  }
+  const editSalespersons =
+    inferredSalesperson?.salespersonId &&
+    inferredSalesperson.salesperson &&
+    !salespersons.some((sp) => sp.id === inferredSalesperson.salespersonId)
+      ? [
+          ...salespersons,
+          {
+            id: inferredSalesperson.salespersonId,
+            name: inferredSalesperson.salesperson.name,
+          },
+        ].sort((a, b) => a.name.localeCompare(b.name))
+      : salespersons
 
   const aliases = aliasRows.map((alias) => ({
     id: alias.id,
@@ -73,7 +99,7 @@ export default async function CustomerEditPage({ params }: Props) {
       <h1 className="mb-6 text-2xl font-semibold">แก้ไขข้อมูลลูกค้า</h1>
       <Card className="rounded-lg border-[var(--crm-line)] bg-white shadow-[var(--crm-shadow)]">
         <CardContent className="p-6">
-        <CustomerEditForm customer={customer} salespersons={salespersons} aliases={aliases} />
+        <CustomerEditForm customer={editCustomer} salespersons={editSalespersons} aliases={aliases} />
         </CardContent>
       </Card>
     </div>

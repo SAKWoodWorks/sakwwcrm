@@ -69,6 +69,36 @@ def test_insert_document(conn):
     assert isinstance(doc_id, int)
 
 
+def test_insert_tax_invoice_marks_customer_active(conn):
+    from datetime import date
+    sp_id = upsert_salesperson(conn, name="TestSPStatus", channel="Web")
+    cust_id = upsert_customer(conn, CustomerData("Test Co Status", "7777777777777", ""), "BKK")
+
+    doc_id = insert_document(conn, {
+        "doc_type": "tax_invoice",
+        "doc_number": "TESTSTATUS001",
+        "doc_date": date(2026, 1, 3),
+        "channel": "Web",
+        "salesperson_id": sp_id,
+        "payment_status": "paid",
+        "ref_doc_number": None,
+        "customer_id": cust_id,
+        "subtotal": 100.00,
+        "vat": 7.00,
+        "total": 107.00,
+        "notes": "",
+        "gdrive_file_id": "test_file_status_001",
+        "gdrive_filename": "test-status.xlsx",
+    })
+
+    with conn.cursor() as cur:
+        cur.execute("SELECT status FROM customers WHERE id = %s", (cust_id,))
+        status = cur.fetchone()[0]
+
+    assert isinstance(doc_id, int)
+    assert status == "active"
+
+
 def test_insert_document_allows_unknown_salesperson(conn):
     from datetime import date
     cust_id = upsert_customer(conn, CustomerData("Test Co3", "8888888888888", ""), "BKK")

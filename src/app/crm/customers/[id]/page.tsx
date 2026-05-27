@@ -69,15 +69,7 @@ export default async function CustomerDetailPage({ params }: Props) {
       WHERE customer_id = ${customerId}
       ORDER BY alias_name ASC
     `,
-    prisma.$queryRaw<CustomerMergeAuditRow[]>`
-      SELECT actor_email, created_at, metadata
-      FROM audit_logs
-      WHERE action = 'customer.merge'
-        AND target_type = 'customer'
-        AND target_id = ${customerId}
-      ORDER BY created_at DESC
-      LIMIT 10
-    `,
+    getCustomerMergeAudits(customerId),
   ])
 
   if (!customer) notFound()
@@ -250,6 +242,39 @@ function getMergedIds(metadata: unknown) {
 function formatMergedIds(ids: number[]) {
   if (ids.length === 0) return "record อื่น"
   return ids.map((id) => `#${id}`).join(", ")
+}
+
+async function getCustomerMergeAudits(customerId: number) {
+  try {
+    return await prisma.$queryRaw<CustomerMergeAuditRow[]>`
+      SELECT actor_email, created_at, metadata
+      FROM audit_logs
+      WHERE action = 'customer.merge'
+        AND target_type = 'customer'
+        AND target_id = ${customerId}
+      ORDER BY created_at DESC
+      LIMIT 10
+    `
+  } catch (error) {
+    if (isMissingAuditLogsTableError(error)) return []
+    throw error
+  }
+}
+
+function isMissingAuditLogsTableError(error: unknown) {
+  if (!error || typeof error !== "object") return false
+
+  const err = error as {
+    code?: unknown
+    message?: unknown
+    meta?: { code?: unknown; message?: unknown }
+  }
+  const message = `${String(err.message ?? "")} ${String(err.meta?.message ?? "")}`
+
+  return (
+    (err.code === "P2010" && err.meta?.code === "42P01" && message.includes("audit_logs")) ||
+    (message.includes('relation "audit_logs" does not exist') || message.includes("relation audit_logs does not exist"))
+  )
 }
 
 function PaymentBadge({ status }: { status: string | null }) {

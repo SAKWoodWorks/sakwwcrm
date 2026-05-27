@@ -9,6 +9,7 @@ const links = [
   { href: "/crm/deals", label: "ดีล", short: "ดีล" },
   { href: "/crm/customers", label: "ลูกค้า", short: "ลูกค้า" },
   { href: "/crm/documents", label: "เอกสาร", short: "เอกสาร" },
+  { href: "/crm/import", label: "Import", short: "Import" },
   { href: "/crm/products", label: "สินค้า", short: "สินค้า" },
   { href: "/crm/salespersons", label: "พนักงาน", short: "ทีม" },
 ]
@@ -55,7 +56,7 @@ export default function NavBar() {
       </nav>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--crm-line)] bg-[rgb(248_251_255_/_96%)] px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-12px_30px_rgb(29_78_216_/_10%)] backdrop-blur md:hidden">
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-4 gap-1 min-[420px]:grid-cols-8">
           {links.map(({ href, short }) => {
             const active = href === "/crm/dashboard"
               ? pathname === href

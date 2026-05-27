@@ -2,8 +2,16 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { MoreHorizontal } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { toast } from "sonner"
 
 export default function PaymentToggle({
   documentId,
@@ -25,9 +33,10 @@ export default function PaymentToggle({
         body: JSON.stringify({ status: isPaid ? "pending" : "paid" }),
       })
       if (!res.ok) throw new Error("Failed")
+      toast.success(isPaid ? "ยกเลิกสถานะชำระแล้ว" : "ทำเครื่องหมายชำระแล้ว")
       router.refresh()
     } catch {
-      alert("เกิดข้อผิดพลาด กรุณาลองใหม่")
+      toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่")
     } finally {
       setLoading(false)
     }
@@ -44,28 +53,18 @@ export default function PaymentToggle({
           รอชำระ
         </Badge>
       )}
-      {isPaid ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={toggle}
-          disabled={loading}
-          className="h-8 border-red-200 bg-white px-3 text-xs font-semibold text-red-700 hover:bg-red-50 hover:text-red-800"
-        >
-          {loading ? "..." : "ยกเลิก"}
-        </Button>
-      ) : (
-        <Button
-          type="button"
-          size="sm"
-          onClick={toggle}
-          disabled={loading}
-          className="h-8 bg-[var(--crm-brand)] px-3 text-xs font-semibold text-white hover:bg-[var(--crm-brand-dark)]"
-        >
-          {loading ? "..." : "ทำเครื่องหมายชำระแล้ว"}
-        </Button>
-      )}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button type="button" variant="outline" size="icon-sm" disabled={loading} aria-label="จัดการสถานะชำระเงิน">
+            <MoreHorizontal className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onSelect={toggle} variant={isPaid ? "destructive" : "default"}>
+            {loading ? "กำลังบันทึก..." : isPaid ? "ยกเลิกชำระแล้ว" : "ทำเครื่องหมายชำระแล้ว"}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   )
 }

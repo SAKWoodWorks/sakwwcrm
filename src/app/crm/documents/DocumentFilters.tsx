@@ -1,6 +1,7 @@
 "use client"
 
 import { Input } from "@/components/ui/input"
+import DatePickerField from "@/components/DatePickerField"
 import {
   Select,
   SelectContent,
@@ -93,18 +94,18 @@ export default function DocumentFilters({ salespersons }: Props) {
         </SelectContent>
       </Select>
 
-      <Input
-        type="date"
+      <DatePickerField
         value={searchParams.get("from") ?? ""}
-        onChange={(e) => update("from", e.target.value)}
-        className="h-11 bg-white md:w-40"
+        onChange={(value) => update("from", value)}
+        placeholder="จากวันที่"
+        className="md:w-40"
       />
 
-      <Input
-        type="date"
+      <DatePickerField
         value={searchParams.get("to") ?? ""}
-        onChange={(e) => update("to", e.target.value)}
-        className="h-11 bg-white md:w-40"
+        onChange={(value) => update("to", value)}
+        placeholder="ถึงวันที่"
+        className="md:w-40"
       />
     </div>
   )

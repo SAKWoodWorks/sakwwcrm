@@ -3,8 +3,19 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 interface Props {
   salespersonId: number
@@ -15,16 +26,18 @@ export default function SalespersonLineManage({ salespersonId, lineUserId }: Pro
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [codeInfo, setCodeInfo] = useState<{ code: string; expiresAt: string } | null>(null)
+  const [unlinkOpen, setUnlinkOpen] = useState(false)
 
   async function handleUnlink() {
-    if (!confirm("ยืนยันยกเลิกการเชื่อมต่อ LINE?")) return
     setLoading(true)
     try {
       const res = await fetch(`/api/salespersons/${salespersonId}/line`, { method: "DELETE" })
       if (!res.ok) throw new Error("Failed")
+      toast.success("ยกเลิกการเชื่อมต่อ LINE แล้ว")
+      setUnlinkOpen(false)
       router.refresh()
     } catch {
-      alert("เกิดข้อผิดพลาด กรุณาลองใหม่")
+      toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่")
     } finally {
       setLoading(false)
     }
@@ -37,8 +50,9 @@ export default function SalespersonLineManage({ salespersonId, lineUserId }: Pro
       if (!res.ok) throw new Error("Failed")
       const json = await res.json()
       setCodeInfo({ code: json.code, expiresAt: json.expiresAt })
+      toast.success("สร้าง Link Code แล้ว")
     } catch {
-      alert("เกิดข้อผิดพลาด กรุณาลองใหม่")
+      toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่")
     } finally {
       setLoading(false)
     }
@@ -50,16 +64,35 @@ export default function SalespersonLineManage({ salespersonId, lineUserId }: Pro
         <Badge variant="outline" className="border-green-200 bg-green-100 text-green-800">
           LINE ลงทะเบียนแล้ว
         </Badge>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleUnlink}
-          disabled={loading}
-          className="h-7 px-2 text-xs text-red-600 hover:text-red-700"
-        >
-          {loading ? "..." : "ยกเลิก LINE"}
-        </Button>
+        <Dialog open={unlinkOpen} onOpenChange={setUnlinkOpen}>
+          <DialogTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={loading}
+              className="h-7 px-2 text-xs text-red-600 hover:text-red-700"
+            >
+              {loading ? "..." : "ยกเลิก LINE"}
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>ยกเลิกการเชื่อมต่อ LINE?</DialogTitle>
+              <DialogDescription>พนักงานจะไม่ได้รับข้อความผ่าน LINE จนกว่าจะลงทะเบียนใหม่</DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline" disabled={loading}>
+                  ยกเลิก
+                </Button>
+              </DialogClose>
+              <Button type="button" variant="destructive" onClick={handleUnlink} disabled={loading}>
+                {loading ? "กำลังยกเลิก..." : "ยืนยันยกเลิก"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     )
   }

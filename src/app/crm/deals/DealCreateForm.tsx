@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import DatePickerField from "@/components/DatePickerField"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -146,7 +147,7 @@ export default function DealCreateForm({ customers, salespersons }: Props) {
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Expected close</label>
-          <Input name="expectedCloseDate" type="date" className="h-11 bg-white" />
+          <DatePickerField name="expectedCloseDate" placeholder="เลือกวันที่" />
         </div>
 
         <div>

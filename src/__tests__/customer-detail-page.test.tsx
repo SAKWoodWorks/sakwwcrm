@@ -17,24 +17,26 @@ vi.mock("next/navigation", () => ({
 import { prisma } from "@/lib/prisma"
 import CustomerDetailPage from "@/app/crm/customers/[id]/page"
 
+const customerFixture = {
+  id: 1080,
+  name: "ยู พัซเซิล",
+  taxId: null,
+  vatRegistered: true,
+  type: null,
+  status: "active",
+  province: "กรุงเทพมหานคร",
+  address: null,
+  phone: null,
+  email: null,
+  lineId: null,
+  salesperson: null,
+  documents: [],
+} as Awaited<ReturnType<typeof prisma.customer.findUnique>>
+
 describe("CustomerDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(prisma.customer.findUnique).mockResolvedValue({
-      id: 1080,
-      name: "ยู พัซเซิล",
-      taxId: null,
-      vatRegistered: true,
-      type: null,
-      status: "active",
-      province: "กรุงเทพมหานคร",
-      address: null,
-      phone: null,
-      email: null,
-      lineId: null,
-      salesperson: null,
-      documents: [],
-    } as Awaited<ReturnType<typeof prisma.customer.findUnique>>)
+    vi.mocked(prisma.customer.findUnique).mockResolvedValue(customerFixture)
     ;(prisma.$queryRaw as ReturnType<typeof vi.fn>)
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([
@@ -53,5 +55,22 @@ describe("CustomerDetailPage", () => {
     expect(screen.getByText("ประวัติ merge")).toBeInTheDocument()
     expect(screen.getByText("รวม #1081, #1082 เข้า record นี้")).toBeInTheDocument()
     expect(screen.getByText("admin@sakww.com")).toBeInTheDocument()
+  })
+
+  it("still renders customer detail when audit_logs table is missing", async () => {
+    vi.mocked(prisma.customer.findUnique).mockResolvedValue(customerFixture)
+    ;(prisma.$queryRaw as ReturnType<typeof vi.fn>)
+      .mockReset()
+      .mockResolvedValueOnce([])
+      .mockRejectedValueOnce({
+        code: "P2010",
+        meta: { code: "42P01", message: 'relation "audit_logs" does not exist' },
+      })
+
+    const jsx = await CustomerDetailPage({ params: Promise.resolve({ id: "1080" }) })
+    render(jsx)
+
+    expect(screen.getByText("ยู พัซเซิล")).toBeInTheDocument()
+    expect(screen.queryByText("ประวัติ merge")).not.toBeInTheDocument()
   })
 })

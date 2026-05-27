@@ -70,6 +70,13 @@ def insert_document(conn, d: dict) -> int:
         if not row:
             cur.execute("SELECT id FROM documents WHERE gdrive_file_id = %s", (d["gdrive_file_id"],))
             row = cur.fetchone()
+        if d.get("doc_type") == "tax_invoice" and d.get("customer_id") is not None:
+            cur.execute("""
+                UPDATE customers
+                SET status = 'active', updated_at = NOW()
+                WHERE id = %s
+                  AND status = 'not_purchase_yet'
+            """, (d["customer_id"],))
         return row[0]
 
 

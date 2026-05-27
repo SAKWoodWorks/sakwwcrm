@@ -32,7 +32,7 @@ interface CustomerRow {
 }
 
 type Props = {
-  searchParams: Promise<{ q?: string; page?: string; sort?: string; order?: string; lapsed?: string }>
+  searchParams: Promise<{ q?: string; page?: string; sort?: string; order?: string; lapsed?: string; purchase?: string }>
 }
 
 const LAPSED_OPTIONS = [
@@ -44,6 +44,12 @@ const LAPSED_OPTIONS = [
 
 const PAGE_SIZE = 50
 
+const PURCHASE_OPTIONS = [
+  { value: "all", label: "ทั้งหมด" },
+  { value: "purchased", label: "ซื้อแล้ว" },
+  { value: "not_purchased", label: "ยังไม่ได้ซื้อ" },
+]
+
 const SORT_CLAUSES: Record<string, Prisma.Sql> = {
   "last_purchase:asc":  Prisma.sql`last_purchase_date ASC NULLS LAST`,
   "last_purchase:desc": Prisma.sql`last_purchase_date DESC NULLS LAST`,
@@ -54,8 +60,9 @@ const SORT_CLAUSES: Record<string, Prisma.Sql> = {
 }
 
 export default async function CustomersPage({ searchParams }: Props) {
-  const { q, page: pageStr, sort = "last_total", order = "desc", lapsed } = await searchParams
+  const { q, page: pageStr, sort = "last_purchase", order = "desc", lapsed, purchase } = await searchParams
   const lapsedDays = lapsed && ["30", "60", "90", "365"].includes(lapsed) ? parseInt(lapsed) : null
+  const purchaseStatus = purchase === "purchased" || purchase === "not_purchased" ? purchase : "all"
   const page = Math.max(1, parseInt(pageStr ?? "1") || 1)
   const skip = (page - 1) * PAGE_SIZE
 
@@ -78,11 +85,18 @@ export default async function CustomersPage({ searchParams }: Props) {
       ? Prisma.sql`AND last_inv.doc_date IS NOT NULL AND last_inv.doc_date < CURRENT_DATE - INTERVAL '1 day' * ${lapsedOpt.min} AND last_inv.doc_date >= CURRENT_DATE - INTERVAL '1 day' * ${lapsedOpt.max + 1}`
       : Prisma.sql`AND last_inv.doc_date IS NOT NULL AND last_inv.doc_date < CURRENT_DATE - INTERVAL '1 day' * ${lapsedOpt.min}`
     : Prisma.sql``
+  const purchaseFilter =
+    purchaseStatus === "purchased"
+      ? Prisma.sql`AND c.status <> 'not_purchase_yet'`
+      : purchaseStatus === "not_purchased"
+        ? Prisma.sql`AND c.status = 'not_purchase_yet'`
+        : Prisma.sql``
 
   const orderBy =
     SORT_CLAUSES[`${sort}:${order}`] ?? Prisma.sql`last_purchase_total DESC NULLS LAST`
 
-  const countQuery = lapsedOpt
+  const countNeedsLastInvoice = Boolean(lapsedOpt)
+  const countQuery = countNeedsLastInvoice
     ? prisma.$queryRaw<[{ count: bigint }]>`
         SELECT COUNT(*) AS count
         FROM customers c
@@ -95,11 +109,13 @@ export default async function CustomersPage({ searchParams }: Props) {
         ) last_inv ON TRUE
         WHERE ${searchFilter}
         ${lapsedFilter}
+        ${purchaseFilter}
       `
     : prisma.$queryRaw<[{ count: bigint }]>`
         SELECT COUNT(*) AS count
         FROM customers c
         WHERE ${searchFilter}
+        ${purchaseFilter}
       `
 
   const [customers, countResult] = await Promise.all([
@@ -111,7 +127,7 @@ export default async function CustomersPage({ searchParams }: Props) {
         c.province,
         c.type,
         c.status,
-        s.name AS salesperson_name,
+        COALESCE(s.name, doc_sp.name) AS salesperson_name,
         aliases.alias_names,
         last_inv.doc_date AS last_purchase_date,
         last_inv.total    AS last_purchase_total
@@ -123,14 +139,16 @@ export default async function CustomersPage({ searchParams }: Props) {
         WHERE customer_id = c.id
       ) aliases ON TRUE
       LEFT JOIN LATERAL (
-        SELECT doc_date, total
+        SELECT doc_date, total, salesperson_id
         FROM documents
         WHERE customer_id = c.id AND doc_type = 'tax_invoice'
         ORDER BY doc_date DESC
         LIMIT 1
       ) last_inv ON TRUE
+      LEFT JOIN salespersons doc_sp ON doc_sp.id = last_inv.salesperson_id
       WHERE ${searchFilter}
       ${lapsedFilter}
+      ${purchaseFilter}
       ORDER BY ${orderBy}
       LIMIT ${PAGE_SIZE} OFFSET ${skip}
     `,
@@ -147,6 +165,17 @@ export default async function CustomersPage({ searchParams }: Props) {
     params.set("sort", sortKey)
     params.set("order", newOrder)
     if (lapsedDays) params.set("lapsed", String(lapsedDays))
+    if (purchaseStatus !== "all") params.set("purchase", purchaseStatus)
+    return `/crm/customers?${params.toString()}`
+  }
+
+  function customerFilterUrl(nextPurchase: string) {
+    const params = new URLSearchParams()
+    if (q) params.set("q", q)
+    params.set("sort", sort)
+    params.set("order", order)
+    if (lapsedDays) params.set("lapsed", String(lapsedDays))
+    if (nextPurchase !== "all") params.set("purchase", nextPurchase)
     return `/crm/customers?${params.toString()}`
   }
 
@@ -169,10 +198,37 @@ export default async function CustomersPage({ searchParams }: Props) {
         </div>
       </div>
 
+      <div className="mb-3 flex flex-wrap gap-2">
+        {PURCHASE_OPTIONS.map((opt) => {
+          const isActive = purchaseStatus === opt.value
+          return (
+            <Badge
+              key={opt.value}
+              asChild
+              variant="outline"
+              className={
+                isActive
+                  ? "border-[var(--crm-brand)] bg-[var(--crm-brand)] px-3 py-1 text-white hover:bg-[var(--crm-brand-dark)]"
+                  : "border-blue-200 px-3 py-1 text-blue-700 hover:bg-blue-50"
+              }
+            >
+              <Link href={customerFilterUrl(isActive ? "all" : opt.value)}>
+                {opt.label}{isActive && opt.value !== "all" ? " ✕" : ""}
+              </Link>
+            </Badge>
+          )
+        })}
+      </div>
+
       <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
         {LAPSED_OPTIONS.map((opt) => {
           const isActive = lapsedDays === parseInt(opt.value)
-          const baseParams = new URLSearchParams({ sort, order, ...(q ? { q } : {}) })
+          const baseParams = new URLSearchParams({
+            sort,
+            order,
+            ...(q ? { q } : {}),
+            ...(purchaseStatus !== "all" ? { purchase: purchaseStatus } : {}),
+          })
           if (!isActive) baseParams.set("lapsed", opt.value)
           return (
             <Badge
@@ -227,7 +283,7 @@ export default async function CustomersPage({ searchParams }: Props) {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[var(--crm-muted)]">PM</p>
+                  <p className="text-xs text-[var(--crm-muted)]">Salesperson</p>
                   <p className="font-medium">{formatSalespersonName(c.salesperson_name)}</p>
                 </div>
               </div>
@@ -259,7 +315,7 @@ export default async function CustomersPage({ searchParams }: Props) {
                   ยอดล่าสุด{indicator("last_total")}
                 </Link>
               </TableHead>
-              <TableHead className="px-4 py-3 text-gray-500">PM</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">Salesperson</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -291,7 +347,7 @@ export default async function CustomersPage({ searchParams }: Props) {
                       })
                     : "—"}
                 </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500">{c.salesperson_name ?? "—"}</TableCell>
+                <TableCell className="px-4 py-3 text-gray-500">{formatSalespersonName(c.salesperson_name)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -307,7 +363,7 @@ export default async function CustomersPage({ searchParams }: Props) {
         <div className="flex gap-2">
           {page > 1 && (
             <Link
-              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), sort, order, ...(lapsedDays ? { lapsed: String(lapsedDays) } : {}), page: String(page - 1) })}`}
+              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), sort, order, ...(lapsedDays ? { lapsed: String(lapsedDays) } : {}), ...(purchaseStatus !== "all" ? { purchase: purchaseStatus } : {}), page: String(page - 1) })}`}
               className="rounded border px-3 py-1 hover:bg-gray-100"
             >
               ← ก่อนหน้า
@@ -315,7 +371,7 @@ export default async function CustomersPage({ searchParams }: Props) {
           )}
           {page < totalPages && (
             <Link
-              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), sort, order, ...(lapsedDays ? { lapsed: String(lapsedDays) } : {}), page: String(page + 1) })}`}
+              href={`/crm/customers?${new URLSearchParams({ ...(q ? { q } : {}), sort, order, ...(lapsedDays ? { lapsed: String(lapsedDays) } : {}), ...(purchaseStatus !== "all" ? { purchase: purchaseStatus } : {}), page: String(page + 1) })}`}
               className="rounded border px-3 py-1 hover:bg-gray-100"
             >
               ถัดไป →
