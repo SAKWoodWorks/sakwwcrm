@@ -57,6 +57,17 @@ describe("CustomerDetailPage", () => {
     expect(screen.getByText("admin@sakww.com")).toBeInTheDocument()
   })
 
+  it("uses safe returnTo param for customer list link", async () => {
+    const returnTo = "/crm/customers?sort=name&order=asc&page=3"
+    const jsx = await CustomerDetailPage({
+      params: Promise.resolve({ id: "1080" }),
+      searchParams: Promise.resolve({ returnTo }),
+    })
+    render(jsx)
+
+    expect(screen.getByRole("link", { name: "← รายชื่อลูกค้า" })).toHaveAttribute("href", returnTo)
+  })
+
   it("still renders customer detail when audit_logs table is missing", async () => {
     vi.mocked(prisma.customer.findUnique).mockResolvedValue(customerFixture)
     ;(prisma.$queryRaw as ReturnType<typeof vi.fn>)

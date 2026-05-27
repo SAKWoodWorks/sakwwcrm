@@ -19,6 +19,7 @@ import { formatSalespersonName } from "@/lib/salesperson-display"
 
 type Props = {
   params: Promise<{ id: string }>
+  searchParams?: Promise<{ returnTo?: string }>
 }
 
 type CustomerAliasRow = {
@@ -34,8 +35,9 @@ type CustomerMergeAuditRow = {
   metadata: unknown
 }
 
-export default async function CustomerDetailPage({ params }: Props) {
+export default async function CustomerDetailPage({ params, searchParams }: Props) {
   const { id } = await params
+  const { returnTo } = searchParams ? await searchParams : {}
   const customerId = parseInt(id, 10)
   if (isNaN(customerId)) notFound()
 
@@ -79,11 +81,12 @@ export default async function CustomerDetailPage({ params }: Props) {
   const lastPurchase = invoices[0]?.docDate
   const salespersonName =
     customer.salesperson?.name ?? customer.documents.find((d) => d.salesperson?.name)?.salesperson?.name
+  const backHref = getSafeCustomersReturnUrl(returnTo)
 
   return (
     <div className="crm-page max-w-5xl">
       <div className="mb-4">
-        <Link href="/crm/customers" className="text-sm text-blue-600 hover:underline">
+        <Link href={backHref} className="text-sm text-blue-600 hover:underline">
           ← รายชื่อลูกค้า
         </Link>
       </div>
@@ -242,6 +245,13 @@ function getMergedIds(metadata: unknown) {
 function formatMergedIds(ids: number[]) {
   if (ids.length === 0) return "record อื่น"
   return ids.map((id) => `#${id}`).join(", ")
+}
+
+function getSafeCustomersReturnUrl(value?: string) {
+  if (!value) return "/crm/customers"
+  if (!value.startsWith("/crm/customers")) return "/crm/customers"
+  if (value.startsWith("/crm/customers/")) return "/crm/customers"
+  return value
 }
 
 async function getCustomerMergeAudits(customerId: number) {

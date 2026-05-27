@@ -75,15 +75,40 @@ describe("CustomersPage", () => {
       "/crm/customers?sort=last_purchase&order=desc"
     )
 
-    expect(queryCallText(0)).toContain("c.status = 'not_purchase_yet'")
-    expect(queryCallText(1)).toContain("c.status = 'not_purchase_yet'")
+    expect(queryCallText(0)).toContain("NOT EXISTS")
+    expect(queryCallText(0)).toContain("purchase_doc.doc_type = 'tax_invoice'")
+    expect(queryCallText(1)).toContain("NOT EXISTS")
+    expect(queryCallText(1)).toContain("purchase_doc.doc_type = 'tax_invoice'")
   })
 
   it("filters purchased customers by excluding not-purchase-yet status", async () => {
     await CustomersPage({ searchParams: Promise.resolve({ purchase: "purchased" }) })
 
-    expect(queryCallText(0)).toContain("c.status <> 'not_purchase_yet'")
-    expect(queryCallText(1)).toContain("c.status <> 'not_purchase_yet'")
+    expect(queryCallText(0)).toContain("EXISTS")
+    expect(queryCallText(0)).toContain("purchase_doc.doc_type = 'tax_invoice'")
+    expect(queryCallText(1)).toContain("EXISTS")
+    expect(queryCallText(1)).toContain("purchase_doc.doc_type = 'tax_invoice'")
+  })
+
+  it("displays purchased customers as active when status is stale", async () => {
+    await CustomersPage({ searchParams: Promise.resolve({}) })
+
+    expect(queryCallText(1)).toContain("WHEN last_inv.doc_date IS NOT NULL AND c.status = 'not_purchase_yet' THEN 'active'")
+  })
+
+  it("keeps current list params when opening customer detail", async () => {
+    const jsx = await CustomersPage({ searchParams: Promise.resolve({ page: "3", q: "demo", sort: "name", order: "asc" }) })
+    render(jsx)
+
+    const customerLinks = screen
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href"))
+      .filter((href): href is string => Boolean(href?.startsWith("/crm/customers/1?")))
+
+    expect(customerLinks.length).toBeGreaterThan(0)
+    expect(customerLinks[0]).toBe(
+      `/crm/customers/1?${new URLSearchParams({ returnTo: "/crm/customers?q=demo&sort=name&order=asc&page=3" }).toString()}`
+    )
   })
 })
 

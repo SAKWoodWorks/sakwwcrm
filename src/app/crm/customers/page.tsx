@@ -87,9 +87,17 @@ export default async function CustomersPage({ searchParams }: Props) {
     : Prisma.sql``
   const purchaseFilter =
     purchaseStatus === "purchased"
-      ? Prisma.sql`AND c.status <> 'not_purchase_yet'`
+      ? Prisma.sql`AND EXISTS (
+          SELECT 1 FROM documents purchase_doc
+          WHERE purchase_doc.customer_id = c.id
+            AND purchase_doc.doc_type = 'tax_invoice'
+        )`
       : purchaseStatus === "not_purchased"
-        ? Prisma.sql`AND c.status = 'not_purchase_yet'`
+        ? Prisma.sql`AND NOT EXISTS (
+            SELECT 1 FROM documents purchase_doc
+            WHERE purchase_doc.customer_id = c.id
+              AND purchase_doc.doc_type = 'tax_invoice'
+          )`
         : Prisma.sql``
 
   const orderBy =
@@ -126,7 +134,10 @@ export default async function CustomersPage({ searchParams }: Props) {
         c.tax_id,
         c.province,
         c.type,
-        c.status,
+        CASE
+          WHEN last_inv.doc_date IS NOT NULL AND c.status = 'not_purchase_yet' THEN 'active'
+          ELSE c.status
+        END AS status,
         COALESCE(s.name, doc_sp.name) AS salesperson_name,
         aliases.alias_names,
         last_inv.doc_date AS last_purchase_date,
@@ -157,6 +168,7 @@ export default async function CustomersPage({ searchParams }: Props) {
 
   const total = Number(countResult[0].count)
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const currentListUrl = customerListUrl()
 
   function sortUrl(sortKey: string) {
     const newOrder = sort === sortKey && order === "desc" ? "asc" : "desc"
@@ -177,6 +189,21 @@ export default async function CustomersPage({ searchParams }: Props) {
     if (lapsedDays) params.set("lapsed", String(lapsedDays))
     if (nextPurchase !== "all") params.set("purchase", nextPurchase)
     return `/crm/customers?${params.toString()}`
+  }
+
+  function customerListUrl() {
+    const params = new URLSearchParams()
+    if (q) params.set("q", q)
+    params.set("sort", sort)
+    params.set("order", order)
+    if (lapsedDays) params.set("lapsed", String(lapsedDays))
+    if (purchaseStatus !== "all") params.set("purchase", purchaseStatus)
+    if (page > 1) params.set("page", String(page))
+    return `/crm/customers?${params.toString()}`
+  }
+
+  function customerDetailUrl(id: number) {
+    return `/crm/customers/${id}?${new URLSearchParams({ returnTo: currentListUrl }).toString()}`
   }
 
   function indicator(sortKey: string) {
@@ -254,7 +281,7 @@ export default async function CustomersPage({ searchParams }: Props) {
       <div className="crm-mobile-list">
         {customers.map((c) => (
           <Card key={c.id} className="rounded-lg border-[var(--crm-line)] bg-white p-4 shadow-[var(--crm-shadow)]">
-            <Link href={`/crm/customers/${c.id}`} className="block">
+            <Link href={customerDetailUrl(c.id)} className="block">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="line-clamp-2 text-base font-bold text-[var(--crm-ink)]">{c.name}</h2>
@@ -324,7 +351,7 @@ export default async function CustomersPage({ searchParams }: Props) {
             {customers.map((c) => (
               <TableRow key={c.id} className="hover:bg-gray-50">
                 <TableCell className="px-4 py-3">
-                  <Link href={`/crm/customers/${c.id}`} className="font-medium text-blue-600 hover:underline">
+                  <Link href={customerDetailUrl(c.id)} className="font-medium text-blue-600 hover:underline">
                     {c.name}
                   </Link>
                   {c.alias_names ? (
