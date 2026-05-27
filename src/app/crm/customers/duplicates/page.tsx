@@ -34,8 +34,13 @@ export default async function CustomerDuplicatesPage() {
         COALESCE(dc.document_count, 0) AS document_count,
         regexp_replace(
           regexp_replace(
-            lower(c.name),
-            '(บริษัท|บจก\.?|จำกัด|มหาชน|ห้างหุ้นส่วนจำกัด|หจก\.?|สำนักงานใหญ่|สาขา|\\(|\\)|\\.|,)',
+            regexp_replace(
+              lower(c.name),
+              '''?tax\\.?\\s*id\\s*[0-9\\-]+',
+              '',
+              'g'
+            ),
+            '(บริษัท|บจก\.?|จำกัด|มหาชน|ห้างหุ้นส่วนจำกัด|หจก\.?|สำนักงานใหญ่|สาขา|\\(|\\)|\\.|,|''|")',
             '',
             'g'
           ),

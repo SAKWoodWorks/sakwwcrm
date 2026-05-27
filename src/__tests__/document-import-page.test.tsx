@@ -48,6 +48,7 @@ describe("ImportPage", () => {
     expect(sentBody).toBeInstanceOf(FormData)
     expect((sentBody as FormData).get("file")).toBeInstanceOf(File)
     expect(await screen.findByText("ok.xlsx")).toBeInTheDocument()
+    expect(screen.getByText("นำเข้าใหม่ 1 / 3 ไฟล์ · มีอยู่แล้ว 1 ไฟล์ · ไม่สำเร็จ 1 ไฟล์ · ไม่ใช่ xlsx 1 ไฟล์")).toBeInTheDocument()
     expect(screen.getByText("same.xlsx")).toBeInTheDocument()
     expect(screen.getByText("ข้าม: มีอยู่แล้ว")).toBeInTheDocument()
     expect(screen.getByText("bad.xlsx")).toBeInTheDocument()
@@ -69,7 +70,7 @@ describe("ImportPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "เริ่ม import" }))
 
     expect(await screen.findByText("Python path missing")).toBeInTheDocument()
-    expect(screen.getByText("สำเร็จ 0 / 0 ไฟล์")).toBeInTheDocument()
+    expect(screen.getByText("นำเข้าใหม่ 0 / 0 ไฟล์")).toBeInTheDocument()
     expect(screen.getByText("ไม่มีไฟล์ที่ข้าม")).toBeInTheDocument()
   })
 })

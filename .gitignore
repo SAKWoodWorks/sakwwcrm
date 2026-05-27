@@ -40,6 +40,7 @@ yarn-error.log*
 # internal docs (contain server IP / infra details)
 CLAUDE.md
 Project.md
+AGENTS.md
 
 # typescript
 *.tsbuildinfo

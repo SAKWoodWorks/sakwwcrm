@@ -68,6 +68,19 @@ function resultBadge(result: ImportResult) {
   }
 }
 
+function isSkippedExisting(result: ImportResult) {
+  return result.status === "skipped_existing" || result.stdout?.startsWith("[skip]")
+}
+
+function getSummary(results: ImportResult[]) {
+  return {
+    imported: results.filter((result) => result.ok && !isSkippedExisting(result)).length,
+    skippedExisting: results.filter(isSkippedExisting).length,
+    failed: results.filter((result) => !result.ok).length,
+    total: results.length,
+  }
+}
+
 function skippedLabel(reason: string) {
   if (reason === "unsupported_type") return "ข้าม: ไม่ใช่ xlsx"
   return "ข้าม"
@@ -79,6 +92,7 @@ export default function ImportDocumentForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [response, setResponse] = useState<ImportResponse | null>(null)
+  const summary = response ? getSummary(response.results) : null
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -137,11 +151,14 @@ export default function ImportDocumentForm() {
         <div className="rounded-lg border border-[var(--crm-line)] bg-white">
           <div className="border-b border-[var(--crm-line)] px-4 py-3">
             <h2 className="font-semibold text-[var(--crm-ink)]">ผลการ import</h2>
-            <p className="mt-1 text-sm text-[var(--crm-muted)]">
-              สำเร็จ {response.results.filter((result) => result.ok).length.toLocaleString("th-TH")} /{" "}
-              {response.results.length.toLocaleString("th-TH")} ไฟล์
-              {response.skipped?.length ? ` · ข้าม ${response.skipped.length.toLocaleString("th-TH")} ไฟล์` : ""}
-            </p>
+            {summary ? (
+              <p className="mt-1 text-sm text-[var(--crm-muted)]">
+                นำเข้าใหม่ {summary.imported.toLocaleString("th-TH")} / {summary.total.toLocaleString("th-TH")} ไฟล์
+                {summary.skippedExisting ? ` · มีอยู่แล้ว ${summary.skippedExisting.toLocaleString("th-TH")} ไฟล์` : ""}
+                {summary.failed ? ` · ไม่สำเร็จ ${summary.failed.toLocaleString("th-TH")} ไฟล์` : ""}
+                {response.skipped?.length ? ` · ไม่ใช่ xlsx ${response.skipped.length.toLocaleString("th-TH")} ไฟล์` : ""}
+              </p>
+            ) : null}
           </div>
           <div className="border-b border-[var(--crm-line)] bg-slate-50 px-4 py-3">
             <div className="flex flex-wrap items-center justify-between gap-2">

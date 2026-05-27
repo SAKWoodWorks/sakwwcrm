@@ -260,7 +260,9 @@ export default async function CustomersPage({ searchParams }: Props) {
                   <h2 className="line-clamp-2 text-base font-bold text-[var(--crm-ink)]">{c.name}</h2>
                   <p className="mt-1 text-xs text-[var(--crm-muted)]">{c.tax_id ?? "ไม่มี TAX ID"}</p>
                   {c.alias_names ? (
-                    <p className="mt-1 line-clamp-1 text-xs text-[var(--crm-muted)]">ชื่อเดิม: {c.alias_names}</p>
+                    <p className="mt-1 truncate text-xs text-[var(--crm-muted)]" title={c.alias_names}>
+                      ชื่อเดิม: {formatAliasSummary(c.alias_names)}
+                    </p>
                   ) : null}
                 </div>
                 <StatusBadge status={c.status} />
@@ -326,7 +328,9 @@ export default async function CustomersPage({ searchParams }: Props) {
                     {c.name}
                   </Link>
                   {c.alias_names ? (
-                    <div className="mt-1 text-xs text-gray-400">ชื่อเดิม: {c.alias_names}</div>
+                    <div className="mt-1 max-w-[24rem] truncate text-xs text-gray-400" title={c.alias_names}>
+                      ชื่อเดิม: {formatAliasSummary(c.alias_names)}
+                    </div>
                   ) : null}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500">{c.tax_id ?? "—"}</TableCell>
@@ -417,4 +421,16 @@ function StatusBadge({ status }: { status: string }) {
       {label[status] ?? status}
     </Badge>
   )
+}
+
+function formatAliasSummary(value: string) {
+  const aliases = value
+    .split(",")
+    .map((alias) => alias.trim())
+    .filter(Boolean)
+  if (aliases.length === 0) return "—"
+
+  const first = aliases[0].length > 48 ? `${aliases[0].slice(0, 48)}...` : aliases[0]
+  const remaining = aliases.length - 1
+  return remaining > 0 ? `${first} +${remaining}` : first
 }
