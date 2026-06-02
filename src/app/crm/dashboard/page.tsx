@@ -84,7 +84,9 @@ export default async function DashboardPage() {
         COALESCE(SUM(d.total), 0) AS lifetime_total,
         MAX(d.doc_date)           AS last_purchase_date
       FROM customers c
-      JOIN documents d ON d.customer_id = c.id AND d.doc_type = 'tax_invoice'
+      JOIN documents d ON d.customer_id = c.id
+        AND d.doc_type = 'tax_invoice'
+        AND d.payment_status = 'paid'
       GROUP BY c.id, c.name
       ORDER BY lifetime_total DESC
       LIMIT 10
@@ -198,7 +200,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Top customers */}
-      <h2 className="mb-3 mt-8 text-lg font-semibold">Top 10 ลูกค้า (ยอดซื้อรวม)</h2>
+      <h2 className="mb-3 mt-8 text-lg font-semibold">Top 10 ลูกค้า (ยอดซื้อรวมที่ชำระแล้ว)</h2>
       <div className="crm-table-wrap">
         <Table>
           <TableHeader className="bg-gray-50">

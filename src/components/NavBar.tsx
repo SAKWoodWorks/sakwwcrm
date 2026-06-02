@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 const links = [
   { href: "/crm/dashboard", label: "Dashboard", short: "แดช" },
   { href: "/crm/top-customers", label: "Top 100", short: "Top" },
+  { href: "/crm/monthly-sales", label: "ยอดรายเดือน", short: "เดือน" },
   { href: "/crm/deals", label: "ดีล", short: "ดีล" },
   { href: "/crm/customers", label: "ลูกค้า", short: "ลูกค้า" },
   { href: "/crm/documents", label: "เอกสาร", short: "เอกสาร" },

@@ -173,6 +173,7 @@ export default async function CustomerDetailPage({ params, searchParams }: Props
   const stats = documentStats[0]
   const totalSpend = stats?.total_spend ?? 0
   const lastPurchase = stats?.last_purchase
+  const lastPurchaseLabel = lastPurchase ? lastPurchase.toLocaleDateString("th-TH") : "ยังไม่มีข้อมูล"
   const salespersonName = customer.salesperson?.name ?? stats?.salesperson_name
   const backHref = getSafeCustomersReturnUrl(returnTo)
   const topCustomerRank = topCustomerRanks[0]
@@ -214,6 +215,20 @@ export default async function CustomerDetailPage({ params, searchParams }: Props
             <Link href={`/crm/customers/${customer.id}/edit`}>แก้ไข</Link>
           </Button>
         </div>
+        <div className="mb-5 grid gap-3 md:grid-cols-2">
+          <MetricCard
+            label="ยอดซื้อรวม"
+            value={formatCurrency(totalSpend)}
+            detail="รวม TAX invoice ของลูกค้ารายนี้"
+            tone="gold"
+          />
+          <MetricCard
+            label="ซื้อล่าสุด"
+            value={lastPurchaseLabel}
+            detail="วันที่ TAX invoice ล่าสุด"
+            tone="blue"
+          />
+        </div>
         <dl className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm md:grid-cols-3">
           <InfoRow label="TAX ID" value={customer.taxId ?? "—"} />
           <InfoRow label="จังหวัด" value={customer.province ?? "—"} />
@@ -225,14 +240,6 @@ export default async function CustomerDetailPage({ params, searchParams }: Props
           <InfoRow label="อีเมล" value={customer.email ?? "—"} />
           <InfoRow label="LINE" value={customer.lineId ?? "—"} />
           <InfoRow label="ที่อยู่" value={customer.address ?? "—"} />
-          <InfoRow
-            label="ซื้อล่าสุด"
-            value={lastPurchase ? lastPurchase.toLocaleDateString("th-TH") : "—"}
-          />
-          <InfoRow
-            label="ยอดซื้อรวม"
-            value={formatCurrency(totalSpend)}
-          />
         </dl>
         {aliases.length > 0 ? (
           <details className="group mt-5 border-t border-gray-100 pt-4">
@@ -387,6 +394,31 @@ function InfoRow({ label, value }: { label: string; value: string }) {
     <div>
       <dt className="font-medium text-gray-500">{label}</dt>
       <dd className="mt-0.5 text-gray-900">{value}</dd>
+    </div>
+  )
+}
+
+function MetricCard({
+  label,
+  value,
+  detail,
+  tone,
+}: {
+  label: string
+  value: string
+  detail: string
+  tone: "gold" | "blue"
+}) {
+  const styles =
+    tone === "gold"
+      ? "border-[#d0aa45] bg-[#fff8dc] text-[#6f4d11]"
+      : "border-blue-200 bg-blue-50 text-blue-900"
+
+  return (
+    <div className={`rounded-lg border px-4 py-3 ${styles}`}>
+      <p className="text-xs font-semibold opacity-75">{label}</p>
+      <p className="mt-1 text-2xl font-bold tabular-nums">{value}</p>
+      <p className="mt-1 text-xs opacity-70">{detail}</p>
     </div>
   )
 }
