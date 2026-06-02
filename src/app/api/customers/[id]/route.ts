@@ -22,16 +22,16 @@ export async function PATCH(
 
   const data = {
     name: (body.name as string).trim(),
-    taxId: (body.taxId as string) || null,
+    taxId: typeof body.taxId === "string" && body.taxId.trim() ? body.taxId.trim() : null,
     vatRegistered: body.vatRegistered === true,
-    type: (body.type as string) || null,
+    type: typeof body.type === "string" && body.type.trim() ? body.type.trim() : null,
     status: (body.status as string) || "not_purchase_yet",
-    province: (body.province as string) || null,
-    address: (body.address as string) || null,
-    phone: (body.phone as string) || null,
-    email: (body.email as string) || null,
-    lineId: (body.lineId as string) || null,
-    otherId: (body.otherId as string) || null,
+    province: typeof body.province === "string" && body.province.trim() ? body.province.trim() : null,
+    address: typeof body.address === "string" && body.address.trim() ? body.address.trim() : null,
+    phone: typeof body.phone === "string" && body.phone.trim() ? body.phone.trim() : null,
+    email: typeof body.email === "string" && body.email.trim() ? body.email.trim() : null,
+    lineId: typeof body.lineId === "string" && body.lineId.trim() ? body.lineId.trim() : null,
+    otherId: typeof body.otherId === "string" && body.otherId.trim() ? body.otherId.trim() : null,
     salespersonId: body.salespersonId ? Number(body.salespersonId) : null,
   }
 
@@ -43,8 +43,6 @@ export async function PATCH(
     await prisma.customer.update({ where: { id: custId }, data })
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
-      if (err.code === "P2002")
-        return NextResponse.json({ error: "TAX ID ซ้ำกับลูกค้าอื่น" }, { status: 400 })
       if (err.code === "P2025")
         return NextResponse.json({ error: "Not found" }, { status: 404 })
     }

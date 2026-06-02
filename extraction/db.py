@@ -17,29 +17,67 @@ def upsert_salesperson(conn, name: str, channel: str) -> int:
 
 
 def upsert_customer(conn, customer: CustomerData, province: str) -> int:
+    name = (customer.name or "").strip()
+    tax_id = (customer.tax_id or "").strip() or None
+    address = (customer.address or "").strip()
+    province = (province or "").strip() or None
+
     with conn.cursor() as cur:
-        if customer.tax_id:
+        if tax_id:
+            cur.execute("""
+                SELECT id
+                FROM customers
+                WHERE tax_id = %s AND btrim(name) = %s
+                ORDER BY id ASC
+                LIMIT 1
+            """, (tax_id, name))
+            row = cur.fetchone()
+            if not row:
+                cur.execute("""
+                    SELECT id
+                    FROM customers
+                    WHERE btrim(name) = %s
+                    ORDER BY updated_at DESC NULLS LAST, id ASC
+                    LIMIT 1
+                """, (name,))
+                row = cur.fetchone()
+            if not row:
+                cur.execute("""
+                    SELECT id
+                    FROM customers
+                    WHERE tax_id = %s
+                    ORDER BY updated_at DESC NULLS LAST, id ASC
+                    LIMIT 1
+                """, (tax_id,))
+                row = cur.fetchone()
+            if row:
+                cur.execute("""
+                    UPDATE customers
+                    SET name = btrim(name),
+                        tax_id = COALESCE(tax_id, %s),
+                        address = %s,
+                        province = COALESCE(%s, province),
+                        updated_at = NOW()
+                    WHERE id = %s
+                """, (tax_id, address, province, row[0]))
+                return row[0]
             cur.execute("""
                 INSERT INTO customers (name, tax_id, address, province, updated_at)
                 VALUES (%s, %s, %s, %s, NOW())
-                ON CONFLICT (tax_id) DO UPDATE
-                  SET name = EXCLUDED.name,
-                      address = EXCLUDED.address,
-                      updated_at = NOW()
                 RETURNING id
-            """, (customer.name, customer.tax_id, customer.address, province))
+            """, (name, tax_id, address, province))
             return cur.fetchone()[0]
         else:
             cur.execute("""
                 SELECT c.id
                 FROM customers c
-                WHERE c.name = %s
+                WHERE btrim(c.name) = %s
                 UNION
                 SELECT ca.customer_id
                 FROM customer_aliases ca
-                WHERE ca.alias_name = %s
+                WHERE btrim(ca.alias_name) = %s
                 LIMIT 1
-            """, (customer.name, customer.name))
+            """, (name, name))
             row = cur.fetchone()
             if row:
                 return row[0]
@@ -47,7 +85,7 @@ def upsert_customer(conn, customer: CustomerData, province: str) -> int:
                 INSERT INTO customers (name, address, province, updated_at)
                 VALUES (%s, %s, %s, NOW())
                 RETURNING id
-            """, (customer.name, customer.address, province))
+            """, (name, address, province))
             return cur.fetchone()[0]
 
 

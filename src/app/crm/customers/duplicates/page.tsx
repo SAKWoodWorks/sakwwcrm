@@ -40,7 +40,7 @@ export default async function CustomerDuplicatesPage() {
               '',
               'g'
             ),
-            '(บริษัท|บจก\.?|จำกัด|มหาชน|ห้างหุ้นส่วนจำกัด|หจก\.?|สำนักงานใหญ่|สาขา|\\(|\\)|\\.|,|''|")',
+            '(บริษัท|บจก\.?|จำกัด|มหาชน|ห้างหุ้นส่วนจำกัด|หจก\.?|สำนักงานใหญ่|สาขา|company|co\.?|ltd\.?|limited|head\\s*office|branch|\\(|\\)|\\.|,|''|")',
             '',
             'g'
           ),
@@ -99,6 +99,8 @@ export default async function CustomerDuplicatesPage() {
     LIMIT 100
   `,
   ])
+  const nameSummary = summarizeDuplicateGroups(nameGroups)
+  const taxIdSummary = summarizeDuplicateGroups(taxIdGroups)
 
   return (
     <div className="crm-page max-w-5xl">
@@ -126,6 +128,11 @@ export default async function CustomerDuplicatesPage() {
         </CardContent>
       </Card>
 
+      <div className="mb-4 grid gap-3 md:grid-cols-2">
+        <SummaryCard title="ชื่อใกล้กัน" groupCount={nameSummary.groups} customerCount={nameSummary.customers} />
+        <SummaryCard title="เลขภาษีซ้ำ" groupCount={taxIdSummary.groups} customerCount={taxIdSummary.customers} />
+      </div>
+
       <DuplicateSection
         title="ชื่อใกล้กัน"
         emptyText="ยังไม่พบกลุ่มชื่อที่น่าจะซ้ำ"
@@ -141,6 +148,35 @@ export default async function CustomerDuplicatesPage() {
       </div>
     </div>
   )
+}
+
+function SummaryCard({
+  title,
+  groupCount,
+  customerCount,
+}: {
+  title: string
+  groupCount: number
+  customerCount: number
+}) {
+  return (
+    <Card className="rounded-lg border-[var(--crm-line)] bg-white shadow-[var(--crm-shadow)]">
+      <CardContent className="p-4">
+        <p className="text-sm text-[var(--crm-muted)]">{title}</p>
+        <p className="mt-1 text-2xl font-semibold text-[var(--crm-ink)]">
+          {customerCount.toLocaleString("th-TH")} ลูกค้า
+        </p>
+        <p className="mt-1 text-xs text-[var(--crm-muted)]">{groupCount.toLocaleString("th-TH")} กลุ่มซ้ำ</p>
+      </CardContent>
+    </Card>
+  )
+}
+
+function summarizeDuplicateGroups(groups: DuplicateGroup[]) {
+  return {
+    groups: groups.length,
+    customers: groups.reduce((sum, group) => sum + Number(group.customer_count), 0),
+  }
 }
 
 function DuplicateSection({
@@ -189,7 +225,9 @@ function DuplicateSection({
                         {index + 1}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-medium text-gray-900">{group.customer_names[index]}</p>
+                        <Link href={`/crm/customers/${id}`} className="font-medium text-blue-700 hover:underline">
+                          {group.customer_names[index]}
+                        </Link>
                         <p className="mt-1 text-xs text-gray-500">TAX ID: {group.tax_ids[index] ?? "-"}</p>
                       </div>
                       <div className="text-xs text-gray-500 md:text-right">

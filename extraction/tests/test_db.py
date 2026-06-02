@@ -40,6 +40,46 @@ def test_upsert_customer_by_tax_id(conn):
     assert cid == cid2
 
 
+def test_upsert_customer_by_tax_id_when_duplicate_tax_ids_exist(conn):
+    with conn.cursor() as cur:
+        cur.execute("""
+            INSERT INTO customers (name, tax_id, address, province, updated_at)
+            VALUES ('Duplicate Tax A', '5555555555555', '', 'BKK', NOW()),
+                   ('Duplicate Tax B', '5555555555555', '', 'BKK', NOW())
+            RETURNING id
+        """)
+        ids = [row[0] for row in cur.fetchall()]
+
+    c = CustomerData(name="Duplicate Tax B", tax_id="5555555555555", address="Bangkok")
+    cid = upsert_customer(conn, c, province="Bangkok")
+    assert cid in ids
+
+
+def test_upsert_customer_trims_name_and_tax_id(conn):
+    c = CustomerData(name="  Trim Co  ", tax_id="  6666666666666  ", address="  Bangkok  ")
+    cid = upsert_customer(conn, c, province="  BKK  ")
+
+    with conn.cursor() as cur:
+        cur.execute("SELECT name, tax_id, address, province FROM customers WHERE id = %s", (cid,))
+        row = cur.fetchone()
+
+    assert row == ("Trim Co", "6666666666666", "Bangkok", "BKK")
+
+
+def test_upsert_customer_matches_existing_trimmed_name(conn):
+    with conn.cursor() as cur:
+        cur.execute("""
+            INSERT INTO customers (name, tax_id, address, province, updated_at)
+            VALUES ('Trim Duplicate', NULL, '', 'BKK', NOW())
+            RETURNING id
+        """)
+        existing_id = cur.fetchone()[0]
+
+    c = CustomerData(name="  Trim Duplicate  ", tax_id="  1111111111111  ", address="Bangkok")
+    cid = upsert_customer(conn, c, province="Bangkok")
+    assert cid == existing_id
+
+
 def test_upsert_customer_no_tax_id(conn):
     c = CustomerData(name="คุณทดสอบNoTax", tax_id=None, address="")
     cid = upsert_customer(conn, c, province="PTPU")

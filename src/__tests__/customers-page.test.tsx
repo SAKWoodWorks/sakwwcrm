@@ -46,6 +46,8 @@ describe("CustomersPage", () => {
 
     expect(screen.getAllByText("Salesperson").length).toBeGreaterThan(0)
     expect(screen.queryByText("PM")).not.toBeInTheDocument()
+    expect(screen.getByText("ID")).toBeInTheDocument()
+    expect(screen.getAllByText("#1").length).toBeGreaterThan(0)
     expect(screen.getAllByText("Pickachu").length).toBeGreaterThan(0)
     expect(screen.getByRole("link", { name: "ซื้อล่าสุด ↓" })).toHaveAttribute(
       "href",

@@ -284,7 +284,10 @@ export default async function CustomersPage({ searchParams }: Props) {
             <Link href={customerDetailUrl(c.id)} className="block">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h2 className="line-clamp-2 text-base font-bold text-[var(--crm-ink)]">{c.name}</h2>
+                  <div className="flex flex-wrap items-baseline gap-2">
+                    <span className="text-xs font-semibold text-[var(--crm-muted)]">#{c.id}</span>
+                    <h2 className="line-clamp-2 text-base font-bold text-[var(--crm-ink)]">{c.name}</h2>
+                  </div>
                   <p className="mt-1 text-xs text-[var(--crm-muted)]">{c.tax_id ?? "ไม่มี TAX ID"}</p>
                   {c.alias_names ? (
                     <p className="mt-1 truncate text-xs text-[var(--crm-muted)]" title={c.alias_names}>
@@ -325,6 +328,7 @@ export default async function CustomersPage({ searchParams }: Props) {
         <Table>
           <TableHeader className="bg-gray-50">
             <TableRow>
+              <TableHead className="w-20 px-4 py-3 text-gray-500">ID</TableHead>
               <TableHead className="px-4 py-3 text-gray-500">
                 <Link href={sortUrl("name")} className="hover:text-gray-800">
                   ชื่อ{indicator("name")}
@@ -350,6 +354,7 @@ export default async function CustomersPage({ searchParams }: Props) {
           <TableBody>
             {customers.map((c) => (
               <TableRow key={c.id} className="hover:bg-gray-50">
+                <TableCell className="px-4 py-3 font-mono text-xs text-gray-500">#{c.id}</TableCell>
                 <TableCell className="px-4 py-3">
                   <Link href={customerDetailUrl(c.id)} className="font-medium text-blue-600 hover:underline">
                     {c.name}
