@@ -31,8 +31,19 @@ interface TopCustomer {
   last_purchase_date: Date
 }
 
+interface TopProduct {
+  product_id: number | null
+  sku_code: string | null
+  product_name: string | null
+  description: string | null
+  sold_amount: Prisma.Decimal | number
+  sold_qty: Prisma.Decimal | number
+}
+
 export default async function DashboardPage() {
-  const [[stats], topCustomers] = await Promise.all([
+  const selectedMonth = new Date()
+  const bestProductsHref = `/crm/products?bestMonth=${selectedMonth.getMonth() + 1}&bestYear=${selectedMonth.getFullYear()}`
+  const [[stats], topCustomers, topProducts] = await Promise.all([
     prisma.$queryRaw<Stats[]>`
       SELECT
         (SELECT COUNT(*) FROM customers)                                           AS total_customers,
@@ -90,6 +101,25 @@ export default async function DashboardPage() {
       GROUP BY c.id, c.name
       ORDER BY lifetime_total DESC
       LIMIT 10
+    `,
+    prisma.$queryRaw<TopProduct[]>`
+      SELECT
+        di.product_id,
+        p.sku_code,
+        p.full_name AS product_name,
+        CASE WHEN di.product_id IS NULL THEN di.description ELSE NULL END AS description,
+        COALESCE(SUM(di.total), 0) AS sold_amount,
+        COALESCE(SUM(di.quantity), 0) AS sold_qty
+      FROM document_items di
+      JOIN documents d ON d.id = di.document_id
+      LEFT JOIN products p ON p.id = di.product_id
+      WHERE d.doc_type = 'tax_invoice'
+        AND d.payment_status = 'paid'
+        AND d.doc_date >= date_trunc('month', CURRENT_DATE)
+        AND d.doc_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'
+      GROUP BY di.product_id, p.sku_code, p.full_name, CASE WHEN di.product_id IS NULL THEN di.description ELSE NULL END
+      ORDER BY sold_amount DESC
+      LIMIT 5
     `,
   ])
 
@@ -169,6 +199,45 @@ export default async function DashboardPage() {
         })}
       </div>
 
+      <div className="mt-8 flex items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold">สินค้าขายดีประจำเดือน</h2>
+        <Link href={bestProductsHref} className="text-sm text-blue-600 hover:underline">
+          ดูทั้งหมด
+        </Link>
+      </div>
+      <div className="crm-table-wrap mt-3">
+        <Table>
+          <TableHeader className="bg-gray-50">
+            <TableRow>
+              <TableHead className="px-4 py-3 text-gray-500">#</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">สินค้า</TableHead>
+              <TableHead className="px-4 py-3 text-gray-500">SKU</TableHead>
+              <TableHead className="px-4 py-3 text-right text-gray-500">จำนวน</TableHead>
+              <TableHead className="px-4 py-3 text-right text-gray-500">ยอดขาย</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {topProducts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="px-4 py-6 text-center text-gray-400">
+                  ไม่มีข้อมูลขายเดือนนี้
+                </TableCell>
+              </TableRow>
+            ) : topProducts.map((product, index) => (
+              <TableRow key={`${product.product_id ?? "desc"}-${product.sku_code ?? product.description}-${index}`} className="hover:bg-gray-50">
+                <TableCell className="px-4 py-3 tabular-nums text-gray-400">{index + 1}</TableCell>
+                <TableCell className="px-4 py-3 font-medium text-gray-900">{topProductName(product)}</TableCell>
+                <TableCell className="px-4 py-3 font-mono text-xs text-gray-600">{product.sku_code ?? "—"}</TableCell>
+                <TableCell className="px-4 py-3 text-right tabular-nums">{formatQty(product.sold_qty)}</TableCell>
+                <TableCell className="px-4 py-3 text-right tabular-nums font-semibold text-[#7a5614]">
+                  {fmtBaht(Number(product.sold_amount))}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
       {/* Quotation vs Invoice */}
       <h2 className="mb-3 mt-8 text-lg font-semibold">Quotation vs Invoice เดือนนี้</h2>
       <div className="crm-table-wrap">
@@ -245,4 +314,14 @@ export default async function DashboardPage() {
       </div>
     </div>
   )
+}
+
+function topProductName(row: TopProduct) {
+  return row.product_name ?? row.description ?? "ไม่ทราบสินค้า"
+}
+
+function formatQty(value: Prisma.Decimal | number) {
+  return Number(value).toLocaleString("th-TH", {
+    maximumFractionDigits: 3,
+  })
 }

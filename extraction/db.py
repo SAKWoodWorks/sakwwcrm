@@ -3,17 +3,23 @@ from typing import Optional
 from parsers.xlsx_parser import CustomerData
 
 
-def upsert_salesperson(conn, name: str, channel: str) -> int:
+def upsert_salesperson(conn, name: str, channel: str) -> Optional[int]:
+    name = (name or "").strip()
+    if not name:
+        return None
+
     with conn.cursor() as cur:
-        cur.execute("SELECT id FROM salespersons WHERE name = %s LIMIT 1", (name,))
+        cur.execute("""
+            SELECT id
+            FROM salespersons
+            WHERE lower(btrim(name)) = lower(%s)
+            ORDER BY active DESC, id ASC
+            LIMIT 1
+        """, (name,))
         row = cur.fetchone()
         if row:
             return row[0]
-        cur.execute(
-            "INSERT INTO salespersons (name, channel) VALUES (%s, %s) RETURNING id",
-            (name, channel),
-        )
-        return cur.fetchone()[0]
+        return None
 
 
 def upsert_customer(conn, customer: CustomerData, province: str) -> int:

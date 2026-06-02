@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import {
   Table,
@@ -54,7 +55,12 @@ export default async function SalespersonsPage() {
 
   return (
     <div className="crm-page">
-      <h1 className="mb-4 text-2xl font-semibold">พนักงานขาย</h1>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-semibold">พนักงานขาย</h1>
+        <Button asChild className="bg-[var(--crm-brand)] text-white hover:bg-[var(--crm-brand-dark)]">
+          <Link href="/crm/salespersons/new">เพิ่มพนักงาน</Link>
+        </Button>
+      </div>
 
       <div className="crm-mobile-list">
         {rows.map((row) => {

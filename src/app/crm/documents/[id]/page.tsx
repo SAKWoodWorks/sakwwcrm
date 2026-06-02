@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -54,74 +55,73 @@ export default async function DocumentDetailPage({ params }: Props) {
   return (
     <div className="crm-page max-w-6xl">
       {/* Back + title row */}
-      <div className="mb-4 flex items-center gap-4">
-        <Link href="/crm/documents" className="text-sm text-blue-600 hover:underline">
-          ← เอกสาร
-        </Link>
-        <h1 className="text-xl font-semibold font-mono">{doc.docNumber}</h1>
-        <DocTypeBadge docType={doc.docType} />
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/crm/documents" className="text-sm text-blue-600 hover:underline">
+            ← เอกสาร
+          </Link>
+          <h1 className="text-xl font-semibold font-mono">{doc.docNumber}</h1>
+          <DocTypeBadge docType={doc.docType} />
+        </div>
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/crm/documents/${doc.id}/edit`}>แก้ไข</Link>
+        </Button>
       </div>
 
-      {/* Two-column layout */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-        {/* Left: info card */}
-        <Card className="w-full shrink-0 rounded-lg border-[var(--crm-line)] bg-white shadow-[var(--crm-shadow)] lg:w-72">
+      <div className="grid gap-5">
+        <Card className="w-full rounded-lg border-[var(--crm-line)] bg-white shadow-[var(--crm-shadow)]">
           <CardContent className="p-5">
-          <dl className="space-y-2 text-sm">
-            <InfoRow label="วันที่" value={doc.docDate.toLocaleDateString("th-TH")} />
-            <div>
-              <dt className="font-medium text-gray-500">ลูกค้า</dt>
-              <dd className="mt-0.5">
-                {doc.customer ? (
-                  <Link
-                    href={`/crm/customers/${doc.customer.id}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    {doc.customer.name}
-                  </Link>
-                ) : (
-                  "—"
-                )}
-              </dd>
+            <div className="mb-4 grid gap-3 md:grid-cols-3">
+              <MetricCard label="Total" value={doc.total != null ? fmt(doc.total) : "—"} tone="gold" />
+              <MetricCard label="วันที่เอกสาร" value={doc.docDate.toLocaleDateString("th-TH")} tone="blue" />
+              <MetricCard label="สถานะ" value={doc.docType === "tax_invoice" ? getPaymentLabel(doc.paymentStatus) : "—"} tone="green" />
             </div>
-            <InfoRow label="พนักงาน" value={formatSalespersonName(doc.salesperson?.name)} />
-            <InfoRow label="ช่องทาง" value={doc.channel ?? "—"} />
-            <InfoRow label="ชื่อไฟล์" value={doc.gdriveFilename ?? "—"} />
-            <div>
-              <dt className="font-medium text-gray-500">สถานะ</dt>
-              <dd className="mt-0.5">
-                {doc.docType === "tax_invoice" ? (
-                  <PaymentToggle documentId={doc.id} currentStatus={doc.paymentStatus} />
-                ) : (
-                  <span className="text-gray-400">—</span>
-                )}
-              </dd>
-            </div>
-            {doc.refDocNumber && (
-              <InfoRow label="เลขอ้างอิง" value={doc.refDocNumber} />
-            )}
-            <div className="border-t border-gray-100 pt-2">
-              <InfoRow label="Subtotal" value={doc.subtotal != null ? fmt(doc.subtotal) : "—"} />
-              <InfoRow label="VAT 7%" value={doc.vat != null ? fmt(doc.vat) : "—"} />
-              <div className="mt-1">
-                <dt className="font-medium text-gray-500">Total</dt>
-                <dd className="mt-0.5 text-base font-bold text-gray-900">
-                  {doc.total != null ? fmt(doc.total) : "—"}
+            <dl className="grid gap-x-8 gap-y-3 text-sm md:grid-cols-3">
+              <InfoRow label="เลขที่" value={doc.docNumber} />
+              <div>
+                <dt className="font-medium text-gray-500">ลูกค้า</dt>
+                <dd className="mt-0.5">
+                  {doc.customer ? (
+                    <Link
+                      href={`/crm/customers/${doc.customer.id}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {doc.customer.name}
+                    </Link>
+                  ) : (
+                    "—"
+                  )}
                 </dd>
               </div>
-            </div>
-            {doc.notes && (
-              <div className="border-t border-gray-100 pt-2">
-                <dt className="font-medium text-gray-500">หมายเหตุ</dt>
-                <dd className="mt-0.5 text-gray-700 text-xs whitespace-pre-wrap">{doc.notes}</dd>
+              <InfoRow label="พนักงาน" value={formatSalespersonName(doc.salesperson?.name)} />
+              <InfoRow label="ช่องทาง" value={doc.channel ?? "—"} />
+              <InfoRow label="ชื่อไฟล์" value={doc.gdriveFilename ?? "—"} />
+              <div>
+                <dt className="font-medium text-gray-500">สถานะชำระเงิน</dt>
+                <dd className="mt-0.5">
+                  {doc.docType === "tax_invoice" ? (
+                    <PaymentToggle documentId={doc.id} currentStatus={doc.paymentStatus} />
+                  ) : (
+                    <span className="text-gray-400">—</span>
+                  )}
+                </dd>
               </div>
-            )}
-          </dl>
+              <InfoRow label="Subtotal" value={doc.subtotal != null ? fmt(doc.subtotal) : "—"} />
+              <InfoRow label="VAT 7%" value={doc.vat != null ? fmt(doc.vat) : "—"} />
+              {doc.refDocNumber ? <InfoRow label="เลขอ้างอิง" value={doc.refDocNumber} /> : null}
+            </dl>
+            {doc.notes ? (
+              <div className="mt-4 border-t border-gray-100 pt-4">
+                <dt className="font-medium text-gray-500">หมายเหตุ</dt>
+                <dd className="mt-1 whitespace-pre-wrap text-sm text-gray-700">{doc.notes}</dd>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 
-        {/* Right: items table */}
-        <div className="crm-table-wrap flex-1">
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-[var(--crm-ink)]">รายการที่ซื้อ ({doc.items.length})</h2>
+          <div className="crm-table-wrap">
           <Table>
             <TableHeader className="bg-gray-50">
               <TableRow>
@@ -164,7 +164,8 @@ export default async function DocumentDetailPage({ params }: Props) {
               )}
             </TableBody>
           </Table>
-        </div>
+          </div>
+        </section>
       </div>
     </div>
   )
@@ -177,4 +178,25 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       <dd className="mt-0.5 text-gray-900">{value}</dd>
     </div>
   )
+}
+
+function MetricCard({ label, value, tone }: { label: string; value: string; tone: "gold" | "blue" | "green" }) {
+  const styles = {
+    gold: "border-[#d0aa45] bg-[#fff8dc] text-[#6f4d11]",
+    blue: "border-blue-200 bg-blue-50 text-blue-900",
+    green: "border-emerald-200 bg-emerald-50 text-emerald-900",
+  }[tone]
+
+  return (
+    <div className={`rounded-lg border px-4 py-3 ${styles}`}>
+      <p className="text-xs font-semibold opacity-75">{label}</p>
+      <p className="mt-1 text-xl font-bold tabular-nums">{value}</p>
+    </div>
+  )
+}
+
+function getPaymentLabel(status: string | null) {
+  if (status === "paid") return "ชำระแล้ว"
+  if (status === "pending") return "รอชำระ"
+  return "—"
 }

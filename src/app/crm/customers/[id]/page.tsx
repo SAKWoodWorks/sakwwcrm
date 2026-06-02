@@ -71,6 +71,17 @@ type CustomerDocumentCountRow = {
   document_count: bigint | number
 }
 
+type CustomerProductRow = {
+  product_id: number | null
+  sku_code: string | null
+  product_name: string | null
+  description: string | null
+  total_qty: Prisma.Decimal | number
+  total_amount: Prisma.Decimal | number
+  invoice_count: bigint
+  last_purchase_date: Date | null
+}
+
 const DOCUMENT_PAGE_SIZES = [10, 25, 50, 100]
 const DOCUMENT_SORTS = {
   doc_date_desc: Prisma.sql`d.doc_date DESC, d.id DESC`,
@@ -98,7 +109,7 @@ export default async function CustomerDetailPage({ params, searchParams }: Props
   const documentFilter = getDocumentFilter(docType)
   const documentOffset = (docPage - 1) * docPageSize
 
-  const [customer, aliases, topCustomerRanks, documentStats, documents, documentCounts, mergeAudits] = await Promise.all([
+  const [customer, aliases, topCustomerRanks, documentStats, customerProducts, documents, documentCounts, mergeAudits] = await Promise.all([
     prisma.customer.findUnique({
       where: { id: customerId },
       include: {
@@ -140,6 +151,26 @@ export default async function CustomerDetailPage({ params, searchParams }: Props
       LEFT JOIN salespersons csp ON csp.id = c.salesperson_id
       WHERE c.id = ${customerId}
       GROUP BY c.id, csp.name
+    `,
+    prisma.$queryRaw<CustomerProductRow[]>`
+      SELECT
+        di.product_id,
+        p.sku_code,
+        p.full_name AS product_name,
+        CASE WHEN di.product_id IS NULL THEN di.description ELSE NULL END AS description,
+        COALESCE(SUM(di.quantity), 0) AS total_qty,
+        COALESCE(SUM(di.total), 0) AS total_amount,
+        COUNT(DISTINCT d.id) AS invoice_count,
+        MAX(d.doc_date) AS last_purchase_date
+      FROM document_items di
+      JOIN documents d ON d.id = di.document_id
+      LEFT JOIN products p ON p.id = di.product_id
+      WHERE d.customer_id = ${customerId}
+        AND d.doc_type = 'tax_invoice'
+        AND d.payment_status = 'paid'
+      GROUP BY di.product_id, p.sku_code, p.full_name, CASE WHEN di.product_id IS NULL THEN di.description ELSE NULL END
+      ORDER BY total_amount DESC
+      LIMIT 20
     `,
     prisma.$queryRaw<CustomerDocumentRow[]>`
       SELECT
@@ -385,6 +416,88 @@ export default async function CustomerDetailPage({ params, searchParams }: Props
         totalPages={totalPages}
         totalDocuments={totalDocuments}
       />
+
+      <section className="mt-8">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-[var(--crm-ink)]">สินค้าที่ลูกค้าซื้อ ({customerProducts.length})</h2>
+          <p className="text-sm text-[var(--crm-muted)]">เรียงจากยอดรวมมากไปน้อย</p>
+        </div>
+        <div className="grid gap-3 md:hidden">
+          {customerProducts.length === 0 ? (
+            <div className="rounded-lg border border-[var(--crm-line)] bg-white p-4 text-center text-sm text-gray-400 shadow-[var(--crm-shadow)]">
+              ไม่มีข้อมูลสินค้า
+            </div>
+          ) : customerProducts.map((product, index) => (
+            <div key={`${product.product_id ?? "desc"}-${product.sku_code ?? product.description}-mobile`} className="rounded-lg border border-[var(--crm-line)] bg-white p-4 shadow-[var(--crm-shadow)]">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-gray-500">#{(index + 1).toLocaleString("th-TH")}</p>
+                  <p className="mt-1 line-clamp-2 font-semibold text-gray-900">{productName(product)}</p>
+                </div>
+                <p className="shrink-0 text-right font-semibold tabular-nums text-[#7a5614]">
+                  {formatCurrency(product.total_amount)}
+                </p>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-gray-600">
+                <div>
+                  <p className="text-gray-400">จำนวน</p>
+                  <p className="mt-0.5 font-medium tabular-nums text-gray-900">{formatQty(product.total_qty)}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Invoice</p>
+                  <p className="mt-0.5 font-medium tabular-nums text-gray-900">{Number(product.invoice_count).toLocaleString("th-TH")}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">ล่าสุด</p>
+                  <p className="mt-0.5 font-medium tabular-nums text-gray-900">
+                    {product.last_purchase_date ? product.last_purchase_date.toLocaleDateString("th-TH") : "—"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="hidden rounded-lg border border-[var(--crm-line)] bg-white shadow-[var(--crm-shadow)] md:block">
+          <Table className="w-full table-fixed">
+            <TableHeader className="bg-gray-50">
+              <TableRow>
+                <TableHead className="w-12 px-3 py-3 text-right text-gray-500">#</TableHead>
+                <TableHead className="px-3 py-3 text-gray-500">สินค้า</TableHead>
+                <TableHead className="w-24 px-3 py-3 text-right text-gray-500">จำนวน</TableHead>
+                <TableHead className="w-20 px-3 py-3 text-right text-gray-500">บิล</TableHead>
+                <TableHead className="w-28 px-3 py-3 text-gray-500">ล่าสุด</TableHead>
+                <TableHead className="w-32 px-3 py-3 text-right text-gray-500">ยอดรวม</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {customerProducts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="px-4 py-6 text-center text-gray-400">
+                    ไม่มีข้อมูลสินค้า
+                  </TableCell>
+                </TableRow>
+              ) : customerProducts.map((product, index) => (
+                <TableRow key={`${product.product_id ?? "desc"}-${product.sku_code ?? product.description}`} className="hover:bg-gray-50">
+                  <TableCell className="px-3 py-3 text-right tabular-nums text-gray-500">
+                    {(index + 1).toLocaleString("th-TH")}
+                  </TableCell>
+                  <TableCell className="truncate px-3 py-3 font-medium text-gray-900" title={productName(product)}>
+                    {productName(product)}
+                  </TableCell>
+                  <TableCell className="px-3 py-3 text-right tabular-nums">{formatQty(product.total_qty)}</TableCell>
+                  <TableCell className="px-3 py-3 text-right tabular-nums">{Number(product.invoice_count).toLocaleString("th-TH")}</TableCell>
+                  <TableCell className="px-3 py-3 tabular-nums text-gray-600">
+                    {product.last_purchase_date ? product.last_purchase_date.toLocaleDateString("th-TH") : "—"}
+                  </TableCell>
+                  <TableCell className="px-3 py-3 text-right tabular-nums font-semibold text-[#7a5614]">
+                    {formatCurrency(product.total_amount)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </section>
     </div>
   )
 }
@@ -493,6 +606,16 @@ function formatCurrency(value: Prisma.Decimal | number) {
     currency: "THB",
     minimumFractionDigits: 0,
   })
+}
+
+function formatQty(value: Prisma.Decimal | number) {
+  return Number(value).toLocaleString("th-TH", {
+    maximumFractionDigits: 3,
+  })
+}
+
+function productName(row: CustomerProductRow) {
+  return row.product_name ?? row.description ?? "ไม่ทราบสินค้า"
 }
 
 function getDocumentPage(value?: string) {

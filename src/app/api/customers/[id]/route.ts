@@ -43,6 +43,8 @@ export async function PATCH(
     await prisma.customer.update({ where: { id: custId }, data })
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === "P2002")
+        return NextResponse.json({ error: "TAX ID already exists" }, { status: 400 })
       if (err.code === "P2025")
         return NextResponse.json({ error: "Not found" }, { status: 404 })
     }

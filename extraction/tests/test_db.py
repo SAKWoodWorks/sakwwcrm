@@ -21,15 +21,27 @@ from db import upsert_salesperson, upsert_customer, insert_document, insert_docu
 from parsers.xlsx_parser import CustomerData
 
 
-def test_upsert_salesperson_creates(conn):
+def test_upsert_salesperson_returns_existing(conn):
+    with conn.cursor() as cur:
+        cur.execute("INSERT INTO salespersons (name, channel) VALUES ('TestSP', 'Web') RETURNING id")
+        existing_id = cur.fetchone()[0]
+
     sp_id = upsert_salesperson(conn, name="TestSP", channel="Web")
-    assert isinstance(sp_id, int) and sp_id > 0
+    assert sp_id == existing_id
 
 
-def test_upsert_salesperson_idempotent(conn):
-    id1 = upsert_salesperson(conn, name="TestSP", channel="Web")
-    id2 = upsert_salesperson(conn, name="TestSP", channel="Web")
-    assert id1 == id2
+def test_upsert_salesperson_does_not_create_unknown(conn):
+    sp_id = upsert_salesperson(conn, name="03-MAR", channel="Web")
+    assert sp_id is None
+
+
+def test_upsert_salesperson_matches_case_insensitive_trimmed_name(conn):
+    with conn.cursor() as cur:
+        cur.execute("INSERT INTO salespersons (name, channel) VALUES ('Case Trim SP', 'Web') RETURNING id")
+        existing_id = cur.fetchone()[0]
+
+    sp_id = upsert_salesperson(conn, name="  case trim sp  ", channel="Web")
+    assert sp_id == existing_id
 
 
 def test_upsert_customer_by_tax_id(conn):
@@ -88,7 +100,9 @@ def test_upsert_customer_no_tax_id(conn):
 
 def test_insert_document(conn):
     from datetime import date
-    sp_id = upsert_salesperson(conn, name="TestSP2", channel="Web")
+    with conn.cursor() as cur:
+        cur.execute("INSERT INTO salespersons (name, channel) VALUES ('TestSP2', 'Web') RETURNING id")
+        sp_id = cur.fetchone()[0]
     cust_id = upsert_customer(conn, CustomerData("Test Co2", "9999999999999", ""), "BKK")
     doc_id = insert_document(conn, {
         "doc_type": "tax_invoice",
@@ -111,7 +125,9 @@ def test_insert_document(conn):
 
 def test_insert_tax_invoice_marks_customer_active(conn):
     from datetime import date
-    sp_id = upsert_salesperson(conn, name="TestSPStatus", channel="Web")
+    with conn.cursor() as cur:
+        cur.execute("INSERT INTO salespersons (name, channel) VALUES ('TestSPStatus', 'Web') RETURNING id")
+        sp_id = cur.fetchone()[0]
     cust_id = upsert_customer(conn, CustomerData("Test Co Status", "7777777777777", ""), "BKK")
 
     doc_id = insert_document(conn, {

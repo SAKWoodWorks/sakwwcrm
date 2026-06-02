@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -138,9 +139,14 @@ export default async function SalespersonDetailPage({ params }: Props) {
       </div>
 
       {/* Header */}
-      <div className="mb-6 flex items-center gap-3">
-        <h1 className="text-2xl font-semibold">{sp.name}</h1>
-        <SalespersonLineManage salespersonId={sp.id} lineUserId={sp.line_user_id} />
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-semibold">{sp.name}</h1>
+          <SalespersonLineManage salespersonId={sp.id} lineUserId={sp.line_user_id} />
+        </div>
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/crm/salespersons/${sp.id}/edit`}>แก้ไข</Link>
+        </Button>
       </div>
 
       {/* KPI row */}

@@ -40,6 +40,19 @@ const documentStatsFixture = [
   },
 ]
 
+const customerProductsFixture = [
+  {
+    product_id: 1,
+    sku_code: "PINE-001",
+    product_name: "Pine Board",
+    description: null,
+    total_qty: 25,
+    total_amount: 50000,
+    invoice_count: BigInt(3),
+    last_purchase_date: new Date("2026-05-20"),
+  },
+]
+
 const documentsFixture = [
   {
     id: 501,
@@ -69,6 +82,7 @@ describe("CustomerDetailPage", () => {
         },
       ])
       .mockResolvedValueOnce(documentStatsFixture)
+      .mockResolvedValueOnce(customerProductsFixture)
       .mockResolvedValueOnce(documentsFixture)
       .mockResolvedValueOnce(documentCountFixture)
       .mockResolvedValueOnce([
@@ -121,6 +135,7 @@ describe("CustomerDetailPage", () => {
       ])
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce(documentStatsFixture)
+      .mockResolvedValueOnce(customerProductsFixture)
       .mockResolvedValueOnce(documentsFixture)
       .mockResolvedValueOnce(documentCountFixture)
       .mockResolvedValueOnce([])
@@ -139,6 +154,7 @@ describe("CustomerDetailPage", () => {
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce(documentStatsFixture)
+      .mockResolvedValueOnce(customerProductsFixture)
       .mockResolvedValueOnce(documentsFixture)
       .mockResolvedValueOnce(documentCountFixture)
       .mockRejectedValueOnce({
@@ -168,5 +184,15 @@ describe("CustomerDetailPage", () => {
       "/crm/customers/1080?docType=tax_invoice&docPageSize=10&docSort=total_asc&docPage=1",
     )
     expect(screen.getByText("TI-001")).toBeInTheDocument()
+  })
+
+  it("renders products purchased by this customer", async () => {
+    const jsx = await CustomerDetailPage({ params: Promise.resolve({ id: "1080" }) })
+    render(jsx)
+
+    expect(screen.getByText("สินค้าที่ลูกค้าซื้อ (1)")).toBeInTheDocument()
+    expect(screen.getAllByText("Pine Board").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("1").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("฿50,000").length).toBeGreaterThan(0)
   })
 })
