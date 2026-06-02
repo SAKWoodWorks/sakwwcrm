@@ -30,8 +30,30 @@ const customerFixture = {
   email: null,
   lineId: null,
   salesperson: null,
-  documents: [],
 } as Awaited<ReturnType<typeof prisma.customer.findUnique>>
+
+const documentStatsFixture = [
+  {
+    total_spend: 125000,
+    last_purchase: new Date("2026-05-20"),
+    salesperson_name: "Pickachu",
+  },
+]
+
+const documentsFixture = [
+  {
+    id: 501,
+    doc_type: "tax_invoice",
+    doc_number: "TI-001",
+    doc_date: new Date("2026-05-20"),
+    channel: "LINE",
+    payment_status: "paid",
+    total: 125000,
+    salesperson_name: "Pickachu",
+  },
+]
+
+const documentCountFixture = [{ document_count: BigInt(1) }]
 
 describe("CustomerDetailPage", () => {
   beforeEach(() => {
@@ -39,6 +61,16 @@ describe("CustomerDetailPage", () => {
     vi.mocked(prisma.customer.findUnique).mockResolvedValue(customerFixture)
     ;(prisma.$queryRaw as ReturnType<typeof vi.fn>)
       .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          purchase_rank: BigInt(12),
+          total_paid: 1250000,
+          total_invoices: BigInt(8),
+        },
+      ])
+      .mockResolvedValueOnce(documentStatsFixture)
+      .mockResolvedValueOnce(documentsFixture)
+      .mockResolvedValueOnce(documentCountFixture)
       .mockResolvedValueOnce([
         {
           actor_email: "admin@sakww.com",
@@ -55,6 +87,7 @@ describe("CustomerDetailPage", () => {
     expect(screen.getByText("ประวัติ merge")).toBeInTheDocument()
     expect(screen.getByText("รวม #1081, #1082 เข้า record นี้")).toBeInTheDocument()
     expect(screen.getByText("admin@sakww.com")).toBeInTheDocument()
+    expect(screen.getByText("Top 100 #12")).toBeInTheDocument()
   })
 
   it("uses safe returnTo param for customer list link", async () => {
@@ -68,11 +101,46 @@ describe("CustomerDetailPage", () => {
     expect(screen.getByRole("link", { name: "← รายชื่อลูกค้า" })).toHaveAttribute("href", returnTo)
   })
 
+  it("allows returning to top customer ranking", async () => {
+    const returnTo = "/crm/top-customers?from=2026-01-01&to=2026-05-31&salesperson=Pickachu"
+    const jsx = await CustomerDetailPage({
+      params: Promise.resolve({ id: "1080" }),
+      searchParams: Promise.resolve({ returnTo }),
+    })
+    render(jsx)
+
+    expect(screen.getByRole("link", { name: "← รายชื่อลูกค้า" })).toHaveAttribute("href", returnTo)
+  })
+
+  it("renders customer aliases inside a toggle", async () => {
+    ;(prisma.$queryRaw as ReturnType<typeof vi.fn>)
+      .mockReset()
+      .mockResolvedValueOnce([
+        { alias_name: "ยู พัซเซิล (สำนักงานใหญ่)", alias_type: "merged", tax_id: null, note: null },
+        { alias_name: "U Puzzle Tax ID 0-7055-61001-12-8", alias_type: "merged", tax_id: null, note: null },
+      ])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce(documentStatsFixture)
+      .mockResolvedValueOnce(documentsFixture)
+      .mockResolvedValueOnce(documentCountFixture)
+      .mockResolvedValueOnce([])
+
+    const jsx = await CustomerDetailPage({ params: Promise.resolve({ id: "1080" }) })
+    render(jsx)
+
+    expect(screen.getByText("ชื่อเดิม / ชื่อที่ใช้ค้นหา (2)")).toBeInTheDocument()
+    expect(screen.getByText("ยู พัซเซิล (สำนักงานใหญ่)")).toBeInTheDocument()
+  })
+
   it("still renders customer detail when audit_logs table is missing", async () => {
     vi.mocked(prisma.customer.findUnique).mockResolvedValue(customerFixture)
     ;(prisma.$queryRaw as ReturnType<typeof vi.fn>)
       .mockReset()
       .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce(documentStatsFixture)
+      .mockResolvedValueOnce(documentsFixture)
+      .mockResolvedValueOnce(documentCountFixture)
       .mockRejectedValueOnce({
         code: "P2010",
         meta: { code: "42P01", message: 'relation "audit_logs" does not exist' },
@@ -83,5 +151,22 @@ describe("CustomerDetailPage", () => {
 
     expect(screen.getByText("ยู พัซเซิล")).toBeInTheDocument()
     expect(screen.queryByText("ประวัติ merge")).not.toBeInTheDocument()
+  })
+
+  it("renders document filters, sortable heads, and pagination", async () => {
+    const jsx = await CustomerDetailPage({
+      params: Promise.resolve({ id: "1080" }),
+      searchParams: Promise.resolve({ docType: "tax_invoice", docPageSize: "10", docPage: "2", docSort: "total_desc" }),
+    })
+    render(jsx)
+
+    expect(screen.getByRole("combobox", { name: "ประเภทเอกสาร" })).toHaveValue("tax_invoice")
+    expect(screen.getByRole("combobox", { name: "ต่อหน้า" })).toHaveValue("10")
+    expect(screen.queryByRole("button", { name: "แสดง" })).not.toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "ยอด" })).toHaveAttribute(
+      "href",
+      "/crm/customers/1080?docType=tax_invoice&docPageSize=10&docSort=total_asc&docPage=1",
+    )
+    expect(screen.getByText("TI-001")).toBeInTheDocument()
   })
 })

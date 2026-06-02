@@ -31,6 +31,7 @@ interface PaidCustomerRow {
   phone_number: string | null
   salesperson_names: string | null
   total_paid: Prisma.Decimal | number
+  total_paid_all: Prisma.Decimal | number
   total_invoices: bigint
   last_invoice_paid_date: Date
 }
@@ -49,8 +50,10 @@ type Props = {
 
 const DEFAULT_RANGE_MONTHS = 12
 const SORT_OPTIONS = [
-  { value: "total_paid_desc", label: "ยอดซื้อรวมมากไปน้อย", orderBy: Prisma.sql`total_paid DESC` },
-  { value: "total_paid_asc", label: "ยอดซื้อรวมน้อยไปมาก", orderBy: Prisma.sql`total_paid ASC` },
+  { value: "total_paid_all_desc", label: "ยอดซื้อทั้งหมดมากไปน้อย", orderBy: Prisma.sql`total_paid_all DESC` },
+  { value: "total_paid_all_asc", label: "ยอดซื้อทั้งหมดน้อยไปมาก", orderBy: Prisma.sql`total_paid_all ASC` },
+  { value: "total_paid_desc", label: "ยอดล่าสุดมากไปน้อย", orderBy: Prisma.sql`total_paid DESC` },
+  { value: "total_paid_asc", label: "ยอดล่าสุดน้อยไปมาก", orderBy: Prisma.sql`total_paid ASC` },
   { value: "invoice_count_desc", label: "จำนวน invoice มากไปน้อย", orderBy: Prisma.sql`total_invoices DESC` },
   { value: "last_paid_desc", label: "วันที่ซื้อล่าสุด", orderBy: Prisma.sql`last_invoice_paid_date DESC` },
   { value: "customer_name_asc", label: "ชื่อลูกค้า", orderBy: Prisma.sql`customer_name ASC` },
@@ -106,9 +109,14 @@ export default async function TopCustomersPage({
   const sortHrefs = {
     customerName: buildSortHref(params, "customer_name_asc"),
     totalPaid: buildSortHref(params, sortOption.value === "total_paid_desc" ? "total_paid_asc" : "total_paid_desc"),
+    totalPaidAll: buildSortHref(
+      params,
+      sortOption.value === "total_paid_all_desc" ? "total_paid_all_asc" : "total_paid_all_desc",
+    ),
     invoiceCount: buildSortHref(params, "invoice_count_desc"),
     lastPaid: buildSortHref(params, "last_paid_desc"),
   }
+  const returnTo = buildCurrentHref(params)
 
   const [salespersons, rows] = await Promise.all([
     prisma.salesperson.findMany({
@@ -117,22 +125,36 @@ export default async function TopCustomersPage({
       orderBy: { name: "asc" },
     }),
     prisma.$queryRaw<PaidCustomerRow[]>`
+      WITH period_docs AS (
+        SELECT d.*
+        FROM documents d
+        LEFT JOIN salespersons sp ON sp.id = d.salesperson_id
+        WHERE d.doc_type = 'tax_invoice'
+          AND d.payment_status = 'paid'
+          AND d.doc_date >= ${range.start}
+          AND d.doc_date < ${range.endExclusive}
+          ${salespersonFilter}
+      ),
+      all_paid AS (
+        SELECT customer_id, COALESCE(SUM(total), 0) AS total_paid_all
+        FROM documents
+        WHERE doc_type = 'tax_invoice'
+          AND payment_status = 'paid'
+        GROUP BY customer_id
+      )
       SELECT
         c.id AS customer_id,
         c.name AS customer_name,
         c.phone AS phone_number,
         string_agg(DISTINCT sp.name, ', ' ORDER BY sp.name) AS salesperson_names,
-        COALESCE(SUM(d.total), 0) AS total_paid,
-        COUNT(d.id) AS total_invoices,
-        MAX(d.doc_date) AS last_invoice_paid_date
+        COALESCE(SUM(pd.total), 0) AS total_paid,
+        COALESCE(MAX(ap.total_paid_all), 0) AS total_paid_all,
+        COUNT(pd.id) AS total_invoices,
+        MAX(pd.doc_date) AS last_invoice_paid_date
       FROM customers c
-      JOIN documents d ON d.customer_id = c.id
-      LEFT JOIN salespersons sp ON sp.id = d.salesperson_id
-      WHERE d.doc_type = 'tax_invoice'
-        AND d.payment_status = 'paid'
-        AND d.doc_date >= ${range.start}
-        AND d.doc_date < ${range.endExclusive}
-        ${salespersonFilter}
+      JOIN period_docs pd ON pd.customer_id = c.id
+      LEFT JOIN salespersons sp ON sp.id = pd.salesperson_id
+      LEFT JOIN all_paid ap ON ap.customer_id = c.id
       GROUP BY c.id, c.name, c.phone
       ORDER BY ${sortOption.orderBy}
       LIMIT 100
@@ -171,6 +193,7 @@ export default async function TopCustomersPage({
         rows={rows}
         sortValue={sortOption.value}
         sortHrefs={sortHrefs}
+        returnTo={returnTo}
         className="mt-4"
       />
     </div>
@@ -227,7 +250,7 @@ function DateRangeForm({
             </Button>
           </div>
           <p className="text-xs text-[var(--crm-muted)]">
-            ตารางด้านล่างจัดอันดับจาก invoice ที่ชำระแล้วภายในช่วง {fromLabel} ถึง {toLabel}
+            ตารางด้านล่างแสดงยอดในช่วง {fromLabel} ถึง {toLabel} และเรียงค่าเริ่มต้นจากยอดซื้อทั้งหมด
           </p>
         </CardContent>
       </Card>
@@ -240,6 +263,7 @@ function PaidCustomersTable({
   rows,
   sortValue,
   sortHrefs,
+  returnTo,
   className = "",
 }: {
   title: string
@@ -248,9 +272,11 @@ function PaidCustomersTable({
   sortHrefs: {
     customerName: string
     totalPaid: string
+    totalPaidAll: string
     invoiceCount: string
     lastPaid: string
   }
+  returnTo: string
   className?: string
 }) {
   return (
@@ -266,7 +292,7 @@ function PaidCustomersTable({
             <CardContent className="p-5 text-sm text-[var(--crm-muted)]">ไม่มีข้อมูล</CardContent>
           </Card>
         ) : (
-          rows.map((row, index) => <PaidCustomerCard key={row.customer_id} row={row} rank={index + 1} />)
+          rows.map((row, index) => <PaidCustomerCard key={row.customer_id} row={row} rank={index + 1} returnTo={returnTo} />)
         )}
       </div>
 
@@ -274,11 +300,12 @@ function PaidCustomersTable({
         <Table className="w-full table-fixed text-xs xl:text-sm">
           <colgroup>
             <col className="w-10" />
-            <col className="w-[36%]" />
-            <col className="w-[12%]" />
-            <col className="w-[16%]" />
+            <col className="w-[30%]" />
+            <col className="w-[11%]" />
+            <col className="w-[14%]" />
+            <col className="w-[14%]" />
             <col className="w-[9%]" />
-            <col className="w-[13%]" />
+            <col className="w-[12%]" />
             <col className="w-[8%]" />
           </colgroup>
           <TableHeader className="bg-gray-50">
@@ -295,7 +322,15 @@ function PaidCustomersTable({
                   href={sortHrefs.totalPaid}
                   active={sortValue === "total_paid_desc" || sortValue === "total_paid_asc"}
                 >
-                  ยอดซื้อ
+                  ยอดล่าสุด
+                </SortLink>
+              </TableHead>
+              <TableHead className="px-2 py-3 text-right text-gray-500">
+                <SortLink
+                  href={sortHrefs.totalPaidAll}
+                  active={sortValue === "total_paid_all_desc" || sortValue === "total_paid_all_asc"}
+                >
+                  ยอดทั้งหมด
                 </SortLink>
               </TableHead>
               <TableHead className="px-2 py-3 text-right text-gray-500">
@@ -314,7 +349,7 @@ function PaidCustomersTable({
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="px-4 py-6 text-center text-gray-400">
+                <TableCell colSpan={8} className="px-4 py-6 text-center text-gray-400">
                   ไม่มีข้อมูล
                 </TableCell>
               </TableRow>
@@ -325,7 +360,7 @@ function PaidCustomersTable({
                   <TableRow key={row.customer_id} className={recencyStyles[tone].row}>
                     <TableCell className="px-2 py-3 tabular-nums text-gray-400">{index + 1}</TableCell>
                     <TableCell className="whitespace-normal px-2 py-3">
-                      <Link href={`/crm/customers/${row.customer_id}`} className="font-medium text-blue-600 hover:underline">
+                      <Link href={buildCustomerDetailHref(row.customer_id, returnTo)} className="font-medium text-blue-600 hover:underline">
                         {row.customer_name}
                       </Link>
                       <div className="mt-1 truncate text-[11px] text-gray-400">{row.phone_number ?? "ไม่มีเบอร์โทร"}</div>
@@ -335,6 +370,9 @@ function PaidCustomersTable({
                     </TableCell>
                     <TableCell className="px-2 py-3 text-right tabular-nums font-semibold text-[var(--crm-ink)]">
                       {formatBaht(row.total_paid)}
+                    </TableCell>
+                    <TableCell className="px-2 py-3 text-right tabular-nums font-semibold text-[#7a5614]">
+                      {formatBaht(row.total_paid_all)}
                     </TableCell>
                     <TableCell className="px-2 py-3 text-right tabular-nums">{Number(row.total_invoices).toLocaleString("th-TH")}</TableCell>
                     <TableCell className="px-2 py-3 tabular-nums text-gray-600">{formatThaiShortDate(row.last_invoice_paid_date)}</TableCell>
@@ -383,16 +421,33 @@ function buildSortHref(params: TopCustomerSearchParams, sort: string) {
 
   const salesperson = params.salesperson ?? params.accountOfficer
   if (salesperson && salesperson !== "all") query.set("salesperson", salesperson)
-  if (sort !== "total_paid_desc") query.set("sort", sort)
+  if (sort !== "total_paid_all_desc") query.set("sort", sort)
 
   const queryString = query.toString()
   return queryString ? `/crm/top-customers?${queryString}` : "/crm/top-customers"
 }
 
-function PaidCustomerCard({ row, rank }: { row: PaidCustomerRow; rank: number }) {
+function buildCurrentHref(params: TopCustomerSearchParams) {
+  const query = new URLSearchParams()
+  if (params.from) query.set("from", params.from)
+  if (params.to) query.set("to", params.to)
+
+  const salesperson = params.salesperson ?? params.accountOfficer
+  if (salesperson && salesperson !== "all") query.set("salesperson", salesperson)
+  if (params.sort && params.sort !== "total_paid_all_desc") query.set("sort", params.sort)
+
+  const queryString = query.toString()
+  return queryString ? `/crm/top-customers?${queryString}` : "/crm/top-customers"
+}
+
+function buildCustomerDetailHref(customerId: number, returnTo: string) {
+  return `/crm/customers/${customerId}?returnTo=${encodeURIComponent(returnTo)}`
+}
+
+function PaidCustomerCard({ row, rank, returnTo }: { row: PaidCustomerRow; rank: number; returnTo: string }) {
   const tone = getRecencyTone(row.last_invoice_paid_date)
   return (
-    <Link href={`/crm/customers/${row.customer_id}`}>
+    <Link href={buildCustomerDetailHref(row.customer_id, returnTo)}>
       <Card className={`block rounded-lg border-[var(--crm-line)] bg-white p-4 shadow-[var(--crm-shadow)] ${recencyStyles[tone].row}`}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -404,10 +459,14 @@ function PaidCustomerCard({ row, rank }: { row: PaidCustomerRow; rank: number })
             {recencyStyles[tone].label}
           </Badge>
         </div>
-        <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+        <div className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
           <div>
-            <p className="text-xs text-[var(--crm-muted)]">TotalPaid</p>
+            <p className="text-xs text-[var(--crm-muted)]">ยอดล่าสุด</p>
             <p className="font-semibold tabular-nums">{formatBaht(row.total_paid)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-[var(--crm-muted)]">ทั้งหมด</p>
+            <p className="font-semibold tabular-nums text-[#7a5614]">{formatBaht(row.total_paid_all)}</p>
           </div>
           <div>
             <p className="text-xs text-[var(--crm-muted)]">TotalInvoices</p>

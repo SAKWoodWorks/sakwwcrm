@@ -20,6 +20,7 @@ const periodRows = [
     phone_number: null,
     salesperson_names: "Pickachu + Jane",
     total_paid: 900000,
+    total_paid_all: 1500000,
     total_invoices: BigInt(5),
     last_invoice_paid_date: new Date("2025-08-15"),
   },
@@ -56,12 +57,27 @@ describe("TopCustomersPage", () => {
 
     expect(screen.getAllByText("ลูกค้า").length).toBeGreaterThan(0)
     expect(screen.getAllByText("Salesperson").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("ยอดซื้อ").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("ยอดล่าสุด").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("ยอดทั้งหมด").length).toBeGreaterThan(0)
     expect(screen.getAllByText("Inv.").length).toBeGreaterThan(0)
     expect(screen.getAllByText("ซื้อล่าสุด").length).toBeGreaterThan(0)
     expect(screen.getAllByText("May Period Buyer").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("฿1,500,000").length).toBeGreaterThan(0)
     expect(screen.getAllByText("15 สิงหาคม 2568").length).toBeGreaterThan(0)
     expect(screen.getAllByText("ไม่มีเบอร์โทร").length).toBeGreaterThan(0)
     expect(screen.getAllByText("Pickachu").length).toBeGreaterThan(0)
+  })
+
+  it("links customer detail back to the current top customer page", async () => {
+    const jsx = await TopCustomersPage({
+      searchParams: Promise.resolve({ from: "2026-01-01", to: "2026-05-31", salesperson: "Pickachu" }),
+    })
+    render(jsx)
+
+    const customerLinks = screen.getAllByRole("link", { name: /May Period Buyer/ })
+    expect(customerLinks[0]).toHaveAttribute(
+      "href",
+      "/crm/customers/2?returnTo=%2Fcrm%2Ftop-customers%3Ffrom%3D2026-01-01%26to%3D2026-05-31%26salesperson%3DPickachu",
+    )
   })
 })
