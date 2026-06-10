@@ -12,6 +12,7 @@ const links = [
   { href: "/crm/documents", label: "เอกสาร", short: "เอกสาร" },
   { href: "/crm/import", label: "Import", short: "Import" },
   { href: "/crm/products", label: "สินค้า", short: "สินค้า" },
+  { href: "/crm/delivery-cost", label: "Delivery", short: "ส่ง" },
   { href: "/crm/salespersons", label: "พนักงาน", short: "ทีม" },
 ]
 
