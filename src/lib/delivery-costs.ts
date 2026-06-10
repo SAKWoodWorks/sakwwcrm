@@ -4,6 +4,8 @@ import * as XLSX from "xlsx"
 import type { DeliveryCostRow, DeliveryTier, DeliveryVehicle } from "./delivery-cost-types"
 export { selectDeliveryTier } from "./delivery-cost-types"
 
+const DEFAULT_DELIVERY_SHEET_ID = "1yqELX10PafgzWPv6iC4_dLA3IeiwgC1XQswrJ3rl9hw"
+const DELIVERY_CACHE_MS = 10 * 60 * 1000
 const SHEET_NAME = "Delivery"
 
 const VEHICLE_COLUMNS: Record<DeliveryVehicle, number[]> = {
@@ -11,8 +13,33 @@ const VEHICLE_COLUMNS: Record<DeliveryVehicle, number[]> = {
   "6w": [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
 }
 
-export function getDeliveryCosts(filePath = resolveDeliveryFile()): DeliveryCostRow[] {
-  const workbook = XLSX.read(readFileSync(filePath), { type: "buffer", cellDates: false })
+let deliveryCache: { expiresAt: number; rows: DeliveryCostRow[] } | null = null
+
+export async function getDeliveryCosts(): Promise<DeliveryCostRow[]> {
+  const now = Date.now()
+  if (deliveryCache && deliveryCache.expiresAt > now) return deliveryCache.rows
+
+  const rows = await getDeliveryCostsFromGoogleSheet().catch(() => getDeliveryCostsFromFile())
+  deliveryCache = { rows, expiresAt: now + DELIVERY_CACHE_MS }
+  return rows
+}
+
+export function getDeliveryCostsFromFile(filePath = resolveDeliveryFile()): DeliveryCostRow[] {
+  return parseDeliveryWorkbook(readFileSync(filePath))
+}
+
+export async function getDeliveryCostsFromGoogleSheet(sheetId = process.env.DELIVERY_SHEET_ID ?? DEFAULT_DELIVERY_SHEET_ID) {
+  const response = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/export?format=xlsx`, {
+    cache: "no-store",
+  })
+  if (!response.ok) throw new Error(`Delivery sheet fetch failed: ${response.status}`)
+
+  const bytes = Buffer.from(await response.arrayBuffer())
+  return parseDeliveryWorkbook(bytes)
+}
+
+export function parseDeliveryWorkbook(bytes: Buffer): DeliveryCostRow[] {
+  const workbook = XLSX.read(bytes, { type: "buffer", cellDates: false })
   const sheet = workbook.Sheets[SHEET_NAME]
   if (!sheet) return []
 

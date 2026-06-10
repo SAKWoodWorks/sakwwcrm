@@ -1,10 +1,10 @@
 import path from "node:path"
 import { describe, expect, it } from "vitest"
-import { getDeliveryCosts } from "@/lib/delivery-costs"
+import { getDeliveryCostsFromFile } from "@/lib/delivery-costs"
 import { selectDeliveryTier } from "@/lib/delivery-cost-types"
 
 describe("delivery costs", () => {
-  const rows = getDeliveryCosts(path.join(process.cwd(), "docs", "Delivery.xlsx"))
+  const rows = getDeliveryCostsFromFile(path.join(process.cwd(), "docs", "Delivery.xlsx"))
 
   it("reads Delivery sheet into province rows with 4W and 6W tiers", () => {
     const bangkok = rows.find((row) => row.provinceEnglish === "Bangkok")

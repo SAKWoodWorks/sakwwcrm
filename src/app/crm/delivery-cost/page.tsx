@@ -3,8 +3,8 @@ export const dynamic = "force-dynamic"
 import DeliveryCostExplorer from "./DeliveryCostExplorer"
 import { getDeliveryCosts } from "@/lib/delivery-costs"
 
-export default function DeliveryCostPage() {
-  const rows = getDeliveryCosts()
+export default async function DeliveryCostPage() {
+  const rows = await getDeliveryCosts()
 
   return (
     <div className="crm-page">
