@@ -1,10 +1,9 @@
 import path from "node:path"
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import * as XLSX from "xlsx"
 import type { DeliveryCostRow, DeliveryTier, DeliveryVehicle } from "./delivery-cost-types"
 export { selectDeliveryTier } from "./delivery-cost-types"
 
-const DELIVERY_FILE = path.join(process.cwd(), "docs", "Delivery.xlsx")
 const SHEET_NAME = "Delivery"
 
 const VEHICLE_COLUMNS: Record<DeliveryVehicle, number[]> = {
@@ -12,7 +11,7 @@ const VEHICLE_COLUMNS: Record<DeliveryVehicle, number[]> = {
   "6w": [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
 }
 
-export function getDeliveryCosts(filePath = DELIVERY_FILE): DeliveryCostRow[] {
+export function getDeliveryCosts(filePath = resolveDeliveryFile()): DeliveryCostRow[] {
   const workbook = XLSX.read(readFileSync(filePath), { type: "buffer", cellDates: false })
   const sheet = workbook.Sheets[SHEET_NAME]
   if (!sheet) return []
@@ -28,6 +27,16 @@ export function getDeliveryCosts(filePath = DELIVERY_FILE): DeliveryCostRow[] {
     .slice(1)
     .map((row) => parseDeliveryRow(row, headers))
     .filter((row): row is DeliveryCostRow => row !== null)
+}
+
+function resolveDeliveryFile() {
+  const candidates = [
+    path.join(process.cwd(), "docs", "Delivery.xlsx"),
+    path.join(process.cwd(), "new-crm", "docs", "Delivery.xlsx"),
+  ]
+  const filePath = candidates.find((candidate) => existsSync(candidate))
+  if (!filePath) throw new Error(`Cannot find Delivery.xlsx in: ${candidates.join(", ")}`)
+  return filePath
 }
 
 function parseDeliveryRow(
