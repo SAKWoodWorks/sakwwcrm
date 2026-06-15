@@ -1,24 +1,33 @@
 "use client"
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { Link, usePathname } from "@/i18n/navigation"
+import { useLocale, useTranslations } from "next-intl"
+import { useSearchParams } from "next/navigation"
 
 const links = [
-  { href: "/crm/dashboard", label: "Dashboard", short: "แดช" },
-  { href: "/crm/top-customers", label: "Top 100", short: "Top" },
-  { href: "/crm/monthly-sales", label: "ยอดรายเดือน", short: "เดือน" },
-  { href: "/crm/deals", label: "ดีล", short: "ดีล" },
-  { href: "/crm/customers", label: "ลูกค้า", short: "ลูกค้า" },
-  { href: "/crm/documents", label: "เอกสาร", short: "เอกสาร" },
-  { href: "/crm/import", label: "Import", short: "Import" },
-  { href: "/crm/products", label: "สินค้า", short: "สินค้า" },
-  { href: "/crm/delivery-cost", label: "Delivery", short: "ส่ง" },
-  { href: "/crm/salespersons", label: "พนักงาน", short: "ทีม" },
+  { href: "/crm/dashboard", labelKey: "dashboard", shortKey: "dashboardShort" },
+  { href: "/crm/top-customers", labelKey: "topCustomers", shortKey: "topCustomersShort" },
+  { href: "/crm/monthly-sales", labelKey: "monthlySales", shortKey: "monthlySalesShort" },
+  { href: "/crm/deals", labelKey: "deals", shortKey: "dealsShort" },
+  { href: "/crm/customers", labelKey: "customers", shortKey: "customersShort" },
+  { href: "/crm/documents", labelKey: "documents", shortKey: "documentsShort" },
+  { href: "/crm/import", labelKey: "import", shortKey: "importShort" },
+  { href: "/crm/products", labelKey: "products", shortKey: "productsShort" },
+  { href: "/crm/delivery-cost", labelKey: "delivery", shortKey: "deliveryShort" },
+  { href: "/crm/salespersons", labelKey: "salespersons", shortKey: "salespersonsShort" },
 ]
 
+const locales = ["th", "en", "ru"] as const
+
 export default function NavBar() {
+  const t = useTranslations("Nav")
+  const locale = useLocale()
   const pathname = usePathname()
-  const activeLabel = links.find(({ href }) => href === "/crm/dashboard" ? pathname === href : pathname.startsWith(href))?.label ?? "CRM"
+  const searchParams = useSearchParams()
+  const query = searchParams.toString()
+  const localeHref = query ? `${pathname}?${query}` : pathname
+  const activeLink = links.find(({ href }) => href === "/crm/dashboard" ? pathname === href : pathname.startsWith(href))
+  const activeLabel = activeLink ? t(activeLink.labelKey) : "CRM"
 
   return (
     <>
@@ -34,7 +43,7 @@ export default function NavBar() {
             </span>
           </Link>
           <div className="hidden items-center gap-1 md:flex">
-            {links.map(({ href, label }) => {
+            {links.map(({ href, labelKey }) => {
               const active = href === "/crm/dashboard"
                 ? pathname === href
                 : pathname.startsWith(href)
@@ -49,17 +58,34 @@ export default function NavBar() {
                       : "rounded-md px-3 py-2 text-sm font-medium text-[var(--crm-muted)] hover:bg-white hover:text-[var(--crm-brand)]"
                   }
                 >
-                  {label}
+                  {t(labelKey)}
                 </Link>
               )
             })}
+          </div>
+          <div className="ml-auto hidden items-center gap-1 rounded-md border border-[var(--crm-line)] bg-white p-1 text-xs font-bold md:flex" aria-label={t("language")}>
+            {locales.map((item) => (
+              <Link
+                key={item}
+                href={localeHref}
+                locale={item}
+                aria-current={locale === item ? "page" : undefined}
+                className={
+                  locale === item
+                    ? "rounded bg-[var(--crm-brand)] px-2 py-1 text-white"
+                    : "rounded px-2 py-1 text-[var(--crm-muted)] hover:bg-gray-50 hover:text-[var(--crm-brand)]"
+                }
+              >
+                {item.toUpperCase()}
+              </Link>
+            ))}
           </div>
         </div>
       </nav>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--crm-line)] bg-[rgb(248_251_255_/_96%)] px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-12px_30px_rgb(29_78_216_/_10%)] backdrop-blur md:hidden">
         <div className="grid grid-cols-4 gap-1 min-[420px]:grid-cols-8">
-          {links.map(({ href, short }) => {
+          {links.map(({ href, shortKey }) => {
             const active = href === "/crm/dashboard"
               ? pathname === href
               : pathname.startsWith(href)
@@ -74,7 +100,7 @@ export default function NavBar() {
                     : "rounded-md px-1.5 py-2 text-center text-[11px] font-semibold text-[var(--crm-muted)]"
                 }
               >
-                {short}
+                {t(shortKey)}
               </Link>
             )
           })}

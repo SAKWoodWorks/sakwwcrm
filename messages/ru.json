@@ -1,0 +1,712 @@
+{
+  "Nav": {
+    "dashboard": "Панель",
+    "dashboardShort": "Панель",
+    "topCustomers": "Топ 100",
+    "topCustomersShort": "Топ",
+    "monthlySales": "Продажи по месяцам",
+    "monthlySalesShort": "Месяц",
+    "deals": "Сделки",
+    "dealsShort": "Сделки",
+    "customers": "Клиенты",
+    "customersShort": "Клиенты",
+    "documents": "Документы",
+    "documentsShort": "Док.",
+    "import": "Импорт",
+    "importShort": "Импорт",
+    "products": "Товары",
+    "productsShort": "Товары",
+    "delivery": "Доставка",
+    "deliveryShort": "Дост.",
+    "salespersons": "Менеджеры",
+    "salespersonsShort": "Команда",
+    "language": "Язык"
+  },
+  "Login": {
+    "workspaceHint": "Войдите через Google Workspace (@sakww.com)",
+    "googleButton": "Войти через Google"
+  },
+  "Dashboard": {
+    "title": "Панель",
+    "cards": {
+      "totalCustomers": "Всего клиентов",
+      "newCustomers": "Новые клиенты за месяц",
+      "monthlyRevenue": "Продажи за месяц",
+      "monthlyInvoices": "Счета за месяц",
+      "pendingInvoices": "Неоплаченные счета",
+      "lapsed": "Нет покупок >90 дней"
+    },
+    "bestProducts": {
+      "title": "Лучшие товары месяца",
+      "viewAll": "Смотреть все",
+      "product": "Товар",
+      "sku": "SKU",
+      "quantity": "Кол-во",
+      "sales": "Продажи",
+      "empty": "Нет данных о продажах за этот месяц",
+      "unknownProduct": "Неизвестный товар"
+    },
+    "quotationInvoice": {
+      "title": "Quotation vs Invoice за этот месяц",
+      "type": "Тип",
+      "quantity": "Кол-во",
+      "total": "Итого"
+    },
+    "topCustomers": {
+      "title": "Топ 10 клиентов (оплаченные покупки)",
+      "name": "Имя",
+      "total": "Итого",
+      "lastPurchase": "Последняя покупка",
+      "empty": "Нет данных"
+    }
+  },
+  "MonthlySales": {
+    "title": "Продажи по месяцам",
+    "description": "Итоги оплаченных TAX invoice по месяцам",
+    "metrics": {
+      "total": "Итого",
+      "invoiceCount": "Количество счетов",
+      "average": "Среднее за месяц"
+    },
+    "table": {
+      "title": "По месяцам",
+      "count": "{count} мес.",
+      "month": "Месяц",
+      "total": "Итого",
+      "invoice": "Счет",
+      "customer": "Клиенты",
+      "empty": "Нет данных за этот период"
+    },
+    "filter": {
+      "from": "С даты",
+      "to": "По дату",
+      "submit": "Показать период",
+      "summary": "Показаны продажи с {from} по {to}"
+    }
+  },
+  "DeliveryCost": {
+    "title": "Стоимость доставки",
+    "description": "Стоимость доставки по провинциям из Delivery.xlsx, отдельно для 4W и 6W",
+    "searchProvince": "Поиск провинции",
+    "searchPlaceholder": "например Bangkok",
+    "invoiceAmount": "Сумма счета",
+    "amountPlaceholder": "например 25000",
+    "vehicleType": "Тип машины",
+    "metrics": {
+      "provinceCount": "Провинции в файле",
+      "resultCount": "Результаты поиска",
+      "sample": "Пример: {province}",
+      "deliveryCost": "Стоимость доставки"
+    },
+    "table": {
+      "province": "Провинция",
+      "selectedCost": "Выбранная стоимость",
+      "priceRange": "Диапазон цен {vehicle}"
+    },
+    "empty": "Провинция не найдена",
+    "noData": "Нет данных",
+    "free": "Бесплатно"
+  },
+  "Import": {
+    "title": "Импорт документов",
+    "description": "Выберите Excel или ZIP. Система создаст задачу и покажет результаты и историю импорта.",
+    "selectFile": "Выберите файл .xlsx или .zip",
+    "start": "Начать импорт",
+    "creating": "Создание задачи...",
+    "importing": "Идет импорт...",
+    "selectFileError": "Сначала выберите файл",
+    "importFailed": "Импорт не выполнен",
+    "tryAgain": "Импорт не выполнен. Попробуйте еще раз.",
+    "resultTitle": "Результат импорта",
+    "jobLine": "Задача #{id} · {filename}",
+    "summary": {
+      "new": "Новые импорты {imported} / {total} файлов",
+      "existing": "Уже есть {count} файлов",
+      "failed": "Ошибки {count} файлов",
+      "unsupported": "Не xlsx {count} файлов",
+      "running": "Импорт выполняется. Страница обновится автоматически."
+    },
+    "skippedTitle": "Пропущенные файлы ({count})",
+    "notExcel": "Не Excel файл",
+    "skippedUnsupported": "Пропущено: не xlsx",
+    "skipped": "Пропущено",
+    "noSkipped": "Нет пропущенных файлов",
+    "noXlsx": "Не найдено .xlsx файлов для импорта",
+    "historyTitle": "История импорта",
+    "noHistory": "Истории импорта пока нет",
+    "historySummary": "новые {imported} · пропущено {skipped} · ошибки {failed}",
+    "resultBadges": {
+      "skippedExisting": "Пропущено: уже есть",
+      "success": "Успешно",
+      "failed": "Ошибка"
+    },
+    "jobBadges": {
+      "completed": "Готово",
+      "failed": "Ошибка",
+      "running": "Выполняется",
+      "queued": "В очереди"
+    }
+  },
+  "TopCustomers": {
+    "title": "Топ 100 клиентов по покупкам",
+    "description": "Рейтинг только по сумме оплаченных tax invoice",
+    "selectedDateRange": "Выбранный период",
+    "count": "{count} поз.",
+    "empty": "Нет данных",
+    "noPhone": "Нет телефона",
+    "unknownSalesperson": "Нет менеджера",
+    "dateForm": {
+      "from": "С даты",
+      "to": "По дату",
+      "salesperson": "Менеджер",
+      "all": "Все",
+      "none": "Нет менеджера",
+      "submit": "Показать период",
+      "summary": "Таблица ниже показывает продажи с {from} по {to}; по умолчанию сортировка по общей сумме покупок"
+    },
+    "recency": {
+      "green": "За 3 месяца",
+      "greenShort": "3 мес.",
+      "yellow": "За 6 месяцев",
+      "yellowShort": "6 мес.",
+      "orange": "За 12 месяцев",
+      "orangeShort": "12 мес.",
+      "red": "Более 12 месяцев",
+      "redShort": ">12 мес."
+    },
+    "table": {
+      "customer": "Клиент",
+      "salesperson": "Менеджер",
+      "latestTotal": "Последняя сумма",
+      "allTotal": "Всего",
+      "invoice": "Сч.",
+      "lastPaid": "Последняя покупка",
+      "status": "Статус",
+      "totalInvoices": "Всего счетов",
+      "lastInvoicePaidDate": "Последний оплаченный счет"
+    }
+  },
+  "Documents": {
+    "title": "Документы",
+    "filters": {
+      "searchCustomer": "Поиск клиента...",
+      "allTypes": "Все типы",
+      "allStatuses": "Все статусы",
+      "paid": "Оплачено",
+      "pending": "Ожидает оплаты",
+      "allChannels": "Все каналы",
+      "allSalespersons": "Все менеджеры",
+      "from": "С даты",
+      "to": "По дату"
+    },
+    "table": {
+      "date": "Дата",
+      "number": "Номер",
+      "type": "Тип",
+      "customer": "Клиент",
+      "channel": "Канал",
+      "salesperson": "Менеджер",
+      "amount": "Сумма",
+      "status": "Статус"
+    },
+    "pagination": {
+      "empty": "Записи не найдены",
+      "summary": "Показано {from}–{to} из {total} поз.",
+      "previous": "← Назад",
+      "next": "Далее →"
+    },
+    "unknownSalesperson": "Нет менеджера",
+    "payment": {
+      "paid": "Оплачено",
+      "pending": "Ожидает оплаты",
+      "aria": "Управление статусом оплаты",
+      "saving": "Сохранение...",
+      "markPaid": "Отметить оплачено",
+      "markPending": "Снять оплату",
+      "paidToast": "Отмечено как оплачено",
+      "pendingToast": "Оплата снята",
+      "error": "Произошла ошибка. Попробуйте еще раз."
+    },
+    "detail": {
+      "back": "← Документы",
+      "edit": "Редактировать",
+      "date": "Дата документа",
+      "number": "Номер",
+      "customer": "Клиент",
+      "salesperson": "Менеджер",
+      "channel": "Канал",
+      "filename": "Имя файла",
+      "paymentStatus": "Статус оплаты",
+      "ref": "Номер ссылки",
+      "notes": "Примечания",
+      "itemsTitle": "Позиции ({count})",
+      "item": "Позиция",
+      "quantity": "Кол-во",
+      "unit": "Ед.",
+      "unitPrice": "Цена/ед.",
+      "total": "Итого",
+      "emptyItems": "Нет позиций",
+      "systemProduct": "Товар в системе: {name}"
+    },
+    "edit": {
+      "title": "Редактировать документ",
+      "type": "Тип",
+      "number": "Номер *",
+      "date": "Дата",
+      "channel": "Канал",
+      "customer": "Клиент",
+      "salesperson": "Менеджер",
+      "none": "Не указано",
+      "paymentStatus": "Статус оплаты",
+      "ref": "Номер ссылки",
+      "notes": "Примечания",
+      "save": "Сохранить",
+      "saving": "Сохранение...",
+      "cancel": "Отмена",
+      "saveFailed": "Не удалось сохранить документ"
+    }
+  },
+  "Salespersons": {
+    "title": "Менеджеры",
+    "add": "Добавить менеджера",
+    "registered": "Зарегистрирован",
+    "count": "{count} менеджеров (показаны только с клиентами)",
+    "back": "← Менеджеры",
+    "edit": "Редактировать",
+    "customersTitle": "Клиенты ({count})",
+    "recentDocumentsTitle": "Последние документы ({count})",
+    "emptyCustomers": "Нет клиентов",
+    "emptyDocuments": "Нет документов",
+    "table": {
+      "name": "Имя",
+      "customer": "Клиент",
+      "customers": "Клиенты",
+      "total": "Итого",
+      "monthly": "Этот месяц",
+      "lapsed": "Нет покупок >90 дней",
+      "lastPurchase": "Последняя покупка",
+      "lastTotal": "Последняя сумма",
+      "date": "Дата",
+      "number": "Номер",
+      "type": "Тип",
+      "amount": "Сумма"
+    },
+    "editForm": {
+      "title": "Редактировать менеджера",
+      "name": "Имя *",
+      "channel": "Канал",
+      "active": "Активен",
+      "save": "Сохранить",
+      "saving": "Сохранение...",
+      "cancel": "Отмена",
+      "saveFailed": "Не удалось сохранить менеджера"
+    },
+    "createForm": {
+      "title": "Добавить менеджера",
+      "submit": "Добавить менеджера",
+      "saveFailed": "Не удалось добавить менеджера"
+    },
+    "line": {
+      "linked": "LINE зарегистрирован",
+      "unlink": "Отключить LINE",
+      "unlinkTitle": "Отключить LINE?",
+      "unlinkDescription": "Менеджер не будет получать сообщения LINE, пока не зарегистрируется снова.",
+      "cancel": "Отмена",
+      "unlinking": "Отключение...",
+      "confirmUnlink": "Подтвердить",
+      "unlinkedToast": "LINE отключен",
+      "notLinked": "LINE не зарегистрирован",
+      "createCode": "Создать код",
+      "codeToast": "Код создан",
+      "codeInstruction": "Попросите менеджера отправить этот текст в LINE в течение 15 минут:",
+      "expires": "Истекает: {time}",
+      "close": "Закрыть",
+      "error": "Произошла ошибка. Попробуйте еще раз."
+    }
+  },
+  "Deals": {
+    "title": "Сделки",
+    "description": "Воронка продаж до invoice",
+    "create": "Создать сделку",
+    "back": "← Сделки",
+    "metrics": {
+      "openDeals": "Открытые сделки",
+      "pipelineValue": "Сумма воронки",
+      "weightedForecast": "Взвешенный прогноз"
+    },
+    "filters": {
+      "search": "Поиск сделки или клиента...",
+      "allStages": "Все стадии",
+      "allSalespersons": "Все менеджеры",
+      "submit": "Фильтр"
+    },
+    "table": {
+      "deal": "Сделка",
+      "stage": "Стадия",
+      "customer": "Клиент",
+      "salesperson": "Менеджер",
+      "value": "Сумма",
+      "weighted": "Взвешенно",
+      "expectedClose": "Ожидаемое закрытие",
+      "empty": "Сделок пока нет",
+      "noCustomer": "Нет клиента"
+    },
+    "pagination": {
+      "empty": "Записи не найдены",
+      "summary": "Показано {from}-{to} из {total} поз.",
+      "previous": "Назад",
+      "next": "Далее"
+    },
+    "detail": {
+      "updated": "Обновлено {date}",
+      "source": "Источник",
+      "expectedValue": "Ожидаемая сумма",
+      "probability": "Вероятность",
+      "customerInfo": "Информация о клиенте",
+      "province": "Провинция",
+      "phone": "Телефон",
+      "notes": "Примечания"
+    },
+    "form": {
+      "title": "Название сделки *",
+      "titlePlaceholder": "например Новая партия фанеры - ABC",
+      "customer": "Клиент",
+      "noCustomer": "Клиент не привязан",
+      "salesperson": "Менеджер",
+      "none": "Не указано",
+      "expectedValue": "Ожидаемая сумма",
+      "probability": "Шанс закрытия (%)",
+      "chooseDate": "Выберите дату",
+      "saving": "Создание...",
+      "cancel": "Отмена",
+      "createFailed": "Не удалось создать сделку",
+      "stageUpdateFailed": "Не удалось обновить стадию"
+    }
+  },
+  "Customers": {
+    "title": "Клиенты",
+    "duplicates": "Проверить дубли",
+    "search": "Поиск клиента или TAX ID...",
+    "noTaxId": "Нет TAX ID",
+    "aliasPrefix": "Старые имена: {aliases}",
+    "unspecified": "Не указано",
+    "filters": {
+      "all": "Все",
+      "purchased": "Покупали",
+      "notPurchased": "Не покупали",
+      "lapsed30": "Нет покупок 30–59 дней",
+      "lapsed60": "Нет покупок 60–89 дней",
+      "lapsed90": "Нет покупок 90–364 дней",
+      "lapsed365": "Нет покупок >1 года"
+    },
+    "table": {
+      "name": "Имя",
+      "province": "Провинция",
+      "type": "Тип",
+      "status": "Статус",
+      "lastPurchase": "Последняя покупка",
+      "lastTotal": "Последняя сумма",
+      "salesperson": "Менеджер"
+    },
+    "pagination": {
+      "empty": "Записи не найдены",
+      "summary": "Показано {from}–{to} из {total} поз.",
+      "previous": "← Назад",
+      "next": "Далее →"
+    },
+    "status": {
+      "not_purchase_yet": "Не покупал",
+      "active": "Active",
+      "repeat": "Repeat",
+      "purchased": "Покупал"
+    }
+  },
+  "CustomerEdit": {
+    "title": "Редактировать клиента",
+    "saveError": "Произошла ошибка. Попробуйте еще раз.",
+    "addAliasError": "Не удалось добавить старое имя",
+    "deleteAliasError": "Не удалось удалить старое имя",
+    "fields": {
+      "name": "Имя *",
+      "vat": "Зарегистрирован VAT",
+      "type": "Тип",
+      "status": "Статус",
+      "notPurchased": "Не покупал",
+      "active": "Active",
+      "inactive": "Inactive",
+      "province": "Провинция",
+      "address": "Адрес",
+      "phone": "Телефон",
+      "email": "Email",
+      "salesperson": "Менеджер",
+      "none": "Не указано"
+    },
+    "save": "Сохранить",
+    "saving": "Сохранение...",
+    "cancel": "Отмена",
+    "aliases": {
+      "title": "Старые имена / имена для поиска",
+      "description": "Используйте для старых названий компании, сокращений или прежних имен клиента.",
+      "noTaxId": "Нет TAX ID",
+      "delete": "Удалить",
+      "empty": "Старых имен пока нет",
+      "add": "Добавить старое имя",
+      "taxId": "TAX ID старого имени",
+      "note": "Примечание",
+      "notePlaceholder": "например старое имя до переименования компании"
+    }
+  },
+  "CustomerDetail": {
+    "back": "← Клиенты",
+    "edit": "Редактировать",
+    "noData": "Данных пока нет",
+    "topCustomer": "Клиент из топ 100 по общей сумме покупок {total}",
+    "metrics": {
+      "totalSpend": "Всего покупок",
+      "totalSpendDetail": "Сумма TAX invoice этого клиента",
+      "lastPurchase": "Последняя покупка",
+      "lastPurchaseDetail": "Дата последнего TAX invoice"
+    },
+    "info": {
+      "province": "Провинция",
+      "type": "Тип",
+      "status": "Статус",
+      "vatRegistered": "Зарегистрирован",
+      "vatNotRegistered": "Не зарегистрирован",
+      "phone": "Телефон",
+      "email": "Email",
+      "address": "Адрес"
+    },
+    "status": {
+      "not_purchase_yet": "Не покупал",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "aliases": {
+      "title": "Старые имена / имена для поиска ({count})",
+      "show": "Показать",
+      "hide": "Скрыть"
+    },
+    "merge": {
+      "title": "История слияний",
+      "mergedIntoThis": "{ids} объединены в эту запись",
+      "unknownUser": "Неизвестный пользователь",
+      "undone": "Слияние отменено",
+      "otherRecord": "другая запись",
+      "undo": {
+        "button": "Отменить слияние",
+        "title": "Подтвердить отмену слияния",
+        "description": "Система восстановит клиента #{ids} и вернет документы/сделки по снимку слияния.",
+        "cancel": "Отмена",
+        "confirm": "Подтвердить отмену",
+        "loading": "Отмена...",
+        "success": "Слияние отменено: восстановлено записей {count}",
+        "error": "Не удалось отменить слияние"
+      }
+    },
+    "documents": {
+      "title": "Все документы ({count})",
+      "summary": "Показано {from}–{to} из {total} поз.",
+      "date": "Дата",
+      "number": "Номер",
+      "type": "Тип",
+      "channel": "Канал",
+      "salesperson": "Менеджер",
+      "total": "Сумма",
+      "status": "Статус",
+      "empty": "Нет документов по этим фильтрам",
+      "filters": {
+        "docType": "Тип документа",
+        "all": "Все",
+        "perPage": "На странице",
+        "records": "{count} записей"
+      }
+    },
+    "payment": {
+      "paid": "Оплачено",
+      "pending": "Ожидает оплаты"
+    },
+    "pagination": {
+      "page": "Страница {current} / {total}",
+      "previous": "Назад",
+      "next": "Далее"
+    },
+    "products": {
+      "title": "Товары, купленные этим клиентом ({count})",
+      "description": "Сортировка по общей сумме, сначала больше",
+      "empty": "Нет данных о товарах",
+      "quantity": "Кол-во",
+      "invoice": "Счет",
+      "latest": "Последняя",
+      "product": "Товар",
+      "bills": "Счета",
+      "total": "Итого",
+      "unknown": "Неизвестный товар"
+    }
+  },
+  "CustomerDuplicates": {
+    "title": "Дубли клиентов",
+    "description": "Группы с похожими именами после удаления слов о компании и юр. форме. Проверьте перед слиянием.",
+    "back": "Назад к клиентам",
+    "manual": {
+      "title": "Ручное слияние",
+      "description": "Используйте, когда система не нашла дубль автоматически. Введите ID основного клиента и ID для объединения."
+    },
+    "sections": {
+      "name": "Похожие имена",
+      "taxId": "Повторяющиеся TAX ID"
+    },
+    "empty": {
+      "name": "Группы похожих имен не найдены",
+      "taxId": "Группы повторяющихся TAX ID не найдены"
+    },
+    "summary": {
+      "customers": "{count} клиентов",
+      "groups": "{count} групп дублей"
+    },
+    "records": "{count} записей",
+    "review": "Проверить",
+    "documents": "{count} документов",
+    "open": "Открыть #{id}",
+    "mergeHint": "Если #{id} основной клиент, {ids} будут объединены в него",
+    "mergeButton": {
+      "usePrimary": "Сделать #{id} основным",
+      "loading": "Объединение...",
+      "title": "Подтвердить слияние клиентов",
+      "description": "Использовать #{id} как основного клиента. Документы и сделки из {count} других записей будут перенесены в этого клиента.",
+      "cancel": "Отмена",
+      "confirm": "Подтвердить слияние",
+      "success": "Клиенты объединены в #{id}",
+      "error": "Не удалось объединить клиентов. Попробуйте еще раз."
+    },
+    "manualForm": {
+      "primaryId": "ID основного клиента",
+      "primaryPlaceholder": "например 1080",
+      "duplicatePlaceholder": "например 1081, 1082",
+      "checking": "Проверка...",
+      "preview": "Предпросмотр слияния",
+      "previewTitle": "Предпросмотр слияния",
+      "primaryCustomer": "Основной клиент: {name}",
+      "documents": "{count} документов",
+      "deals": "{count} сделок",
+      "merging": "Объединение...",
+      "confirm": "Подтвердить слияние",
+      "confirmTitle": "Подтвердить слияние клиентов",
+      "confirmDescription": "Объединить {count} записей в #{id} и перенести все документы/сделки основному клиенту.",
+      "cancel": "Отмена",
+      "mergeInto": "Объединить в: {name}",
+      "totals": "Будет перенесено документов: {documents}, сделок: {deals}",
+      "success": "Объединено в #{id}",
+      "errors": {
+        "invalidIds": "Введите корректный ID основного клиента и ID дублей.",
+        "previewFailed": "Не удалось проверить слияние. Проверьте ID и попробуйте еще раз.",
+        "mergeFailed": "Не удалось объединить клиентов. Проверьте ID и попробуйте еще раз.",
+        "mergeToast": "Не удалось объединить клиентов"
+      }
+    }
+  },
+  "ProductDetail": {
+    "back": "← Товары",
+    "edit": "Редактировать",
+    "grade": "Сорт {grade}",
+    "metrics": {
+      "totalSales": "Общие продажи",
+      "soldQty": "Продано",
+      "paidInvoices": "Оплаченные счета",
+      "lastSale": "Последняя продажа"
+    },
+    "info": {
+      "title": "Данные товара",
+      "size": "Размер",
+      "weight": "Вес",
+      "volume": "Объем",
+      "wholesale": "Оптовая цена",
+      "retail": "Розничная цена",
+      "lastCost": "Последнее обновление себестоимости"
+    },
+    "quotation": {
+      "title": "Коммерческие предложения",
+      "qty": "Количество в предложениях",
+      "amount": "Сумма предложений",
+      "count": "Количество предложений",
+      "productTotal": "Накопленные продажи товара"
+    },
+    "documents": {
+      "title": "Счета и предложения с этим товаром ({count})",
+      "all": "Все",
+      "invoice": "Счета",
+      "quotation": "Предложения",
+      "date": "Дата",
+      "document": "Документ",
+      "customer": "Клиент",
+      "quantity": "Кол-во",
+      "amount": "Сумма",
+      "empty": "Пока нет документов, связанных с этим товаром",
+      "taxInvoice": "TAX Invoice",
+      "ariaLabel": "Тип документов товара"
+    }
+  },
+  "Products": {
+    "title": "Товары",
+    "count": "{count} поз.",
+    "unknownProduct": "Неизвестный товар",
+    "unlinkedSku": "SKU не привязан",
+    "editProduct": "Редактировать товар",
+    "best": {
+      "title": "Лучшие товары месяца",
+      "description": "По продажам оплаченных TAX invoice за выбранный месяц",
+      "empty": "Нет данных о продажах за этот месяц",
+      "month": "Месяц",
+      "year": "Год",
+      "submit": "Показать месяц"
+    },
+    "filter": {
+      "all": "Все категории",
+      "pine": "Сосна",
+      "rubberwood": "Каучуковое дерево",
+      "bamboo": "Bamboo",
+      "osb": "OSB",
+      "other": "Другое"
+    },
+    "table": {
+      "product": "Товар",
+      "productName": "Название товара",
+      "sku": "SKU",
+      "quantity": "Кол-во",
+      "invoice": "Счет",
+      "amount": "Продажи",
+      "category": "Категория",
+      "grade": "Сорт",
+      "size": "Размер (мм)",
+      "wholesale": "Оптовая цена",
+      "retail": "Розничная цена",
+      "actions": "Действия"
+    },
+    "actions": {
+      "delete": "Удалить товар",
+      "deleteConfirm": "Удалить товар \"{name}\"?",
+      "deleteFailed": "Не удалось удалить товар"
+    }
+  },
+  "ProductEdit": {
+    "back": "← Товары",
+    "title": "Редактировать товар",
+    "fields": {
+      "sku": "SKU *",
+      "category": "Категория",
+      "fullName": "Название товара *",
+      "grade": "Сорт",
+      "thickness": "Толщина",
+      "width": "Ширина",
+      "length": "Длина",
+      "weight": "Вес",
+      "volume": "Объем",
+      "wholesale": "Оптовая цена",
+      "retail": "Розничная цена"
+    },
+    "save": "Сохранить",
+    "saving": "Сохранение...",
+    "cancel": "Отмена",
+    "saveFailed": "Не удалось сохранить товар"
+  }
+}

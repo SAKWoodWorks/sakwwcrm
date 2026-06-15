@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
 
-export default function Home() {
-  redirect("/crm/customers")
+export default function RootIndex() {
+  redirect("/th/crm/dashboard")
 }

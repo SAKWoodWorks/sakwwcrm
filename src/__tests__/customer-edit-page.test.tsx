@@ -15,7 +15,26 @@ vi.mock("next/navigation", () => ({
   }),
 }))
 
-vi.mock("@/app/crm/customers/CustomerEditForm", () => ({
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}))
+
+vi.mock("next-intl/server", async () => {
+  const messages = (await import("../../messages/th.json")).default
+
+  return {
+    getTranslations: vi.fn(async () => (key: string) => {
+      if (key === "title") return messages.CustomerEdit.title
+      return key
+    }),
+  }
+})
+
+vi.mock("@/app/[locale]/crm/customers/CustomerEditForm", () => ({
   default: ({
     customer,
     salespersons,
@@ -31,7 +50,7 @@ vi.mock("@/app/crm/customers/CustomerEditForm", () => ({
 }))
 
 import { prisma } from "@/lib/prisma"
-import CustomerEditPage from "@/app/crm/customers/[id]/edit/page"
+import CustomerEditPage from "@/app/[locale]/crm/customers/[id]/edit/page"
 
 describe("CustomerEditPage", () => {
   beforeEach(() => {

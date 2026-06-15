@@ -1,7 +1,7 @@
 import pytest
 from decimal import Decimal
 from pathlib import Path
-from parsers.xlsx_parser import parse_tax_invoice, parse_quotation, DocumentData
+from parsers.xlsx_parser import parse_tax_invoice, parse_quotation, normalize_item_unit
 
 # extraction/ is parent.parent, new-crm/ is parent.parent.parent
 SAMPLE_DIR = Path(__file__).parent.parent.parent
@@ -51,3 +51,13 @@ def test_parse_quotation_doc_number():
 def test_parse_quotation_has_items():
     doc = parse_quotation(str(QT_SAMPLE))
     assert len(doc.items) >= 1
+
+
+def test_normalize_piece_door_unit_keeps_door_leaf():
+    unit = normalize_item_unit("ประตูไม้สนรัสเซีย 3 ลูกฟัก", "piece (บาน)")
+    assert unit == "piece (บาน)"
+
+
+def test_normalize_piece_door_unit_changes_timber_to_sheet():
+    unit = normalize_item_unit("Timber S4S ไม้สน 1'' x 4'' x 3 เมตร", "piece (บาน)")
+    assert unit == "piece (แผ่น)"

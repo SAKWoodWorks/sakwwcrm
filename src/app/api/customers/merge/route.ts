@@ -8,6 +8,33 @@ type MergeCustomer = {
   id: number
   name: string
   taxId: string | null
+  vatRegistered?: boolean
+  type?: string | null
+  status?: string
+  address?: string | null
+  province?: string | null
+  phone?: string | null
+  email?: string | null
+  lineId?: string | null
+  otherId?: string | null
+  salespersonId?: number | null
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+type CustomerMove = {
+  id: number
+  customerId: number | null
+}
+
+type CustomerAliasSnapshot = {
+  id: number
+  customerId: number
+  aliasName: string
+  aliasType: string
+  taxId: string | null
+  note: string | null
+  createdAt: Date
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -29,32 +56,76 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   try {
     const mergedIds = await prisma.$transaction(async (tx) => {
-    const ids = [primaryId, ...duplicateIds]
-    const customers = await tx.customer.findMany({
-      where: { id: { in: ids } },
-      select: { id: true, name: true, taxId: true },
-    })
+      const ids = [primaryId, ...duplicateIds]
+      const customers = await tx.customer.findMany({
+        where: { id: { in: ids } },
+        select: {
+          id: true,
+          name: true,
+          taxId: true,
+          vatRegistered: true,
+          type: true,
+          status: true,
+          address: true,
+          province: true,
+          phone: true,
+          email: true,
+          lineId: true,
+          otherId: true,
+          salespersonId: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      })
 
-    if (customers.length !== ids.length) throw new Error("CUSTOMER_NOT_FOUND")
+      if (customers.length !== ids.length) throw new Error("CUSTOMER_NOT_FOUND")
 
-    const duplicates = customers.filter((customer: MergeCustomer) => customer.id !== primaryId)
+      const duplicates = customers.filter((customer: MergeCustomer) => customer.id !== primaryId)
+      const movedDocuments = await tx.document.findMany({
+        where: { customerId: { in: duplicateIds } },
+        select: { id: true, customerId: true },
+      })
+      const movedDeals = await tx.deal.findMany({
+        where: { customerId: { in: duplicateIds } },
+        select: { id: true, customerId: true },
+      })
+      const aliasesBefore = await tx.customerAlias.findMany({
+        where: { customerId: { in: ids } },
+        select: {
+          id: true,
+          customerId: true,
+          aliasName: true,
+          aliasType: true,
+          taxId: true,
+          note: true,
+          createdAt: true,
+        },
+      })
+      const primaryAliasIdsBefore = new Set(
+        aliasesBefore
+          .filter((alias: CustomerAliasSnapshot) => alias.customerId === primaryId)
+          .map((alias: CustomerAliasSnapshot) => alias.id),
+      )
+      const duplicateAliases = aliasesBefore.filter((alias: CustomerAliasSnapshot) =>
+        duplicateIds.includes(alias.customerId),
+      )
 
-    for (const duplicate of duplicates) {
-      await tx.$executeRaw`
+      for (const duplicate of duplicates) {
+        await tx.$executeRaw`
         INSERT INTO customer_aliases (customer_id, alias_name, alias_type, tax_id, note)
         VALUES (${primaryId}, ${duplicate.name}, 'merged_name', ${duplicate.taxId}, ${`Merged from customer #${duplicate.id}`})
         ON CONFLICT DO NOTHING
       `
-    }
+      }
 
-    await tx.document.updateMany({
-      where: { customerId: { in: duplicateIds } },
-      data: { customerId: primaryId },
-    })
-    await tx.deal.updateMany({
-      where: { customerId: { in: duplicateIds } },
-      data: { customerId: primaryId },
-    })
+      await tx.document.updateMany({
+        where: { customerId: { in: duplicateIds } },
+        data: { customerId: primaryId },
+      })
+      await tx.deal.updateMany({
+        where: { customerId: { in: duplicateIds } },
+        data: { customerId: primaryId },
+      })
       await tx.$executeRaw`
         INSERT INTO customer_aliases (customer_id, alias_name, alias_type, tax_id, note)
         SELECT ${primaryId}, alias_name, alias_type, tax_id, note
@@ -69,6 +140,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       await tx.customer.deleteMany({
         where: { id: { in: duplicateIds } },
       })
+      const primaryAliasesAfter = await tx.customerAlias.findMany({
+        where: { customerId: primaryId },
+        select: { id: true },
+      })
+      const createdPrimaryAliasIds = primaryAliasesAfter
+        .map((alias: { id: number }) => alias.id)
+        .filter((aliasId: number) => !primaryAliasIdsBefore.has(aliasId))
+
       await tx.auditLog.create({
         data: {
           action: "customer.merge",
@@ -76,12 +155,44 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           targetType: "customer",
           targetId: primaryId,
           metadata: {
+            mergeVersion: 2,
+            undoable: true,
             primaryId,
             mergedIds: duplicateIds,
+            movedDocuments: movedDocuments.map((doc: CustomerMove) => ({
+              id: doc.id,
+              customerId: doc.customerId,
+            })),
+            movedDeals: movedDeals.map((deal: CustomerMove) => ({
+              id: deal.id,
+              customerId: deal.customerId,
+            })),
+            duplicateAliases: duplicateAliases.map((alias: CustomerAliasSnapshot) => ({
+              id: alias.id,
+              customerId: alias.customerId,
+              aliasName: alias.aliasName,
+              aliasType: alias.aliasType,
+              taxId: alias.taxId,
+              note: alias.note,
+              createdAt: alias.createdAt.toISOString(),
+            })),
+            createdPrimaryAliasIds,
             mergedCustomers: duplicates.map((customer) => ({
               id: customer.id,
               name: customer.name,
               taxId: customer.taxId,
+              vatRegistered: customer.vatRegistered,
+              type: customer.type,
+              status: customer.status,
+              address: customer.address,
+              province: customer.province,
+              phone: customer.phone,
+              email: customer.email,
+              lineId: customer.lineId,
+              otherId: customer.otherId,
+              salespersonId: customer.salespersonId,
+              createdAt: customer.createdAt?.toISOString(),
+              updatedAt: customer.updatedAt?.toISOString(),
             })),
           },
         },

@@ -11,6 +11,15 @@ vi.mock("@/lib/auth-bypass", () => ({
   isAuthBypassed: vi.fn(() => false),
 }))
 
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    importJob: {
+      create: vi.fn(),
+      update: vi.fn(),
+    },
+  },
+}))
+
 vi.mock("child_process", () => ({
   execFile: execFileMock,
   default: {
@@ -19,6 +28,7 @@ vi.mock("child_process", () => ({
 }))
 
 import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
 import { execFile } from "child_process"
 import { POST } from "@/app/api/import/documents/route"
 
@@ -33,6 +43,13 @@ function makeReq(file: File): NextRequest {
 describe("POST /api/import/documents", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(prisma.importJob.create).mockResolvedValue({
+      id: 12,
+      filename: "invoice.xlsx",
+      status: "queued",
+      createdAt: new Date("2026-06-04T00:00:00.000Z"),
+    })
+    vi.mocked(prisma.importJob.update).mockResolvedValue({} as Awaited<ReturnType<typeof prisma.importJob.update>>)
     vi.mocked(execFile).mockImplementation(((_file, _args, _options, callback) => {
       callback(null, JSON.stringify({
         ok: true,
@@ -63,10 +80,23 @@ describe("POST /api/import/documents", () => {
 
     const res = await POST(makeReq(new File(["xlsx"], "invoice.xlsx")))
 
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(202)
     expect(await res.json()).toEqual({
       ok: true,
-      results: [{ filename: "invoice.xlsx", ok: true, stdout: "[ok] invoice.xlsx" }],
+      job: {
+        id: 12,
+        filename: "invoice.xlsx",
+        status: "queued",
+        createdAt: "2026-06-04T00:00:00.000Z",
+      },
+    })
+    expect(prisma.importJob.create).toHaveBeenCalledWith({
+      data: {
+        filename: "invoice.xlsx",
+        status: "queued",
+        actorEmail: "admin@sakww.com",
+      },
+      select: { id: true, filename: true, status: true, createdAt: true },
     })
     expect(execFile).toHaveBeenCalledWith(
       expect.any(String),
@@ -78,10 +108,16 @@ describe("POST /api/import/documents", () => {
 
   it("accepts zip uploads", async () => {
     vi.mocked(auth).mockResolvedValue(mockSession)
+    vi.mocked(prisma.importJob.create).mockResolvedValue({
+      id: 13,
+      filename: "docs.zip",
+      status: "queued",
+      createdAt: new Date("2026-06-04T00:00:00.000Z"),
+    })
 
     const res = await POST(makeReq(new File(["zip"], "docs.zip", { type: "application/zip" })))
 
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(202)
     expect(execFile).toHaveBeenCalledWith(
       expect.any(String),
       [expect.stringContaining("import_upload.py"), "--path", expect.stringMatching(/docs\.zip$/)],

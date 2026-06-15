@@ -1,8 +1,7 @@
 import type { Metadata } from "next"
 import { Geist } from "next/font/google"
 import "./globals.css"
-import NavBar from "@/components/NavBar"
-import { Toaster } from "@/components/ui/sonner"
+import { cookies } from "next/headers"
 
 const geist = Geist({ subsets: ["latin"] })
 
@@ -11,13 +10,14 @@ export const metadata: Metadata = {
   description: "Sales CRM",
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies()
+  const locale = cookieStore.get("NEXT_LOCALE")?.value ?? "th"
+
   return (
-    <html lang="th">
+    <html lang={locale}>
       <body className={geist.className}>
-        <NavBar />
-        <main className="crm-main">{children}</main>
-        <Toaster richColors position="top-right" />
+        {children}
       </body>
     </html>
   )

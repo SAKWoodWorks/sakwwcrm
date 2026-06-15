@@ -94,6 +94,18 @@ def _cell_decimal(ws, row: int, col: int) -> Decimal:
         return Decimal("0")
 
 
+def normalize_item_unit(description: str, unit: str) -> str:
+    normalized = " ".join(unit.split())
+    if normalized != "piece (บาน)":
+        return normalized
+
+    # "บาน" is correct for doors. Some sheet rows accidentally carry this
+    # unit into timber/plank/decking lines; those should be counted as pieces.
+    if "ประตู" in description:
+        return normalized
+    return "piece (แผ่น)"
+
+
 def _split_customer(raw: str):
     """Extract name and TAX ID from a combined customer cell string."""
     for sep in ("TAX ID :", "TAX ID:", "เลขที่ผู้เสียภาษี"):
@@ -155,7 +167,7 @@ def parse_tax_invoice(filepath: str) -> DocumentData:
             row += 2
             continue
         qty = _cell_decimal(ws, row, 17)   # C17
-        unit = _cell_str(ws, row, 20)      # C20
+        unit = normalize_item_unit(desc, _cell_str(ws, row, 20))      # C20
         price = _cell_decimal(ws, row, 23)  # C23
         total_cell = _cell_decimal(ws, row, 26)  # C26
         total = total_cell if total_cell else (qty * price).quantize(Decimal("0.01"))
@@ -226,7 +238,7 @@ def parse_quotation(filepath: str) -> DocumentData:
             row += 2
             continue
         qty = _cell_decimal(ws, row, 17)   # C17
-        unit = _cell_str(ws, row, 20)      # C20
+        unit = normalize_item_unit(desc, _cell_str(ws, row, 20))      # C20
         price = _cell_decimal(ws, row, 24)  # C24 (differs from TI)
         total_cell = _cell_decimal(ws, row, 28)  # C28 (differs from TI)
         total = total_cell if total_cell else (qty * price).quantize(Decimal("0.01"))

@@ -55,8 +55,17 @@ describe("POST /api/customers/merge", () => {
           ]),
           deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
         },
-        document: { updateMany: vi.fn().mockResolvedValue({ count: 8 }) },
-        deal: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+        document: {
+          findMany: vi.fn().mockResolvedValue([{ id: 501, customerId: 2 }]),
+          updateMany: vi.fn().mockResolvedValue({ count: 8 }),
+        },
+        deal: {
+          findMany: vi.fn().mockResolvedValue([{ id: 7, customerId: 2 }]),
+          updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+        },
+        customerAlias: {
+          findMany: vi.fn().mockResolvedValueOnce([]).mockResolvedValueOnce([{ id: 10 }]),
+        },
         auditLog: { create: vi.fn().mockResolvedValue({ id: 1 }) },
         $executeRaw: vi.fn().mockResolvedValue(1),
       }
@@ -81,8 +90,17 @@ describe("POST /api/customers/merge", () => {
           ]),
           deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
         },
-        document: { updateMany: vi.fn().mockResolvedValue({ count: 3 }) },
-        deal: { updateMany: vi.fn().mockResolvedValue({ count: 2 }) },
+        document: {
+          findMany: vi.fn().mockResolvedValue([{ id: 10, customerId: 2 }]),
+          updateMany: vi.fn().mockResolvedValue({ count: 3 }),
+        },
+        deal: {
+          findMany: vi.fn().mockResolvedValue([{ id: 20, customerId: 2 }]),
+          updateMany: vi.fn().mockResolvedValue({ count: 2 }),
+        },
+        customerAlias: {
+          findMany: vi.fn().mockResolvedValueOnce([]).mockResolvedValueOnce([{ id: 30 }]),
+        },
         auditLog: { create: auditCreate },
         $executeRaw: vi.fn().mockResolvedValue(1),
       }
@@ -97,6 +115,13 @@ describe("POST /api/customers/merge", () => {
         actorEmail: "admin@sakww.com",
         targetType: "customer",
         targetId: 1,
+        metadata: expect.objectContaining({
+          mergeVersion: 2,
+          undoable: true,
+          movedDocuments: [{ id: 10, customerId: 2 }],
+          movedDeals: [{ id: 20, customerId: 2 }],
+          createdPrimaryAliasIds: [30],
+        }),
       }),
     })
   })

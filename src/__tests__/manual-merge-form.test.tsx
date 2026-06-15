@@ -1,12 +1,44 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest"
 import { fireEvent, render, screen, waitFor } from "@testing-library/react"
-import ManualMergeForm from "@/app/crm/customers/duplicates/ManualMergeForm"
+import ManualMergeForm from "@/app/[locale]/crm/customers/duplicates/ManualMergeForm"
 
 const refresh = vi.fn()
 
-vi.mock("next/navigation", () => ({
+vi.mock("@/i18n/navigation", () => ({
   useRouter: () => ({ refresh }),
 }))
+
+vi.mock("next-intl", async () => {
+  const messages = (await import("../../messages/th.json")).default
+
+  function lookup(namespace: unknown, key: string) {
+    return key.split(".").reduce<unknown>((value, part) => {
+      if (value && typeof value === "object" && part in value) {
+        return (value as Record<string, unknown>)[part]
+      }
+      return undefined
+    }, namespace)
+  }
+
+  return {
+    useLocale: () => "th",
+    useTranslations: (namespace: string) => {
+      const root = namespace.split(".").reduce<unknown>((value, part) => {
+        if (value && typeof value === "object" && part in value) {
+          return (value as Record<string, unknown>)[part]
+        }
+        return undefined
+      }, messages)
+      return (key: string, values?: Record<string, unknown>) => {
+        const template = String(lookup(root, key) ?? key)
+        return Object.entries(values ?? {}).reduce(
+          (text, [name, value]) => text.replace(`{${name}}`, String(value)),
+          template,
+        )
+      }
+    },
+  }
+})
 
 describe("ManualMergeForm", () => {
   beforeEach(() => {

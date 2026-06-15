@@ -8,15 +8,58 @@ vi.mock("@/lib/prisma", () => ({
 }))
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    refresh: vi.fn(),
-    replace: vi.fn(),
-  }),
   useSearchParams: () => new URLSearchParams(),
 }))
 
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+  useRouter: () => ({
+    refresh: vi.fn(),
+    replace: vi.fn(),
+    push: vi.fn(),
+  }),
+}))
+
+vi.mock("next-intl/server", async () => {
+  const messages = (await import("../../messages/th.json")).default
+
+  function lookup(key: string) {
+    return key.split(".").reduce<unknown>((value, part) => {
+      if (value && typeof value === "object" && part in value) {
+        return (value as Record<string, unknown>)[part]
+      }
+      return undefined
+    }, messages.Customers)
+  }
+
+  return {
+    getLocale: vi.fn(async () => "th"),
+    getTranslations: vi.fn(async () => (key: string, values?: Record<string, unknown>) => {
+      const template = String(lookup(key) ?? key)
+      return Object.entries(values ?? {}).reduce(
+        (text, [name, value]) => text.replace(`{${name}}`, String(value)),
+        template,
+      )
+    }),
+  }
+})
+
+vi.mock("next-intl", async () => {
+  const messages = (await import("../../messages/th.json")).default
+  return {
+    useTranslations: () => (key: string) => {
+      if (key === "search") return messages.Customers.search
+      return key
+    },
+  }
+})
+
 import { prisma } from "@/lib/prisma"
-import CustomersPage from "@/app/crm/customers/page"
+import CustomersPage from "@/app/[locale]/crm/customers/page"
 
 describe("CustomersPage", () => {
   beforeEach(() => {

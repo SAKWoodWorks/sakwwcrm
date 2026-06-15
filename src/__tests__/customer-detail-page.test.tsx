@@ -14,8 +14,75 @@ vi.mock("next/navigation", () => ({
   }),
 }))
 
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+  useRouter: () => ({
+    refresh: vi.fn(),
+  }),
+}))
+
+vi.mock("next-intl/server", async () => {
+  const messages = (await import("../../messages/th.json")).default
+
+  function lookup(key: string) {
+    return key.split(".").reduce<unknown>((value, part) => {
+      if (value && typeof value === "object" && part in value) {
+        return (value as Record<string, unknown>)[part]
+      }
+      return undefined
+    }, messages.CustomerDetail)
+  }
+
+  return {
+    getLocale: vi.fn(async () => "th"),
+    getTranslations: vi.fn(async () => (key: string, values?: Record<string, unknown>) => {
+      const template = String(lookup(key) ?? key)
+      return Object.entries(values ?? {}).reduce(
+        (text, [name, value]) => text.replace(`{${name}}`, String(value)),
+        template,
+      )
+    }),
+  }
+})
+
+vi.mock("next-intl", async () => {
+  const messages = (await import("../../messages/th.json")).default
+
+  function lookup(namespace: unknown, key: string) {
+    return key.split(".").reduce<unknown>((value, part) => {
+      if (value && typeof value === "object" && part in value) {
+        return (value as Record<string, unknown>)[part]
+      }
+      return undefined
+    }, namespace)
+  }
+
+  return {
+    useLocale: () => "th",
+    useTranslations: (namespace: string) => {
+      const root = namespace.split(".").reduce<unknown>((value, part) => {
+        if (value && typeof value === "object" && part in value) {
+          return (value as Record<string, unknown>)[part]
+        }
+        return undefined
+      }, messages)
+      return (key: string, values?: Record<string, unknown>) => {
+        const template = String(lookup(root, key) ?? key)
+        return Object.entries(values ?? {}).reduce(
+          (text, [name, value]) => text.replace(`{${name}}`, String(value)),
+          template,
+        )
+      }
+    },
+  }
+})
+
 import { prisma } from "@/lib/prisma"
-import CustomerDetailPage from "@/app/crm/customers/[id]/page"
+import CustomerDetailPage from "@/app/[locale]/crm/customers/[id]/page"
 
 const customerFixture = {
   id: 1080,
@@ -87,6 +154,7 @@ describe("CustomerDetailPage", () => {
       .mockResolvedValueOnce(documentCountFixture)
       .mockResolvedValueOnce([
         {
+          id: 9,
           actor_email: "admin@sakww.com",
           created_at: new Date("2026-05-26T08:00:00.000Z"),
           metadata: { mergedIds: [1081, 1082] },

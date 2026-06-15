@@ -193,3 +193,19 @@ model AuditLog {
   @@index([action, createdAt])
   @@index([targetType, targetId])
 }
+
+model ImportJob {
+  id         Int       @id @default(autoincrement())
+  filename   String
+  status     String    @default("queued")
+  actorEmail String?   @map("actor_email")
+  result     Json?
+  error      String?
+  createdAt  DateTime  @default(now()) @map("created_at")
+  startedAt  DateTime? @map("started_at")
+  finishedAt DateTime? @map("finished_at")
+
+  @@map("import_jobs")
+  @@index([status, createdAt])
+  @@index([createdAt])
+}

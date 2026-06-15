@@ -5,6 +5,13 @@ vi.mock("@/auth", () => ({
   auth: vi.fn((handler) => handler),
 }))
 
+vi.mock("next-intl/middleware", () => ({
+  default: vi.fn(() => () => new Response(null, {
+    status: 200,
+    headers: { "x-middleware-next": "1" },
+  })),
+}))
+
 describe("auth bypass", () => {
   const originalDisableAuth = process.env.DISABLE_AUTH
   const originalNodeEnv = process.env.NODE_ENV
@@ -42,6 +49,6 @@ describe("auth bypass", () => {
     const res = await middleware(req)
 
     expect(res.status).toBe(307)
-    expect(res.headers.get("location")).toContain("/login")
+    expect(res.headers.get("location")).toContain("/th/login")
   })
 })

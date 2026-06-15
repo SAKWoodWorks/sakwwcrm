@@ -8,12 +8,70 @@ vi.mock("@/lib/prisma", () => ({
   },
 }))
 
-vi.mock("@/app/crm/products/ProductFilter", () => ({
+vi.mock("@/app/[locale]/crm/products/ProductFilter", () => ({
   default: () => <div>Product filter</div>,
 }))
 
+vi.mock("@/app/[locale]/crm/products/ProductDeleteButton", () => ({
+  default: () => <button type="button">Delete product</button>,
+}))
+
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}))
+
+const translations: Record<string, string> = {
+  title: "สินค้า",
+  count: "{count} รายการ",
+  unknownProduct: "ไม่ทราบสินค้า",
+  unlinkedSku: "ไม่ผูก SKU",
+  editProduct: "แก้ไขสินค้า",
+  "best.title": "สินค้าขายดีประจำเดือน",
+  "best.description": "เรียงจากยอดขาย TAX invoice ที่ชำระแล้วในเดือนนี้",
+  "best.empty": "ไม่มีข้อมูลขายเดือนนี้",
+  "best.month": "เดือน",
+  "best.year": "ปี",
+  "best.submit": "ดูเดือนนี้",
+  "table.product": "สินค้า",
+  "table.productName": "ชื่อสินค้า",
+  "table.sku": "SKU",
+  "table.quantity": "จำนวน",
+  "table.invoice": "Invoice",
+  "table.amount": "ยอดขาย",
+  "table.category": "ประเภท",
+  "table.grade": "เกรด",
+  "table.size": "ขนาด (มม.)",
+  "table.wholesale": "ราคาขายส่ง",
+  "table.retail": "ราคาขายปลีก",
+  "table.actions": "จัดการ",
+  "filter.pine": "ไม้สน",
+  "filter.rubberwood": "ไม้ยาง",
+  "filter.bamboo": "Bamboo",
+  "filter.osb": "OSB",
+  "filter.other": "อื่นๆ",
+}
+
+vi.mock("next-intl/server", () => ({
+  getLocale: vi.fn(async () => "th"),
+  getTranslations: vi.fn(async () => (key: string, values?: Record<string, unknown>) => {
+    const template = translations[key] ?? key
+    return Object.entries(values ?? {}).reduce(
+      (text, [name, value]) => text.replace(`{${name}}`, String(value)),
+      template,
+    )
+  }),
+}))
+
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => translations[`filter.${key}`] ?? key,
+}))
+
 import { prisma } from "@/lib/prisma"
-import ProductsPage from "@/app/crm/products/page"
+import ProductsPage from "@/app/[locale]/crm/products/page"
 
 describe("ProductsPage", () => {
   beforeEach(() => {

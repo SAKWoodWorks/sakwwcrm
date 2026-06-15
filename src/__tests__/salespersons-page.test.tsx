@@ -7,8 +7,40 @@ vi.mock("@/lib/prisma", () => ({
   },
 }))
 
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}))
+
+vi.mock("next-intl/server", async () => {
+  const messages = (await import("../../messages/th.json")).default
+
+  function lookup(key: string) {
+    return key.split(".").reduce<unknown>((value, part) => {
+      if (value && typeof value === "object" && part in value) {
+        return (value as Record<string, unknown>)[part]
+      }
+      return undefined
+    }, messages.Salespersons)
+  }
+
+  return {
+    getLocale: vi.fn(async () => "th"),
+    getTranslations: vi.fn(async () => (key: string, values?: Record<string, unknown>) => {
+      const template = String(lookup(key) ?? key)
+      return Object.entries(values ?? {}).reduce(
+        (text, [name, value]) => text.replace(`{${name}}`, String(value)),
+        template,
+      )
+    }),
+  }
+})
+
 import { prisma } from "@/lib/prisma"
-import SalespersonsPage from "@/app/crm/salespersons/page"
+import SalespersonsPage from "@/app/[locale]/crm/salespersons/page"
 
 const mockRows = [
   {

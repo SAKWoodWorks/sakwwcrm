@@ -7,8 +7,32 @@ vi.mock("@/lib/prisma", () => ({
   },
 }))
 
+vi.mock("next-intl/server", async () => {
+  const messages = (await import("../../messages/ru.json")).default
+
+  function lookup(key: string) {
+    return key.split(".").reduce<unknown>((value, part) => {
+      if (value && typeof value === "object" && part in value) {
+        return (value as Record<string, unknown>)[part]
+      }
+      return undefined
+    }, messages.MonthlySales)
+  }
+
+  return {
+    getLocale: vi.fn(async () => "ru"),
+    getTranslations: vi.fn(async () => (key: string, values?: Record<string, unknown>) => {
+      const template = String(lookup(key) ?? key)
+      return Object.entries(values ?? {}).reduce(
+        (text, [name, value]) => text.replace(`{${name}}`, String(value)),
+        template,
+      )
+    }),
+  }
+})
+
 import { prisma } from "@/lib/prisma"
-import MonthlySalesPage from "@/app/crm/monthly-sales/page"
+import MonthlySalesPage from "@/app/[locale]/crm/monthly-sales/page"
 
 describe("MonthlySalesPage", () => {
   beforeEach(() => {
@@ -35,12 +59,12 @@ describe("MonthlySalesPage", () => {
     })
     render(jsx)
 
-    expect(screen.getByText("ยอดขายรายเดือน")).toBeInTheDocument()
+    expect(screen.getByText("Продажи по месяцам")).toBeInTheDocument()
     expect(screen.getByDisplayValue("2026-04-01")).toBeInTheDocument()
     expect(screen.getByDisplayValue("2026-05-31")).toBeInTheDocument()
-    expect(screen.getByText("พฤษภาคม 2569")).toBeInTheDocument()
-    expect(screen.getByText("เมษายน 2569")).toBeInTheDocument()
-    expect(screen.getByText("฿2,000,000")).toBeInTheDocument()
+    expect(screen.getByText("май 2026 г.")).toBeInTheDocument()
+    expect(screen.getByText("апрель 2026 г.")).toBeInTheDocument()
+    expect(screen.getByText("2 000 000 ฿")).toBeInTheDocument()
     expect(screen.getByText("17")).toBeInTheDocument()
   })
 })

@@ -1,0 +1,712 @@
+{
+  "Nav": {
+    "dashboard": "Dashboard",
+    "dashboardShort": "Dash",
+    "topCustomers": "Top 100",
+    "topCustomersShort": "Top",
+    "monthlySales": "Monthly sales",
+    "monthlySalesShort": "Month",
+    "deals": "Deals",
+    "dealsShort": "Deals",
+    "customers": "Customers",
+    "customersShort": "Customers",
+    "documents": "Documents",
+    "documentsShort": "Docs",
+    "import": "Import",
+    "importShort": "Import",
+    "products": "Products",
+    "productsShort": "Products",
+    "delivery": "Delivery",
+    "deliveryShort": "Delivery",
+    "salespersons": "Salespersons",
+    "salespersonsShort": "Team",
+    "language": "Language"
+  },
+  "Login": {
+    "workspaceHint": "Sign in with Google Workspace (@sakww.com)",
+    "googleButton": "Sign in with Google"
+  },
+  "Dashboard": {
+    "title": "Dashboard",
+    "cards": {
+      "totalCustomers": "Total customers",
+      "newCustomers": "New customers this month",
+      "monthlyRevenue": "Sales this month",
+      "monthlyInvoices": "Invoices this month",
+      "pendingInvoices": "Pending invoices",
+      "lapsed": "Lapsed >90 days"
+    },
+    "bestProducts": {
+      "title": "Monthly best-selling products",
+      "viewAll": "View all",
+      "product": "Product",
+      "sku": "SKU",
+      "quantity": "Quantity",
+      "sales": "Sales",
+      "empty": "No sales data for this month",
+      "unknownProduct": "Unknown product"
+    },
+    "quotationInvoice": {
+      "title": "Quotation vs Invoice this month",
+      "type": "Type",
+      "quantity": "Quantity",
+      "total": "Total"
+    },
+    "topCustomers": {
+      "title": "Top 10 customers (paid purchase total)",
+      "name": "Name",
+      "total": "Total",
+      "lastPurchase": "Last purchase",
+      "empty": "No data"
+    }
+  },
+  "MonthlySales": {
+    "title": "Monthly sales",
+    "description": "Paid TAX invoice totals grouped by month",
+    "metrics": {
+      "total": "Total",
+      "invoiceCount": "Invoice count",
+      "average": "Monthly average"
+    },
+    "table": {
+      "title": "By month",
+      "count": "{count} months",
+      "month": "Month",
+      "total": "Total",
+      "invoice": "Invoice",
+      "customer": "Customers",
+      "empty": "No data for this date range"
+    },
+    "filter": {
+      "from": "From date",
+      "to": "To date",
+      "submit": "View range",
+      "summary": "Showing sales from {from} to {to}"
+    }
+  },
+  "DeliveryCost": {
+    "title": "Delivery Cost",
+    "description": "Province delivery costs from Delivery.xlsx, split by 4W and 6W vehicles",
+    "searchProvince": "Search province",
+    "searchPlaceholder": "e.g. Bangkok",
+    "invoiceAmount": "Invoice amount",
+    "amountPlaceholder": "e.g. 25000",
+    "vehicleType": "Vehicle type",
+    "metrics": {
+      "provinceCount": "Provinces in file",
+      "resultCount": "Search results",
+      "sample": "Example: {province}",
+      "deliveryCost": "Delivery cost"
+    },
+    "table": {
+      "province": "Province",
+      "selectedCost": "Selected delivery cost",
+      "priceRange": "{vehicle} price range"
+    },
+    "empty": "No province found",
+    "noData": "No data",
+    "free": "Free"
+  },
+  "Import": {
+    "title": "Import documents",
+    "description": "Choose an Excel file or ZIP. The system creates a job and shows import results and history.",
+    "selectFile": "Choose .xlsx or .zip file",
+    "start": "Start import",
+    "creating": "Creating job...",
+    "importing": "Importing...",
+    "selectFileError": "Please choose a file first",
+    "importFailed": "Import failed",
+    "tryAgain": "Import failed. Please try again.",
+    "resultTitle": "Import result",
+    "jobLine": "Job #{id} · {filename}",
+    "summary": {
+      "new": "New imports {imported} / {total} files",
+      "existing": "Existing {count} files",
+      "failed": "Failed {count} files",
+      "unsupported": "Non-xlsx {count} files",
+      "running": "Import is running. This page will update automatically."
+    },
+    "skippedTitle": "Skipped files ({count})",
+    "notExcel": "Not an Excel file",
+    "skippedUnsupported": "Skipped: not xlsx",
+    "skipped": "Skipped",
+    "noSkipped": "No skipped files",
+    "noXlsx": "No .xlsx files found to import",
+    "historyTitle": "Import history",
+    "noHistory": "No import history yet",
+    "historySummary": "new {imported} · skipped {skipped} · failed {failed}",
+    "resultBadges": {
+      "skippedExisting": "Skipped: already exists",
+      "success": "Success",
+      "failed": "Failed"
+    },
+    "jobBadges": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "running": "Running",
+      "queued": "Queued"
+    }
+  },
+  "TopCustomers": {
+    "title": "Top 100 Customer Purchase Ranking",
+    "description": "Ranked only from paid tax invoice totals",
+    "selectedDateRange": "Selected date range",
+    "count": "{count} items",
+    "empty": "No data",
+    "noPhone": "No phone",
+    "unknownSalesperson": "No salesperson",
+    "dateForm": {
+      "from": "From date",
+      "to": "To date",
+      "salesperson": "Salesperson",
+      "all": "All",
+      "none": "No salesperson",
+      "submit": "View range",
+      "summary": "The table below shows sales from {from} to {to}, sorted by all-time purchase total by default"
+    },
+    "recency": {
+      "green": "Within 3 months",
+      "greenShort": "3 mo.",
+      "yellow": "Within 6 months",
+      "yellowShort": "6 mo.",
+      "orange": "Within 12 months",
+      "orangeShort": "12 mo.",
+      "red": "Over 12 months",
+      "redShort": ">12 mo."
+    },
+    "table": {
+      "customer": "Customer",
+      "salesperson": "Salesperson",
+      "latestTotal": "Latest total",
+      "allTotal": "All-time total",
+      "invoice": "Inv.",
+      "lastPaid": "Last purchase",
+      "status": "Status",
+      "totalInvoices": "Total invoices",
+      "lastInvoicePaidDate": "Last paid invoice"
+    }
+  },
+  "Documents": {
+    "title": "Documents",
+    "filters": {
+      "searchCustomer": "Search customer name...",
+      "allTypes": "All types",
+      "allStatuses": "All statuses",
+      "paid": "Paid",
+      "pending": "Pending",
+      "allChannels": "All channels",
+      "allSalespersons": "All salespersons",
+      "from": "From date",
+      "to": "To date"
+    },
+    "table": {
+      "date": "Date",
+      "number": "Number",
+      "type": "Type",
+      "customer": "Customer",
+      "channel": "Channel",
+      "salesperson": "Salesperson",
+      "amount": "Amount",
+      "status": "Status"
+    },
+    "pagination": {
+      "empty": "No records found",
+      "summary": "Showing {from}–{to} of {total} items",
+      "previous": "← Previous",
+      "next": "Next →"
+    },
+    "unknownSalesperson": "No salesperson",
+    "payment": {
+      "paid": "Paid",
+      "pending": "Pending",
+      "aria": "Manage payment status",
+      "saving": "Saving...",
+      "markPaid": "Mark as paid",
+      "markPending": "Mark as pending",
+      "paidToast": "Marked as paid",
+      "pendingToast": "Marked as pending",
+      "error": "Something went wrong. Please try again."
+    },
+    "detail": {
+      "back": "← Documents",
+      "edit": "Edit",
+      "date": "Document date",
+      "number": "Number",
+      "customer": "Customer",
+      "salesperson": "Salesperson",
+      "channel": "Channel",
+      "filename": "Filename",
+      "paymentStatus": "Payment status",
+      "ref": "Reference number",
+      "notes": "Notes",
+      "itemsTitle": "Purchased items ({count})",
+      "item": "Item",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "unitPrice": "Unit price",
+      "total": "Total",
+      "emptyItems": "No line items",
+      "systemProduct": "System product: {name}"
+    },
+    "edit": {
+      "title": "Edit document",
+      "type": "Type",
+      "number": "Number *",
+      "date": "Date",
+      "channel": "Channel",
+      "customer": "Customer",
+      "salesperson": "Salesperson",
+      "none": "Not set",
+      "paymentStatus": "Payment status",
+      "ref": "Reference number",
+      "notes": "Notes",
+      "save": "Save",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "saveFailed": "Could not save document"
+    }
+  },
+  "Salespersons": {
+    "title": "Salespersons",
+    "add": "Add salesperson",
+    "registered": "Registered",
+    "count": "{count} salespersons (showing only those with customers)",
+    "back": "← Salespersons",
+    "edit": "Edit",
+    "customersTitle": "Customers ({count})",
+    "recentDocumentsTitle": "Recent documents ({count})",
+    "emptyCustomers": "No customers",
+    "emptyDocuments": "No documents",
+    "table": {
+      "name": "Name",
+      "customer": "Customer",
+      "customers": "Customers",
+      "total": "Total",
+      "monthly": "This month",
+      "lapsed": "Lapsed >90 days",
+      "lastPurchase": "Last purchase",
+      "lastTotal": "Latest total",
+      "date": "Date",
+      "number": "Number",
+      "type": "Type",
+      "amount": "Amount"
+    },
+    "editForm": {
+      "title": "Edit salesperson",
+      "name": "Name *",
+      "channel": "Channel",
+      "active": "Active",
+      "save": "Save",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "saveFailed": "Could not save salesperson"
+    },
+    "createForm": {
+      "title": "Add salesperson",
+      "submit": "Add salesperson",
+      "saveFailed": "Could not add salesperson"
+    },
+    "line": {
+      "linked": "LINE registered",
+      "unlink": "Unlink LINE",
+      "unlinkTitle": "Unlink LINE?",
+      "unlinkDescription": "This salesperson will not receive LINE messages until they register again.",
+      "cancel": "Cancel",
+      "unlinking": "Unlinking...",
+      "confirmUnlink": "Confirm unlink",
+      "unlinkedToast": "LINE has been unlinked",
+      "notLinked": "LINE not registered",
+      "createCode": "Create link code",
+      "codeToast": "Link code created",
+      "codeInstruction": "Ask the salesperson to send this message in LINE within 15 minutes:",
+      "expires": "Expires: {time}",
+      "close": "Close",
+      "error": "Something went wrong. Please try again."
+    }
+  },
+  "Deals": {
+    "title": "Deals",
+    "description": "Sales pipeline before invoice",
+    "create": "Create deal",
+    "back": "← Deals",
+    "metrics": {
+      "openDeals": "Open deals",
+      "pipelineValue": "Pipeline value",
+      "weightedForecast": "Weighted forecast"
+    },
+    "filters": {
+      "search": "Search deal or customer name...",
+      "allStages": "All stages",
+      "allSalespersons": "All salespersons",
+      "submit": "Filter"
+    },
+    "table": {
+      "deal": "Deal",
+      "stage": "Stage",
+      "customer": "Customer",
+      "salesperson": "Salesperson",
+      "value": "Value",
+      "weighted": "Weighted",
+      "expectedClose": "Expected close",
+      "empty": "No deals yet",
+      "noCustomer": "No customer"
+    },
+    "pagination": {
+      "empty": "No records found",
+      "summary": "Showing {from}-{to} of {total} items",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "detail": {
+      "updated": "Updated {date}",
+      "source": "Source",
+      "expectedValue": "Expected value",
+      "probability": "Probability",
+      "customerInfo": "Customer info",
+      "province": "Province",
+      "phone": "Phone",
+      "notes": "Notes"
+    },
+    "form": {
+      "title": "Deal name *",
+      "titlePlaceholder": "e.g. New plywood batch - ABC Co.",
+      "customer": "Customer",
+      "noCustomer": "No customer linked",
+      "salesperson": "Salesperson",
+      "none": "Not set",
+      "expectedValue": "Expected value",
+      "probability": "Close chance (%)",
+      "chooseDate": "Choose date",
+      "saving": "Creating...",
+      "cancel": "Cancel",
+      "createFailed": "Could not create deal",
+      "stageUpdateFailed": "Could not update stage"
+    }
+  },
+  "Customers": {
+    "title": "Customers",
+    "duplicates": "Check duplicates",
+    "search": "Search customer name or TAX ID...",
+    "noTaxId": "No TAX ID",
+    "aliasPrefix": "Former names: {aliases}",
+    "unspecified": "Not set",
+    "filters": {
+      "all": "All",
+      "purchased": "Purchased",
+      "notPurchased": "Not purchased",
+      "lapsed30": "No purchase 30–59 days",
+      "lapsed60": "No purchase 60–89 days",
+      "lapsed90": "No purchase 90–364 days",
+      "lapsed365": "No purchase >1 year"
+    },
+    "table": {
+      "name": "Name",
+      "province": "Province",
+      "type": "Type",
+      "status": "Status",
+      "lastPurchase": "Last purchase",
+      "lastTotal": "Latest total",
+      "salesperson": "Salesperson"
+    },
+    "pagination": {
+      "empty": "No records found",
+      "summary": "Showing {from}–{to} of {total} items",
+      "previous": "← Previous",
+      "next": "Next →"
+    },
+    "status": {
+      "not_purchase_yet": "Not purchased",
+      "active": "Active",
+      "repeat": "Repeat",
+      "purchased": "Purchased"
+    }
+  },
+  "CustomerEdit": {
+    "title": "Edit customer",
+    "saveError": "Something went wrong. Please try again.",
+    "addAliasError": "Could not add former name",
+    "deleteAliasError": "Could not delete former name",
+    "fields": {
+      "name": "Name *",
+      "vat": "VAT registered",
+      "type": "Type",
+      "status": "Status",
+      "notPurchased": "Not purchased",
+      "active": "Active",
+      "inactive": "Inactive",
+      "province": "Province",
+      "address": "Address",
+      "phone": "Phone",
+      "email": "Email",
+      "salesperson": "Salesperson",
+      "none": "Not set"
+    },
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "aliases": {
+      "title": "Former names / searchable names",
+      "description": "Use this for old company names, abbreviations, or names customers used before.",
+      "noTaxId": "No TAX ID",
+      "delete": "Delete",
+      "empty": "No former names yet",
+      "add": "Add former name",
+      "taxId": "Former name TAX ID",
+      "note": "Note",
+      "notePlaceholder": "e.g. old name before company rename"
+    }
+  },
+  "CustomerDetail": {
+    "back": "← Customers",
+    "edit": "Edit",
+    "noData": "No data yet",
+    "topCustomer": "Top 100 customer by total purchases {total}",
+    "metrics": {
+      "totalSpend": "Total purchases",
+      "totalSpendDetail": "Total TAX invoices for this customer",
+      "lastPurchase": "Last purchase",
+      "lastPurchaseDetail": "Latest TAX invoice date"
+    },
+    "info": {
+      "province": "Province",
+      "type": "Type",
+      "status": "Status",
+      "vatRegistered": "Registered",
+      "vatNotRegistered": "Not registered",
+      "phone": "Phone",
+      "email": "Email",
+      "address": "Address"
+    },
+    "status": {
+      "not_purchase_yet": "Not purchased",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "aliases": {
+      "title": "Former names / searchable names ({count})",
+      "show": "Show",
+      "hide": "Hide"
+    },
+    "merge": {
+      "title": "Merge history",
+      "mergedIntoThis": "Merged {ids} into this record",
+      "unknownUser": "Unknown user",
+      "undone": "Merge undone",
+      "otherRecord": "other record",
+      "undo": {
+        "button": "Undo merge",
+        "title": "Confirm undo merge",
+        "description": "The system will restore customer #{ids} and move documents/deals back according to the merge snapshot.",
+        "cancel": "Cancel",
+        "confirm": "Confirm undo merge",
+        "loading": "Undoing...",
+        "success": "Merge undone: restored {count} records",
+        "error": "Could not undo merge"
+      }
+    },
+    "documents": {
+      "title": "All documents ({count})",
+      "summary": "Showing {from}–{to} of {total} items",
+      "date": "Date",
+      "number": "Number",
+      "type": "Type",
+      "channel": "Channel",
+      "salesperson": "Salesperson",
+      "total": "Total",
+      "status": "Status",
+      "empty": "No documents match these filters",
+      "filters": {
+        "docType": "Document type",
+        "all": "All",
+        "perPage": "Per page",
+        "records": "{count} records"
+      }
+    },
+    "payment": {
+      "paid": "Paid",
+      "pending": "Pending"
+    },
+    "pagination": {
+      "page": "Page {current} / {total}",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "products": {
+      "title": "Products purchased by this customer ({count})",
+      "description": "Sorted by total amount, highest first",
+      "empty": "No product data",
+      "quantity": "Quantity",
+      "invoice": "Invoice",
+      "latest": "Latest",
+      "product": "Product",
+      "bills": "Bills",
+      "total": "Total",
+      "unknown": "Unknown product"
+    }
+  },
+  "CustomerDuplicates": {
+    "title": "Duplicate customers",
+    "description": "Groups with similar names after removing company/legal words. Review before merging.",
+    "back": "Back to customers",
+    "manual": {
+      "title": "Manual merge",
+      "description": "Use when the system does not find a duplicate automatically. Enter the primary customer ID and the IDs to merge into it."
+    },
+    "sections": {
+      "name": "Similar names",
+      "taxId": "Duplicate TAX IDs"
+    },
+    "empty": {
+      "name": "No likely duplicate-name groups found",
+      "taxId": "No duplicate TAX ID groups found"
+    },
+    "summary": {
+      "customers": "{count} customers",
+      "groups": "{count} duplicate groups"
+    },
+    "records": "{count} records",
+    "review": "Review",
+    "documents": "{count} documents",
+    "open": "Open #{id}",
+    "mergeHint": "If #{id} is the primary customer, {ids} will be merged into it",
+    "mergeButton": {
+      "usePrimary": "Use #{id} as primary",
+      "loading": "Merging...",
+      "title": "Confirm customer merge",
+      "description": "Use #{id} as the primary customer. Documents and deals from {count} other records will be moved into this customer.",
+      "cancel": "Cancel",
+      "confirm": "Confirm merge",
+      "success": "Merged customers into #{id}",
+      "error": "Could not merge customers. Please try again."
+    },
+    "manualForm": {
+      "primaryId": "Primary customer ID",
+      "primaryPlaceholder": "e.g. 1080",
+      "duplicatePlaceholder": "e.g. 1081, 1082",
+      "checking": "Checking...",
+      "preview": "Preview merge",
+      "previewTitle": "Merge preview",
+      "primaryCustomer": "Primary customer: {name}",
+      "documents": "{count} documents",
+      "deals": "{count} deals",
+      "merging": "Merging...",
+      "confirm": "Confirm merge",
+      "confirmTitle": "Confirm customer merge",
+      "confirmDescription": "Merge {count} records into #{id} and move all documents/deals to the primary customer.",
+      "cancel": "Cancel",
+      "mergeInto": "Merge into: {name}",
+      "totals": "Will move {documents} documents and {deals} deals",
+      "success": "Merged into #{id}",
+      "errors": {
+        "invalidIds": "Enter a valid primary customer ID and duplicate IDs.",
+        "previewFailed": "Could not preview the merge. Check the IDs and try again.",
+        "mergeFailed": "Could not merge customers. Check the IDs and try again.",
+        "mergeToast": "Could not merge customers"
+      }
+    }
+  },
+  "ProductDetail": {
+    "back": "← Products",
+    "edit": "Edit",
+    "grade": "Grade {grade}",
+    "metrics": {
+      "totalSales": "Total sales",
+      "soldQty": "Quantity sold",
+      "paidInvoices": "Paid invoices",
+      "lastSale": "Last sale"
+    },
+    "info": {
+      "title": "Product details",
+      "size": "Size",
+      "weight": "Weight",
+      "volume": "Volume",
+      "wholesale": "Wholesale price",
+      "retail": "Retail price",
+      "lastCost": "Last cost update"
+    },
+    "quotation": {
+      "title": "Quotation",
+      "qty": "Quoted quantity",
+      "amount": "Quoted amount",
+      "count": "Quotation count",
+      "productTotal": "Product accumulated sales"
+    },
+    "documents": {
+      "title": "Invoices / quotations using this product ({count})",
+      "all": "All",
+      "invoice": "Invoice",
+      "quotation": "Quotation",
+      "date": "Date",
+      "document": "Document",
+      "customer": "Customer",
+      "quantity": "Quantity",
+      "amount": "Amount",
+      "empty": "No documents are linked to this product yet",
+      "taxInvoice": "TAX Invoice",
+      "ariaLabel": "Product document type"
+    }
+  },
+  "Products": {
+    "title": "Products",
+    "count": "{count} items",
+    "unknownProduct": "Unknown product",
+    "unlinkedSku": "No SKU linked",
+    "editProduct": "Edit product",
+    "best": {
+      "title": "Monthly best-selling products",
+      "description": "Ranked by paid TAX invoice sales for the selected month",
+      "empty": "No sales data for this month",
+      "month": "Month",
+      "year": "Year",
+      "submit": "View month"
+    },
+    "filter": {
+      "all": "All categories",
+      "pine": "Pine",
+      "rubberwood": "Rubberwood",
+      "bamboo": "Bamboo",
+      "osb": "OSB",
+      "other": "Other"
+    },
+    "table": {
+      "product": "Product",
+      "productName": "Product name",
+      "sku": "SKU",
+      "quantity": "Quantity",
+      "invoice": "Invoice",
+      "amount": "Sales",
+      "category": "Category",
+      "grade": "Grade",
+      "size": "Size (mm)",
+      "wholesale": "Wholesale price",
+      "retail": "Retail price",
+      "actions": "Actions"
+    },
+    "actions": {
+      "delete": "Delete product",
+      "deleteConfirm": "Delete product \"{name}\"?",
+      "deleteFailed": "Could not delete product"
+    }
+  },
+  "ProductEdit": {
+    "back": "← Products",
+    "title": "Edit product",
+    "fields": {
+      "sku": "SKU *",
+      "category": "Category",
+      "fullName": "Product name *",
+      "grade": "Grade",
+      "thickness": "Thickness",
+      "width": "Width",
+      "length": "Length",
+      "weight": "Weight",
+      "volume": "Volume",
+      "wholesale": "Wholesale price",
+      "retail": "Retail price"
+    },
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "saveFailed": "Could not save product"
+  }
+}

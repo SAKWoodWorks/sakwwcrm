@@ -1,0 +1,712 @@
+{
+  "Nav": {
+    "dashboard": "Dashboard",
+    "dashboardShort": "แดช",
+    "topCustomers": "Top 100",
+    "topCustomersShort": "Top",
+    "monthlySales": "ยอดรายเดือน",
+    "monthlySalesShort": "เดือน",
+    "deals": "ดีล",
+    "dealsShort": "ดีล",
+    "customers": "ลูกค้า",
+    "customersShort": "ลูกค้า",
+    "documents": "เอกสาร",
+    "documentsShort": "เอกสาร",
+    "import": "Import",
+    "importShort": "Import",
+    "products": "สินค้า",
+    "productsShort": "สินค้า",
+    "delivery": "Delivery",
+    "deliveryShort": "ส่ง",
+    "salespersons": "พนักงาน",
+    "salespersonsShort": "ทีม",
+    "language": "ภาษา"
+  },
+  "Login": {
+    "workspaceHint": "เข้าสู่ระบบด้วย Google Workspace (@sakww.com)",
+    "googleButton": "Sign in with Google"
+  },
+  "Dashboard": {
+    "title": "Dashboard",
+    "cards": {
+      "totalCustomers": "ลูกค้าทั้งหมด",
+      "newCustomers": "ลูกค้าใหม่เดือนนี้",
+      "monthlyRevenue": "ยอดขายเดือนนี้",
+      "monthlyInvoices": "Invoice เดือนนี้",
+      "pendingInvoices": "Invoice ค้างชำระ",
+      "lapsed": "Lapsed >90 วัน"
+    },
+    "bestProducts": {
+      "title": "สินค้าขายดีประจำเดือน",
+      "viewAll": "ดูทั้งหมด",
+      "product": "สินค้า",
+      "sku": "SKU",
+      "quantity": "จำนวน",
+      "sales": "ยอดขาย",
+      "empty": "ไม่มีข้อมูลขายเดือนนี้",
+      "unknownProduct": "ไม่ทราบสินค้า"
+    },
+    "quotationInvoice": {
+      "title": "Quotation vs Invoice เดือนนี้",
+      "type": "ประเภท",
+      "quantity": "จำนวน",
+      "total": "ยอดรวม"
+    },
+    "topCustomers": {
+      "title": "Top 10 ลูกค้า (ยอดซื้อรวมที่ชำระแล้ว)",
+      "name": "ชื่อ",
+      "total": "ยอดรวม",
+      "lastPurchase": "ซื้อล่าสุด",
+      "empty": "ไม่มีข้อมูล"
+    }
+  },
+  "MonthlySales": {
+    "title": "ยอดขายรายเดือน",
+    "description": "สรุปยอดจาก TAX invoice ที่ชำระแล้ว แยกตามเดือน",
+    "metrics": {
+      "total": "ยอดรวม",
+      "invoiceCount": "จำนวน Invoice",
+      "average": "เฉลี่ยต่อเดือน"
+    },
+    "table": {
+      "title": "รายเดือน",
+      "count": "{count} เดือน",
+      "month": "เดือน",
+      "total": "ยอดรวม",
+      "invoice": "Invoice",
+      "customer": "ลูกค้า",
+      "empty": "ไม่มีข้อมูลในช่วงวันที่นี้"
+    },
+    "filter": {
+      "from": "จากวันที่",
+      "to": "ถึงวันที่",
+      "submit": "ดูช่วงนี้",
+      "summary": "แสดงยอดตั้งแต่ {from} ถึง {to}"
+    }
+  },
+  "DeliveryCost": {
+    "title": "Delivery Cost",
+    "description": "ค่าขนส่งรายจังหวัดจากไฟล์ Delivery.xlsx แยก 4W รถสี่ล้อ และ 6W รถหกล้อ",
+    "searchProvince": "ค้นหาจังหวัด",
+    "searchPlaceholder": "เช่น กรุงเทพมหานคร, Bangkok",
+    "invoiceAmount": "ยอดบิล",
+    "amountPlaceholder": "เช่น 25000",
+    "vehicleType": "ประเภทรถ",
+    "metrics": {
+      "provinceCount": "จังหวัดในไฟล์",
+      "resultCount": "ผลค้นหา",
+      "sample": "ตัวอย่าง: {province}",
+      "deliveryCost": "ค่าขนส่ง"
+    },
+    "table": {
+      "province": "จังหวัด",
+      "selectedCost": "ค่าขนส่งที่ใช้",
+      "priceRange": "ช่วงราคา {vehicle}"
+    },
+    "empty": "ไม่พบจังหวัด",
+    "noData": "ไม่มีข้อมูล",
+    "free": "ฟรี"
+  },
+  "Import": {
+    "title": "Import เอกสาร",
+    "description": "เลือกไฟล์ Excel หรือ ZIP ระบบจะสร้าง job แล้วแสดงผลและประวัติ import ให้ติดตาม",
+    "selectFile": "เลือกไฟล์ .xlsx หรือ .zip",
+    "start": "เริ่ม import",
+    "creating": "กำลังสร้าง job...",
+    "importing": "กำลัง import...",
+    "selectFileError": "กรุณาเลือกไฟล์ก่อน",
+    "importFailed": "Import ไม่สำเร็จ",
+    "tryAgain": "Import ไม่สำเร็จ กรุณาลองใหม่",
+    "resultTitle": "ผลการ import",
+    "jobLine": "Job #{id} · {filename}",
+    "summary": {
+      "new": "นำเข้าใหม่ {imported} / {total} ไฟล์",
+      "existing": "มีอยู่แล้ว {count} ไฟล์",
+      "failed": "ไม่สำเร็จ {count} ไฟล์",
+      "unsupported": "ไม่ใช่ xlsx {count} ไฟล์",
+      "running": "ระบบกำลัง import อยู่ หน้านี้จะอัปเดตเอง"
+    },
+    "skippedTitle": "ไฟล์ที่ข้าม ({count})",
+    "notExcel": "ไม่ใช่ไฟล์ Excel",
+    "skippedUnsupported": "ข้าม: ไม่ใช่ xlsx",
+    "skipped": "ข้าม",
+    "noSkipped": "ไม่มีไฟล์ที่ข้าม",
+    "noXlsx": "ไม่พบไฟล์ .xlsx สำหรับ import",
+    "historyTitle": "ประวัติ import",
+    "noHistory": "ยังไม่มีประวัติ import",
+    "historySummary": "ใหม่ {imported} · ข้าม {skipped} · fail {failed}",
+    "resultBadges": {
+      "skippedExisting": "ข้าม: มีอยู่แล้ว",
+      "success": "สำเร็จ",
+      "failed": "ไม่สำเร็จ"
+    },
+    "jobBadges": {
+      "completed": "เสร็จแล้ว",
+      "failed": "ไม่สำเร็จ",
+      "running": "กำลังรัน",
+      "queued": "รอคิว"
+    }
+  },
+  "TopCustomers": {
+    "title": "Top 100 Customer Purchase Ranking",
+    "description": "จัดอันดับจากยอดรวมของ tax invoice ที่ชำระแล้วเท่านั้น",
+    "selectedDateRange": "ช่วงวันที่เลือก",
+    "count": "{count} รายการ",
+    "empty": "ไม่มีข้อมูล",
+    "noPhone": "ไม่มีเบอร์โทร",
+    "unknownSalesperson": "ไม่มีชื่อพนักงาน",
+    "dateForm": {
+      "from": "จากวันที่",
+      "to": "ถึงวันที่",
+      "salesperson": "Salesperson",
+      "all": "ทุกคน",
+      "none": "ไม่มีชื่อพนักงาน",
+      "submit": "ดูช่วงนี้",
+      "summary": "ตารางด้านล่างแสดงยอดในช่วง {from} ถึง {to} และเรียงค่าเริ่มต้นจากยอดซื้อทั้งหมด"
+    },
+    "recency": {
+      "green": "ใน 3 เดือน",
+      "greenShort": "3ด.",
+      "yellow": "ใน 6 เดือน",
+      "yellowShort": "6ด.",
+      "orange": "ใน 12 เดือน",
+      "orangeShort": "12ด.",
+      "red": "เกิน 12 เดือน",
+      "redShort": ">12ด."
+    },
+    "table": {
+      "customer": "ลูกค้า",
+      "salesperson": "Salesperson",
+      "latestTotal": "ยอดล่าสุด",
+      "allTotal": "ยอดทั้งหมด",
+      "invoice": "Inv.",
+      "lastPaid": "ซื้อล่าสุด",
+      "status": "สถานะ",
+      "totalInvoices": "TotalInvoices",
+      "lastInvoicePaidDate": "LastInvoicePaidDate"
+    }
+  },
+  "Documents": {
+    "title": "เอกสาร",
+    "filters": {
+      "searchCustomer": "ค้นหาชื่อลูกค้า...",
+      "allTypes": "ทุกประเภท",
+      "allStatuses": "ทุกสถานะ",
+      "paid": "ชำระแล้ว",
+      "pending": "รอชำระ",
+      "allChannels": "ทุกช่องทาง",
+      "allSalespersons": "ทุกพนักงาน",
+      "from": "จากวันที่",
+      "to": "ถึงวันที่"
+    },
+    "table": {
+      "date": "วันที่",
+      "number": "เลขที่",
+      "type": "ประเภท",
+      "customer": "ลูกค้า",
+      "channel": "ช่องทาง",
+      "salesperson": "พนักงาน",
+      "amount": "ยอด",
+      "status": "สถานะ"
+    },
+    "pagination": {
+      "empty": "ไม่พบรายการ",
+      "summary": "แสดง {from}–{to} จาก {total} รายการ",
+      "previous": "← ก่อนหน้า",
+      "next": "ถัดไป →"
+    },
+    "unknownSalesperson": "ไม่มีชื่อพนักงาน",
+    "payment": {
+      "paid": "ชำระแล้ว",
+      "pending": "รอชำระ",
+      "aria": "จัดการสถานะชำระเงิน",
+      "saving": "กำลังบันทึก...",
+      "markPaid": "ทำเครื่องหมายชำระแล้ว",
+      "markPending": "ยกเลิกชำระแล้ว",
+      "paidToast": "ทำเครื่องหมายชำระแล้ว",
+      "pendingToast": "ยกเลิกสถานะชำระแล้ว",
+      "error": "เกิดข้อผิดพลาด กรุณาลองใหม่"
+    },
+    "detail": {
+      "back": "← เอกสาร",
+      "edit": "แก้ไข",
+      "date": "วันที่เอกสาร",
+      "number": "เลขที่",
+      "customer": "ลูกค้า",
+      "salesperson": "พนักงาน",
+      "channel": "ช่องทาง",
+      "filename": "ชื่อไฟล์",
+      "paymentStatus": "สถานะชำระเงิน",
+      "ref": "เลขอ้างอิง",
+      "notes": "หมายเหตุ",
+      "itemsTitle": "รายการที่ซื้อ ({count})",
+      "item": "รายการ",
+      "quantity": "จำนวน",
+      "unit": "หน่วย",
+      "unitPrice": "ราคา/หน่วย",
+      "total": "รวม",
+      "emptyItems": "ไม่มีรายการสินค้า",
+      "systemProduct": "สินค้าในระบบ: {name}"
+    },
+    "edit": {
+      "title": "แก้ไขเอกสาร",
+      "type": "ประเภท",
+      "number": "เลขที่ *",
+      "date": "วันที่",
+      "channel": "ช่องทาง",
+      "customer": "ลูกค้า",
+      "salesperson": "พนักงานขาย",
+      "none": "ไม่ระบุ",
+      "paymentStatus": "สถานะชำระเงิน",
+      "ref": "เลขอ้างอิง",
+      "notes": "หมายเหตุ",
+      "save": "บันทึก",
+      "saving": "กำลังบันทึก...",
+      "cancel": "ยกเลิก",
+      "saveFailed": "บันทึกเอกสารไม่สำเร็จ"
+    }
+  },
+  "Salespersons": {
+    "title": "พนักงานขาย",
+    "add": "เพิ่มพนักงาน",
+    "registered": "ลงทะเบียนแล้ว",
+    "count": "{count} พนักงาน (แสดงเฉพาะที่มีลูกค้า)",
+    "back": "← พนักงานขาย",
+    "edit": "แก้ไข",
+    "customersTitle": "ลูกค้า ({count} รายการ)",
+    "recentDocumentsTitle": "เอกสารล่าสุด ({count} รายการ)",
+    "emptyCustomers": "ไม่มีลูกค้า",
+    "emptyDocuments": "ไม่มีเอกสาร",
+    "table": {
+      "name": "ชื่อ",
+      "customer": "ลูกค้า",
+      "customers": "ลูกค้า",
+      "total": "ยอดรวม",
+      "monthly": "เดือนนี้",
+      "lapsed": "Lapsed >90 วัน",
+      "lastPurchase": "ซื้อล่าสุด",
+      "lastTotal": "ยอดล่าสุด",
+      "date": "วันที่",
+      "number": "เลขที่",
+      "type": "ประเภท",
+      "amount": "ยอด"
+    },
+    "editForm": {
+      "title": "แก้ไขพนักงานขาย",
+      "name": "ชื่อ *",
+      "channel": "Channel",
+      "active": "Active",
+      "save": "บันทึก",
+      "saving": "กำลังบันทึก...",
+      "cancel": "ยกเลิก",
+      "saveFailed": "บันทึกพนักงานไม่สำเร็จ"
+    },
+    "createForm": {
+      "title": "เพิ่มพนักงานขาย",
+      "submit": "เพิ่มพนักงาน",
+      "saveFailed": "เพิ่มพนักงานไม่สำเร็จ"
+    },
+    "line": {
+      "linked": "LINE ลงทะเบียนแล้ว",
+      "unlink": "ยกเลิก LINE",
+      "unlinkTitle": "ยกเลิกการเชื่อมต่อ LINE?",
+      "unlinkDescription": "พนักงานจะไม่ได้รับข้อความผ่าน LINE จนกว่าจะลงทะเบียนใหม่",
+      "cancel": "ยกเลิก",
+      "unlinking": "กำลังยกเลิก...",
+      "confirmUnlink": "ยืนยันยกเลิก",
+      "unlinkedToast": "ยกเลิกการเชื่อมต่อ LINE แล้ว",
+      "notLinked": "ยังไม่ลงทะเบียน LINE",
+      "createCode": "สร้าง Link Code",
+      "codeToast": "สร้าง Link Code แล้ว",
+      "codeInstruction": "ให้พนักงานพิมพ์ข้อความนี้ใน LINE ภายใน 15 นาที:",
+      "expires": "หมดอายุ: {time}",
+      "close": "ปิด",
+      "error": "เกิดข้อผิดพลาด กรุณาลองใหม่"
+    }
+  },
+  "Deals": {
+    "title": "ดีล",
+    "description": "Pipeline งานขายก่อนออก invoice",
+    "create": "สร้างดีล",
+    "back": "← ดีล",
+    "metrics": {
+      "openDeals": "Open deals",
+      "pipelineValue": "Pipeline value",
+      "weightedForecast": "Weighted forecast"
+    },
+    "filters": {
+      "search": "ค้นหาชื่อดีลหรือลูกค้า...",
+      "allStages": "ทุก stage",
+      "allSalespersons": "ทุกพนักงาน",
+      "submit": "กรอง"
+    },
+    "table": {
+      "deal": "ดีล",
+      "stage": "Stage",
+      "customer": "ลูกค้า",
+      "salesperson": "พนักงาน",
+      "value": "มูลค่า",
+      "weighted": "Weighted",
+      "expectedClose": "Expected close",
+      "empty": "ยังไม่มีดีล",
+      "noCustomer": "ไม่มีลูกค้า"
+    },
+    "pagination": {
+      "empty": "ไม่พบรายการ",
+      "summary": "แสดง {from}-{to} จาก {total} รายการ",
+      "previous": "ก่อนหน้า",
+      "next": "ถัดไป"
+    },
+    "detail": {
+      "updated": "อัปเดตล่าสุด {date}",
+      "source": "Source",
+      "expectedValue": "มูลค่าคาดการณ์",
+      "probability": "โอกาสปิด",
+      "customerInfo": "ข้อมูลลูกค้า",
+      "province": "จังหวัด",
+      "phone": "โทรศัพท์",
+      "notes": "Notes"
+    },
+    "form": {
+      "title": "ชื่อดีล *",
+      "titlePlaceholder": "เช่น ไม้อัดล็อตใหม่ - บริษัท ABC",
+      "customer": "ลูกค้า",
+      "noCustomer": "ยังไม่ผูกลูกค้า",
+      "salesperson": "พนักงานขาย",
+      "none": "ไม่ระบุ",
+      "expectedValue": "มูลค่าคาดการณ์",
+      "probability": "โอกาสปิด (%)",
+      "chooseDate": "เลือกวันที่",
+      "saving": "กำลังสร้าง...",
+      "cancel": "ยกเลิก",
+      "createFailed": "สร้างดีลไม่สำเร็จ",
+      "stageUpdateFailed": "อัปเดตสถานะไม่สำเร็จ"
+    }
+  },
+  "Customers": {
+    "title": "ลูกค้า",
+    "duplicates": "เช็คลูกค้าซ้ำ",
+    "search": "ค้นหาชื่อลูกค้า หรือ TAX ID...",
+    "noTaxId": "ไม่มี TAX ID",
+    "aliasPrefix": "ชื่อเดิม: {aliases}",
+    "unspecified": "ไม่ระบุ",
+    "filters": {
+      "all": "ทั้งหมด",
+      "purchased": "ซื้อแล้ว",
+      "notPurchased": "ยังไม่ได้ซื้อ",
+      "lapsed30": "ไม่ซื้อ 30–59 วัน",
+      "lapsed60": "ไม่ซื้อ 60–89 วัน",
+      "lapsed90": "ไม่ซื้อ 90–364 วัน",
+      "lapsed365": "ไม่ซื้อ >1 ปี"
+    },
+    "table": {
+      "name": "ชื่อ",
+      "province": "จังหวัด",
+      "type": "ประเภท",
+      "status": "สถานะ",
+      "lastPurchase": "ซื้อล่าสุด",
+      "lastTotal": "ยอดล่าสุด",
+      "salesperson": "Salesperson"
+    },
+    "pagination": {
+      "empty": "ไม่พบรายการ",
+      "summary": "แสดง {from}–{to} จาก {total} รายการ",
+      "previous": "← ก่อนหน้า",
+      "next": "ถัดไป →"
+    },
+    "status": {
+      "not_purchase_yet": "ยังไม่ซื้อ",
+      "active": "Active",
+      "repeat": "Repeat",
+      "purchased": "ซื้อแล้ว"
+    }
+  },
+  "CustomerEdit": {
+    "title": "แก้ไขข้อมูลลูกค้า",
+    "saveError": "เกิดข้อผิดพลาด กรุณาลองใหม่",
+    "addAliasError": "เพิ่มชื่อเดิมไม่สำเร็จ",
+    "deleteAliasError": "ลบชื่อเดิมไม่สำเร็จ",
+    "fields": {
+      "name": "ชื่อ *",
+      "vat": "จดทะเบียน VAT",
+      "type": "ประเภท",
+      "status": "สถานะ",
+      "notPurchased": "ยังไม่ซื้อ",
+      "active": "Active",
+      "inactive": "Inactive",
+      "province": "จังหวัด",
+      "address": "ที่อยู่",
+      "phone": "โทรศัพท์",
+      "email": "อีเมล",
+      "salesperson": "พนักงานขาย",
+      "none": "ไม่ระบุ"
+    },
+    "save": "บันทึก",
+    "saving": "กำลังบันทึก...",
+    "cancel": "ยกเลิก",
+    "aliases": {
+      "title": "ชื่อเดิม / ชื่อที่ใช้ค้นหา",
+      "description": "ใช้สำหรับชื่อบริษัทเก่า ชื่อย่อ หรือชื่อที่ลูกค้าเคยใช้ค้นหา",
+      "noTaxId": "ไม่มี TAX ID",
+      "delete": "ลบ",
+      "empty": "ยังไม่มีชื่อเดิม",
+      "add": "เพิ่มชื่อเดิม",
+      "taxId": "TAX ID ของชื่อเดิม",
+      "note": "หมายเหตุ",
+      "notePlaceholder": "เช่น ชื่อเก่าก่อนเปลี่ยนบริษัท"
+    }
+  },
+  "CustomerDetail": {
+    "back": "← รายชื่อลูกค้า",
+    "edit": "แก้ไข",
+    "noData": "ยังไม่มีข้อมูล",
+    "topCustomer": "ลูกค้า Top 100 จากยอดซื้อรวม {total}",
+    "metrics": {
+      "totalSpend": "ยอดซื้อรวม",
+      "totalSpendDetail": "รวม TAX invoice ของลูกค้ารายนี้",
+      "lastPurchase": "ซื้อล่าสุด",
+      "lastPurchaseDetail": "วันที่ TAX invoice ล่าสุด"
+    },
+    "info": {
+      "province": "จังหวัด",
+      "type": "ประเภท",
+      "status": "สถานะ",
+      "vatRegistered": "จดทะเบียน",
+      "vatNotRegistered": "ไม่จดทะเบียน",
+      "phone": "โทรศัพท์",
+      "email": "อีเมล",
+      "address": "ที่อยู่"
+    },
+    "status": {
+      "not_purchase_yet": "ยังไม่ซื้อ",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "aliases": {
+      "title": "ชื่อเดิม / ชื่อที่ใช้ค้นหา ({count})",
+      "show": "แสดง",
+      "hide": "ซ่อน"
+    },
+    "merge": {
+      "title": "ประวัติ merge",
+      "mergedIntoThis": "รวม {ids} เข้า record นี้",
+      "unknownUser": "ไม่ทราบผู้ใช้",
+      "undone": "ย้อน merge แล้ว",
+      "otherRecord": "record อื่น",
+      "undo": {
+        "button": "ย้อน merge",
+        "title": "ยืนยันย้อน merge",
+        "description": "ระบบจะสร้างลูกค้า #{ids} กลับมา และย้ายเอกสาร/ดีลกลับไปตาม snapshot ตอน merge",
+        "cancel": "ยกเลิก",
+        "confirm": "ยืนยันย้อน merge",
+        "loading": "กำลังย้อน...",
+        "success": "ย้อน merge แล้ว: คืน {count} record",
+        "error": "ย้อน merge ไม่สำเร็จ"
+      }
+    },
+    "documents": {
+      "title": "เอกสารทั้งหมด ({count})",
+      "summary": "แสดง {from}–{to} จาก {total} รายการ",
+      "date": "วันที่",
+      "number": "เลขที่",
+      "type": "ประเภท",
+      "channel": "ช่องทาง",
+      "salesperson": "พนักงาน",
+      "total": "ยอด",
+      "status": "สถานะ",
+      "empty": "ไม่มีเอกสารในเงื่อนไขนี้",
+      "filters": {
+        "docType": "ประเภทเอกสาร",
+        "all": "ทั้งหมด",
+        "perPage": "ต่อหน้า",
+        "records": "{count} records"
+      }
+    },
+    "payment": {
+      "paid": "ชำระแล้ว",
+      "pending": "รอชำระ"
+    },
+    "pagination": {
+      "page": "หน้า {current} / {total}",
+      "previous": "ก่อนหน้า",
+      "next": "ถัดไป"
+    },
+    "products": {
+      "title": "สินค้าที่ลูกค้าซื้อ ({count})",
+      "description": "เรียงจากยอดรวมมากไปน้อย",
+      "empty": "ไม่มีข้อมูลสินค้า",
+      "quantity": "จำนวน",
+      "invoice": "Invoice",
+      "latest": "ล่าสุด",
+      "product": "สินค้า",
+      "bills": "บิล",
+      "total": "ยอดรวม",
+      "unknown": "ไม่ทราบสินค้า"
+    }
+  },
+  "CustomerDuplicates": {
+    "title": "ลูกค้าซ้ำ",
+    "description": "กลุ่มที่ชื่อใกล้กันหลังตัดคำบริษัท/จำกัด/สำนักงานใหญ่ ใช้ตรวจสอบก่อน merge",
+    "back": "กลับไปหน้าลูกค้า",
+    "manual": {
+      "title": "Manual merge",
+      "description": "ใช้เมื่อระบบหา duplicate ไม่เจอเอง ใส่ ID ลูกค้าหลัก และ ID ที่ต้องรวมเข้าไป"
+    },
+    "sections": {
+      "name": "ชื่อใกล้กัน",
+      "taxId": "เลขภาษีซ้ำ"
+    },
+    "empty": {
+      "name": "ยังไม่พบกลุ่มชื่อที่น่าจะซ้ำ",
+      "taxId": "ยังไม่พบกลุ่มเลขภาษีซ้ำ"
+    },
+    "summary": {
+      "customers": "{count} ลูกค้า",
+      "groups": "{count} กลุ่มซ้ำ"
+    },
+    "records": "{count} records",
+    "review": "ตรวจสอบ",
+    "documents": "{count} เอกสาร",
+    "open": "เปิด #{id}",
+    "mergeHint": "ถ้าใช้ #{id} เป็นลูกค้าหลัก จะรวม {ids} เข้าไป",
+    "mergeButton": {
+      "usePrimary": "ใช้ #{id} เป็นลูกค้าหลัก",
+      "loading": "กำลังรวม...",
+      "title": "ยืนยัน merge ลูกค้า",
+      "description": "ใช้ #{id} เป็นลูกค้าหลัก เอกสารและดีลของ {count} record อื่นจะถูกย้ายเข้าลูกค้านี้",
+      "cancel": "ยกเลิก",
+      "confirm": "ยืนยัน merge",
+      "success": "รวมลูกค้าเข้า #{id} แล้ว",
+      "error": "รวมลูกค้าไม่สำเร็จ กรุณาลองใหม่"
+    },
+    "manualForm": {
+      "primaryId": "ลูกค้าหลัก ID",
+      "primaryPlaceholder": "เช่น 1080",
+      "duplicatePlaceholder": "เช่น 1081, 1082",
+      "checking": "กำลังตรวจสอบ...",
+      "preview": "ตรวจสอบก่อน merge",
+      "previewTitle": "Preview merge",
+      "primaryCustomer": "ลูกค้าหลัก: {name}",
+      "documents": "{count} เอกสาร",
+      "deals": "{count} ดีล",
+      "merging": "กำลังรวม...",
+      "confirm": "ยืนยัน merge",
+      "confirmTitle": "ยืนยัน merge ลูกค้า",
+      "confirmDescription": "รวม {count} record เข้า #{id} และย้ายเอกสาร/ดีลทั้งหมดไปที่ลูกค้าหลัก",
+      "cancel": "ยกเลิก",
+      "mergeInto": "รวมเข้า: {name}",
+      "totals": "จะย้าย {documents} เอกสาร และ {deals} ดีล",
+      "success": "merge เข้า #{id} แล้ว",
+      "errors": {
+        "invalidIds": "กรุณาใส่ ID ลูกค้าหลัก และ Duplicate IDs ให้ถูกต้อง",
+        "previewFailed": "ตรวจสอบข้อมูลไม่สำเร็จ กรุณาตรวจสอบ ID แล้วลองใหม่",
+        "mergeFailed": "รวมลูกค้าไม่สำเร็จ กรุณาตรวจสอบ ID แล้วลองใหม่",
+        "mergeToast": "รวมลูกค้าไม่สำเร็จ"
+      }
+    }
+  },
+  "ProductDetail": {
+    "back": "← สินค้า",
+    "edit": "แก้ไข",
+    "grade": "เกรด {grade}",
+    "metrics": {
+      "totalSales": "ยอดขายรวม",
+      "soldQty": "จำนวนขาย",
+      "paidInvoices": "Invoice ชำระแล้ว",
+      "lastSale": "ขายล่าสุด"
+    },
+    "info": {
+      "title": "ข้อมูลสินค้า",
+      "size": "ขนาด",
+      "weight": "น้ำหนัก",
+      "volume": "ปริมาตร",
+      "wholesale": "ราคาขายส่ง",
+      "retail": "ราคาขายปลีก",
+      "lastCost": "ปรับต้นทุนล่าสุด"
+    },
+    "quotation": {
+      "title": "Quotation",
+      "qty": "จำนวนเสนอราคา",
+      "amount": "ยอดเสนอราคา",
+      "count": "จำนวนใบเสนอราคา",
+      "productTotal": "ยอดสะสมในสินค้า"
+    },
+    "documents": {
+      "title": "Invoice / Quotation ที่ใช้สินค้านี้ ({count})",
+      "all": "ทั้งหมด",
+      "invoice": "Invoice",
+      "quotation": "Quotation",
+      "date": "วันที่",
+      "document": "เอกสาร",
+      "customer": "ลูกค้า",
+      "quantity": "จำนวน",
+      "amount": "ยอด",
+      "empty": "ยังไม่มีเอกสารที่ผูกกับสินค้านี้",
+      "taxInvoice": "TAX Invoice",
+      "ariaLabel": "ประเภทเอกสารสินค้า"
+    }
+  },
+  "Products": {
+    "title": "สินค้า",
+    "count": "{count} รายการ",
+    "unknownProduct": "ไม่ทราบสินค้า",
+    "unlinkedSku": "ไม่ผูก SKU",
+    "editProduct": "แก้ไขสินค้า",
+    "best": {
+      "title": "สินค้าขายดีประจำเดือน",
+      "description": "เรียงจากยอดขาย TAX invoice ที่ชำระแล้วในเดือนนี้",
+      "empty": "ไม่มีข้อมูลขายเดือนนี้",
+      "month": "เดือน",
+      "year": "ปี",
+      "submit": "ดูเดือนนี้"
+    },
+    "filter": {
+      "all": "ทุกประเภท",
+      "pine": "ไม้สน",
+      "rubberwood": "ไม้ยาง",
+      "bamboo": "Bamboo",
+      "osb": "OSB",
+      "other": "อื่นๆ"
+    },
+    "table": {
+      "product": "สินค้า",
+      "productName": "ชื่อสินค้า",
+      "sku": "SKU",
+      "quantity": "จำนวน",
+      "invoice": "Invoice",
+      "amount": "ยอดขาย",
+      "category": "ประเภท",
+      "grade": "เกรด",
+      "size": "ขนาด (มม.)",
+      "wholesale": "ราคาขายส่ง",
+      "retail": "ราคาขายปลีก",
+      "actions": "จัดการ"
+    },
+    "actions": {
+      "delete": "ลบสินค้า",
+      "deleteConfirm": "ลบสินค้า \"{name}\" ?",
+      "deleteFailed": "ลบสินค้าไม่สำเร็จ"
+    }
+  },
+  "ProductEdit": {
+    "back": "← สินค้า",
+    "title": "แก้ไขสินค้า",
+    "fields": {
+      "sku": "SKU *",
+      "category": "ประเภท",
+      "fullName": "ชื่อสินค้า *",
+      "grade": "เกรด",
+      "thickness": "หนา",
+      "width": "กว้าง",
+      "length": "ยาว",
+      "weight": "น้ำหนัก",
+      "volume": "ปริมาตร",
+      "wholesale": "ราคาขายส่ง",
+      "retail": "ราคาขายปลีก"
+    },
+    "save": "บันทึก",
+    "saving": "กำลังบันทึก...",
+    "cancel": "ยกเลิก",
+    "saveFailed": "บันทึกสินค้าไม่สำเร็จ"
+  }
+}

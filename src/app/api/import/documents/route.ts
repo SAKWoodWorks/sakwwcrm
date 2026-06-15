@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { isAuthBypassed } from "@/lib/auth-bypass"
+import { prisma } from "@/lib/prisma"
 import { execFile } from "child_process"
 import { randomUUID } from "crypto"
 import { mkdir, rm, writeFile } from "fs/promises"
@@ -34,27 +35,40 @@ function safeFilename(name: string) {
   return `${base || "upload"}${ext}`
 }
 
-function runImport(scriptPath: string, uploadPath: string, cwd: string) {
+function runImport(jobId: number, scriptPath: string, uploadPath: string, cwd: string, tempDir: string) {
   const pythonExe = process.env.PYTHON_VENV_PATH ?? "python"
 
-  return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
-    execFile(
-      pythonExe,
-      [scriptPath, "--path", uploadPath],
-      {
-        cwd,
-        timeout: 10 * 60 * 1000,
-        maxBuffer: 20 * 1024 * 1024,
-      },
-      (error, stdout, stderr) => {
-        if (error) {
-          reject(Object.assign(error, { stdout, stderr }))
-          return
-        }
-        resolve({ stdout, stderr })
-      }
-    )
-  })
+  void prisma.importJob.update({
+    where: { id: jobId },
+    data: { status: "running", startedAt: new Date() },
+  }).catch(() => null)
+
+  execFile(
+    pythonExe,
+    [scriptPath, "--path", uploadPath],
+    {
+      cwd,
+      timeout: 10 * 60 * 1000,
+      maxBuffer: 20 * 1024 * 1024,
+    },
+    (error, stdout, stderr) => {
+      const payload = stdout ? parseImportOutput(stdout) : { ok: false, results: [], error: stderr || "Import failed" }
+      const status = error ? "failed" : "completed"
+      const errorMessage = error ? ((payload.error ?? stderr) || "Import failed") : null
+
+      void prisma.importJob.update({
+        where: { id: jobId },
+        data: {
+          status,
+          result: payload,
+          error: errorMessage,
+          finishedAt: new Date(),
+        },
+      }).finally(() => {
+        void rm(tempDir, { recursive: true, force: true })
+      })
+    }
+  )
 }
 
 function parseImportOutput(stdout: string) {
@@ -87,17 +101,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const uploadPath = path.join(tempDir, safeFilename(file.name))
   try {
     await writeFile(uploadPath, Buffer.from(await file.arrayBuffer()))
+    const job = await prisma.importJob.create({
+      data: {
+        filename: file.name,
+        status: "queued",
+        actorEmail: session?.user?.email ?? null,
+      },
+      select: { id: true, filename: true, status: true, createdAt: true },
+    })
 
     const extractDir = process.env.EXTRACTION_DIR ?? path.join(/* turbopackIgnore: true */ process.cwd(), "extraction")
     const scriptPath = path.join(/* turbopackIgnore: true */ extractDir, "import_upload.py")
-    const { stdout } = await runImport(scriptPath, uploadPath, extractDir)
-    return NextResponse.json(parseImportOutput(stdout))
+    runImport(job.id, scriptPath, uploadPath, extractDir, tempDir)
+    return NextResponse.json({ ok: true, job }, { status: 202 })
   } catch (error) {
-    const stdout = typeof error === "object" && error && "stdout" in error ? String(error.stdout) : ""
-    const stderr = typeof error === "object" && error && "stderr" in error ? String(error.stderr) : ""
-    const payload = stdout ? parseImportOutput(stdout) : { ok: false, results: [], error: stderr || "Import failed" }
-    return NextResponse.json(payload, { status: 500 })
-  } finally {
     await rm(tempDir, { recursive: true, force: true })
+    return NextResponse.json({ ok: false, error: error instanceof Error ? error.message : "Import job failed" }, { status: 500 })
   }
 }
