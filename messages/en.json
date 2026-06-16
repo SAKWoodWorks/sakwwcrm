@@ -6,6 +6,8 @@
     "topCustomersShort": "Top",
     "monthlySales": "Monthly sales",
     "monthlySalesShort": "Month",
+    "followUp": "Follow-up",
+    "followUpShort": "Follow",
     "deals": "Deals",
     "dealsShort": "Deals",
     "customers": "Customers",
@@ -20,6 +22,14 @@
     "deliveryShort": "Delivery",
     "salespersons": "Salespersons",
     "salespersonsShort": "Team",
+    "reports": "Reports",
+    "reportsShort": "Reports",
+    "data": "Data",
+    "dataShort": "Data",
+    "tools": "Tools",
+    "toolsShort": "Tools",
+    "more": "More",
+    "moreShort": "More",
     "language": "Language"
   },
   "Login": {
@@ -83,6 +93,40 @@
       "submit": "View range",
       "summary": "Showing sales from {from} to {to}"
     }
+  },
+  "FollowUp": {
+    "title": "Customer follow-up",
+    "description": "Customers with paid TAX invoices but no purchase in 30+ days",
+    "summary": {
+      "days30": "30-59 days",
+      "days60": "60-89 days",
+      "days90": "90-179 days",
+      "days180": "180+ days",
+      "customers": "{count} customers"
+    },
+    "filters": {
+      "bucket": "Follow-up age",
+      "salesperson": "Salesperson",
+      "allBuckets": "All ages",
+      "allSalespersons": "All salespersons",
+      "noSalesperson": "No salesperson",
+      "apply": "Apply"
+    },
+    "table": {
+      "customer": "Customer",
+      "contact": "Contact",
+      "salesperson": "Salesperson",
+      "lastPurchase": "Last purchase",
+      "days": "Days",
+      "lastTotal": "Last invoice",
+      "totalPaid": "Total paid",
+      "recentProducts": "Recent products"
+    },
+    "empty": "No customers need follow-up for these filters",
+    "noContact": "No phone/LINE",
+    "unknownSalesperson": "Unassigned",
+    "unknownProduct": "Unknown product",
+    "count": "{count} customers need follow-up"
   },
   "DeliveryCost": {
     "title": "Delivery Cost",

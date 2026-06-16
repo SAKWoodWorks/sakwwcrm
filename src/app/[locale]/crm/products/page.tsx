@@ -64,7 +64,6 @@ export default async function ProductsPage({ searchParams }: Props) {
         skuCode: true,
         fullName: true,
         category: true,
-        grade: true,
         thickness: true,
         width: true,
         length: true,
@@ -97,11 +96,8 @@ export default async function ProductsPage({ searchParams }: Props) {
 
   return (
     <div className="crm-page">
-      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="mb-4">
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
-        <Suspense>
-          <ProductFilter categories={categoryOptions} />
-        </Suspense>
       </div>
 
       <section className="mb-6">
@@ -200,7 +196,12 @@ export default async function ProductsPage({ searchParams }: Props) {
         </div>
       </section>
 
-      <div className="mb-2 text-sm text-gray-500">{t("count", { count: products.length })}</div>
+      <div className="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="text-sm text-gray-500">{t("count", { count: products.length })}</div>
+        <Suspense>
+          <ProductFilter categories={categoryOptions} />
+        </Suspense>
+      </div>
 
       <div className="crm-mobile-list">
         {products.map((p) => (
@@ -215,10 +216,6 @@ export default async function ProductsPage({ searchParams }: Props) {
               {p.category ? <ProductCategoryBadge category={p.category} /> : null}
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-              <div>
-                <p className="text-xs text-[var(--crm-muted)]">{t("table.grade")}</p>
-                <p className="font-medium">{p.grade ?? "—"}</p>
-              </div>
               <div>
                 <p className="text-xs text-[var(--crm-muted)]">{t("table.size")}</p>
                 <p className="font-medium tabular-nums">{p.thickness && p.width && p.length ? `${p.thickness}×${p.width}×${p.length}` : "—"}</p>
@@ -251,7 +248,6 @@ export default async function ProductsPage({ searchParams }: Props) {
               <TableHead className="px-4 py-3 text-gray-500">{t("table.sku")}</TableHead>
               <TableHead className="px-4 py-3 text-gray-500">{t("table.productName")}</TableHead>
               <TableHead className="px-4 py-3 text-gray-500">{t("table.category")}</TableHead>
-              <TableHead className="px-4 py-3 text-gray-500">{t("table.grade")}</TableHead>
               <TableHead className="px-4 py-3 text-right text-gray-500">{t("table.size")}</TableHead>
               <TableHead className="px-4 py-3 text-right text-gray-500">{t("table.wholesale")}</TableHead>
               <TableHead className="px-4 py-3 text-right text-gray-500">{t("table.retail")}</TableHead>
@@ -270,7 +266,6 @@ export default async function ProductsPage({ searchParams }: Props) {
                 <TableCell className="px-4 py-3">
                   {p.category ? <ProductCategoryBadge category={p.category} /> : "—"}
                 </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500">{p.grade ?? "—"}</TableCell>
                 <TableCell className="px-4 py-3 text-right tabular-nums text-gray-600">
                   {p.thickness && p.width && p.length
                     ? `${p.thickness}×${p.width}×${p.length}`

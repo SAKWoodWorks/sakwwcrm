@@ -6,6 +6,8 @@
     "topCustomersShort": "Top",
     "monthlySales": "ยอดรายเดือน",
     "monthlySalesShort": "เดือน",
+    "followUp": "ติดตามลูกค้า",
+    "followUpShort": "ติดตาม",
     "deals": "ดีล",
     "dealsShort": "ดีล",
     "customers": "ลูกค้า",
@@ -20,6 +22,14 @@
     "deliveryShort": "ส่ง",
     "salespersons": "พนักงาน",
     "salespersonsShort": "ทีม",
+    "reports": "รายงาน",
+    "reportsShort": "รายงาน",
+    "data": "Data",
+    "dataShort": "Data",
+    "tools": "เครื่องมือ",
+    "toolsShort": "เครื่องมือ",
+    "more": "เพิ่มเติม",
+    "moreShort": "เมนู",
     "language": "ภาษา"
   },
   "Login": {
@@ -83,6 +93,40 @@
       "submit": "ดูช่วงนี้",
       "summary": "แสดงยอดตั้งแต่ {from} ถึง {to}"
     }
+  },
+  "FollowUp": {
+    "title": "ติดตามลูกค้า",
+    "description": "ลูกค้าที่เคยมี TAX invoice ชำระแล้ว แต่ไม่ได้ซื้อ 30+ วัน",
+    "summary": {
+      "days30": "30-59 วัน",
+      "days60": "60-89 วัน",
+      "days90": "90-179 วัน",
+      "days180": "180+ วัน",
+      "customers": "{count} ลูกค้า"
+    },
+    "filters": {
+      "bucket": "ช่วงเวลาที่ไม่ได้ซื้อ",
+      "salesperson": "พนักงานขาย",
+      "allBuckets": "ทุกช่วง",
+      "allSalespersons": "พนักงานทั้งหมด",
+      "noSalesperson": "ไม่มีพนักงาน",
+      "apply": "ดูรายการ"
+    },
+    "table": {
+      "customer": "ลูกค้า",
+      "contact": "ติดต่อ",
+      "salesperson": "พนักงาน",
+      "lastPurchase": "ซื้อล่าสุด",
+      "days": "วัน",
+      "lastTotal": "Invoice ล่าสุด",
+      "totalPaid": "ยอดซื้อรวม",
+      "recentProducts": "สินค้าล่าสุด"
+    },
+    "empty": "ไม่มีลูกค้าที่ต้องติดตามตามเงื่อนไขนี้",
+    "noContact": "ไม่มีโทรศัพท์/LINE",
+    "unknownSalesperson": "ยังไม่ระบุ",
+    "unknownProduct": "ไม่ทราบสินค้า",
+    "count": "{count} ลูกค้าที่ควรติดตาม"
   },
   "DeliveryCost": {
     "title": "Delivery Cost",

@@ -1,22 +1,66 @@
 "use client"
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Link, usePathname } from "@/i18n/navigation"
+import { ChevronDownIcon } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { useSearchParams } from "next/navigation"
 
-const links = [
+type NavLink = {
+  href: string
+  labelKey: string
+  shortKey: string
+}
+
+type NavGroup = {
+  labelKey: string
+  shortKey: string
+  links: NavLink[]
+}
+
+const primaryLinks: NavLink[] = [
   { href: "/crm/dashboard", labelKey: "dashboard", shortKey: "dashboardShort" },
-  { href: "/crm/top-customers", labelKey: "topCustomers", shortKey: "topCustomersShort" },
-  { href: "/crm/monthly-sales", labelKey: "monthlySales", shortKey: "monthlySalesShort" },
-  { href: "/crm/deals", labelKey: "deals", shortKey: "dealsShort" },
   { href: "/crm/customers", labelKey: "customers", shortKey: "customersShort" },
+  { href: "/crm/deals", labelKey: "deals", shortKey: "dealsShort" },
+  { href: "/crm/follow-up", labelKey: "followUp", shortKey: "followUpShort" },
   { href: "/crm/documents", labelKey: "documents", shortKey: "documentsShort" },
-  { href: "/crm/import", labelKey: "import", shortKey: "importShort" },
-  { href: "/crm/products", labelKey: "products", shortKey: "productsShort" },
-  { href: "/crm/delivery-cost", labelKey: "delivery", shortKey: "deliveryShort" },
-  { href: "/crm/salespersons", labelKey: "salespersons", shortKey: "salespersonsShort" },
 ]
 
+const navGroups: NavGroup[] = [
+  {
+    labelKey: "reports",
+    shortKey: "reportsShort",
+    links: [
+      { href: "/crm/top-customers", labelKey: "topCustomers", shortKey: "topCustomersShort" },
+      { href: "/crm/monthly-sales", labelKey: "monthlySales", shortKey: "monthlySalesShort" },
+    ],
+  },
+  {
+    labelKey: "data",
+    shortKey: "dataShort",
+    links: [
+      { href: "/crm/products", labelKey: "products", shortKey: "productsShort" },
+      { href: "/crm/salespersons", labelKey: "salespersons", shortKey: "salespersonsShort" },
+    ],
+  },
+  {
+    labelKey: "tools",
+    shortKey: "toolsShort",
+    links: [
+      { href: "/crm/import", labelKey: "import", shortKey: "importShort" },
+      { href: "/crm/delivery-cost", labelKey: "delivery", shortKey: "deliveryShort" },
+    ],
+  },
+]
+
+const links = [...primaryLinks, ...navGroups.flatMap((group) => group.links)]
+const mobileLinks = primaryLinks.slice(0, 4)
+const mobileMoreLinks = [...primaryLinks.slice(4), ...navGroups.flatMap((group) => group.links)]
 const locales = ["th", "en", "ru"] as const
 
 export default function NavBar() {
@@ -43,25 +87,12 @@ export default function NavBar() {
             </span>
           </Link>
           <div className="hidden items-center gap-1 md:flex">
-            {links.map(({ href, labelKey }) => {
-              const active = href === "/crm/dashboard"
-                ? pathname === href
-                : pathname.startsWith(href)
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  aria-current={active ? "page" : undefined}
-                  className={
-                    active
-                      ? "rounded-md bg-[var(--crm-brand-soft)] px-3 py-2 text-sm font-bold text-[var(--crm-brand-accent)]"
-                      : "rounded-md px-3 py-2 text-sm font-medium text-[var(--crm-muted)] hover:bg-white hover:text-[var(--crm-brand)]"
-                  }
-                >
-                  {t(labelKey)}
-                </Link>
-              )
-            })}
+            {primaryLinks.map((link) => (
+              <NavLinkItem key={link.href} link={link} pathname={pathname} />
+            ))}
+            {navGroups.map((group) => (
+              <NavDropdown key={group.labelKey} group={group} pathname={pathname} />
+            ))}
           </div>
           <div className="ml-auto hidden items-center gap-1 rounded-md border border-[var(--crm-line)] bg-white p-1 text-xs font-bold md:flex" aria-label={t("language")}>
             {locales.map((item) => (
@@ -84,28 +115,120 @@ export default function NavBar() {
       </nav>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--crm-line)] bg-[rgb(248_251_255_/_96%)] px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-12px_30px_rgb(29_78_216_/_10%)] backdrop-blur md:hidden">
-        <div className="grid grid-cols-4 gap-1 min-[420px]:grid-cols-8">
-          {links.map(({ href, shortKey }) => {
-            const active = href === "/crm/dashboard"
-              ? pathname === href
-              : pathname.startsWith(href)
-            return (
-              <Link
-                key={href}
-                href={href}
-                aria-current={active ? "page" : undefined}
-                className={
-                  active
-                    ? "rounded-md bg-[var(--crm-brand-accent)] px-1.5 py-2 text-center text-[11px] font-bold text-white"
-                    : "rounded-md px-1.5 py-2 text-center text-[11px] font-semibold text-[var(--crm-muted)]"
-                }
-              >
-                {t(shortKey)}
-              </Link>
-            )
-          })}
+        <div className="grid grid-cols-5 gap-1">
+          {mobileLinks.map((link) => (
+            <MobileNavLink key={link.href} link={link} pathname={pathname} />
+          ))}
+          <MobileMoreMenu links={mobileMoreLinks} pathname={pathname} />
         </div>
       </nav>
     </>
   )
+}
+
+function NavLinkItem({ link, pathname }: { link: NavLink; pathname: string }) {
+  const t = useTranslations("Nav")
+  const active = isActivePath(pathname, link.href)
+
+  return (
+    <Link
+      href={link.href}
+      aria-current={active ? "page" : undefined}
+      className={
+        active
+          ? "rounded-md bg-[var(--crm-brand-soft)] px-3 py-2 text-sm font-bold text-[var(--crm-brand-accent)]"
+          : "rounded-md px-3 py-2 text-sm font-medium text-[var(--crm-muted)] hover:bg-white hover:text-[var(--crm-brand)]"
+      }
+    >
+      {t(link.labelKey)}
+    </Link>
+  )
+}
+
+function NavDropdown({ group, pathname }: { group: NavGroup; pathname: string }) {
+  const t = useTranslations("Nav")
+  const active = group.links.some((link) => isActivePath(pathname, link.href))
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        className={
+          active
+            ? "inline-flex items-center gap-1 rounded-md bg-[var(--crm-brand-soft)] px-3 py-2 text-sm font-bold text-[var(--crm-brand-accent)] outline-none"
+            : "inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-[var(--crm-muted)] outline-none hover:bg-white hover:text-[var(--crm-brand)]"
+        }
+      >
+        {t(group.labelKey)}
+        <ChevronDownIcon className="size-4" aria-hidden="true" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-56 border border-[var(--crm-line)] bg-white">
+        {group.links.map((link) => (
+          <DropdownMenuItem key={link.href} asChild className="px-3 py-2">
+            <Link
+              href={link.href}
+              aria-current={isActivePath(pathname, link.href) ? "page" : undefined}
+              className="w-full text-[var(--crm-ink)]"
+            >
+              {t(link.labelKey)}
+            </Link>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function MobileNavLink({ link, pathname }: { link: NavLink; pathname: string }) {
+  const t = useTranslations("Nav")
+  const active = isActivePath(pathname, link.href)
+
+  return (
+    <Link
+      href={link.href}
+      aria-current={active ? "page" : undefined}
+      className={
+        active
+          ? "rounded-md bg-[var(--crm-brand-accent)] px-1.5 py-2 text-center text-[11px] font-bold text-white"
+          : "rounded-md px-1.5 py-2 text-center text-[11px] font-semibold text-[var(--crm-muted)]"
+      }
+    >
+      {t(link.shortKey)}
+    </Link>
+  )
+}
+
+function MobileMoreMenu({ links, pathname }: { links: NavLink[]; pathname: string }) {
+  const t = useTranslations("Nav")
+  const active = links.some((link) => isActivePath(pathname, link.href))
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        className={
+          active
+            ? "rounded-md bg-[var(--crm-brand-accent)] px-1.5 py-2 text-center text-[11px] font-bold text-white outline-none"
+            : "rounded-md px-1.5 py-2 text-center text-[11px] font-semibold text-[var(--crm-muted)] outline-none"
+        }
+      >
+        {t("moreShort")}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="top" align="end" className="mb-2 w-56 border border-[var(--crm-line)] bg-white">
+        {links.map((link) => (
+          <DropdownMenuItem key={link.href} asChild className="px-3 py-2">
+            <Link
+              href={link.href}
+              aria-current={isActivePath(pathname, link.href) ? "page" : undefined}
+              className="w-full text-[var(--crm-ink)]"
+            >
+              {t(link.labelKey)}
+            </Link>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function isActivePath(pathname: string, href: string) {
+  return href === "/crm/dashboard" ? pathname === href : pathname.startsWith(href)
 }

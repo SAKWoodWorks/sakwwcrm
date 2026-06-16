@@ -6,6 +6,8 @@
     "topCustomersShort": "Топ",
     "monthlySales": "Продажи по месяцам",
     "monthlySalesShort": "Месяц",
+    "followUp": "Повторный контакт",
+    "followUpShort": "Контакт",
     "deals": "Сделки",
     "dealsShort": "Сделки",
     "customers": "Клиенты",
@@ -20,6 +22,14 @@
     "deliveryShort": "Дост.",
     "salespersons": "Менеджеры",
     "salespersonsShort": "Команда",
+    "reports": "Отчеты",
+    "reportsShort": "Отчеты",
+    "data": "Данные",
+    "dataShort": "Данные",
+    "tools": "Инструменты",
+    "toolsShort": "Инстр.",
+    "more": "Еще",
+    "moreShort": "Еще",
     "language": "Язык"
   },
   "Login": {
@@ -83,6 +93,40 @@
       "submit": "Показать период",
       "summary": "Показаны продажи с {from} по {to}"
     }
+  },
+  "FollowUp": {
+    "title": "Повторный контакт с клиентами",
+    "description": "Клиенты с оплаченными TAX invoice, но без покупок 30+ дней",
+    "summary": {
+      "days30": "30-59 дней",
+      "days60": "60-89 дней",
+      "days90": "90-179 дней",
+      "days180": "180+ дней",
+      "customers": "{count} клиентов"
+    },
+    "filters": {
+      "bucket": "Давность контакта",
+      "salesperson": "Менеджер",
+      "allBuckets": "Все периоды",
+      "allSalespersons": "Все менеджеры",
+      "noSalesperson": "Без менеджера",
+      "apply": "Показать"
+    },
+    "table": {
+      "customer": "Клиент",
+      "contact": "Контакт",
+      "salesperson": "Менеджер",
+      "lastPurchase": "Последняя покупка",
+      "days": "Дней",
+      "lastTotal": "Последний счет",
+      "totalPaid": "Всего оплачено",
+      "recentProducts": "Последние товары"
+    },
+    "empty": "Нет клиентов для повторного контакта по этим фильтрам",
+    "noContact": "Нет телефона/LINE",
+    "unknownSalesperson": "Не назначен",
+    "unknownProduct": "Неизвестный товар",
+    "count": "{count} клиентов для контакта"
   },
   "DeliveryCost": {
     "title": "Стоимость доставки",
