@@ -34,6 +34,10 @@ type TopProductRow = {
   invoice_count: bigint
 }
 
+type CategoryRow = {
+  category: string | null
+}
+
 export default async function ProductsPage({ searchParams }: Props) {
   const { category, bestMonth, bestYear } = await searchParams
   const [t, locale] = await Promise.all([getTranslations("Products"), getLocale()])
@@ -44,7 +48,14 @@ export default async function ProductsPage({ searchParams }: Props) {
 
   const where = category ? { category } : {}
 
-  const [products, topProducts] = await Promise.all([
+  const [categoryRows, products, topProducts] = await Promise.all([
+    prisma.$queryRaw<CategoryRow[]>`
+      SELECT DISTINCT category
+      FROM products
+      WHERE category IS NOT NULL
+        AND btrim(category) <> ''
+      ORDER BY category ASC
+    `,
     prisma.product.findMany({
       where,
       orderBy: [{ category: "asc" }, { skuCode: "asc" }],
@@ -82,13 +93,14 @@ export default async function ProductsPage({ searchParams }: Props) {
       LIMIT 10
     `,
   ])
+  const categoryOptions = categoryRows.map((row) => row.category).filter((value): value is string => Boolean(value))
 
   return (
     <div className="crm-page">
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
         <Suspense>
-          <ProductFilter />
+          <ProductFilter categories={categoryOptions} />
         </Suspense>
       </div>
 

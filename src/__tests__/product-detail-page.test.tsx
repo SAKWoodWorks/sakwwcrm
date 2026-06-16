@@ -37,6 +37,7 @@ const translations: Record<string, string> = {
   "documents.ariaLabel": "ประเภทเอกสารสินค้า",
   "filter.pine": "ไม้สน",
   "filter.rubberwood": "ไม้ยาง",
+  "filter.teak": "ไม้สัก",
   "filter.bamboo": "Bamboo",
   "filter.osb": "OSB",
   "filter.other": "อื่นๆ",

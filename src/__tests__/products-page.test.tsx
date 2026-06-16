@@ -8,8 +8,12 @@ vi.mock("@/lib/prisma", () => ({
   },
 }))
 
+const productFilterMock = vi.fn(({ categories }: { categories: string[] }) => (
+  <div>Product filter: {categories.join(", ")}</div>
+))
+
 vi.mock("@/app/[locale]/crm/products/ProductFilter", () => ({
-  default: () => <div>Product filter</div>,
+  default: (props: { categories: string[] }) => productFilterMock(props),
 }))
 
 vi.mock("@/app/[locale]/crm/products/ProductDeleteButton", () => ({
@@ -50,6 +54,7 @@ const translations: Record<string, string> = {
   "table.actions": "จัดการ",
   "filter.pine": "ไม้สน",
   "filter.rubberwood": "ไม้ยาง",
+  "filter.teak": "ไม้สัก",
   "filter.bamboo": "Bamboo",
   "filter.osb": "OSB",
   "filter.other": "อื่นๆ",
@@ -76,6 +81,19 @@ import ProductsPage from "@/app/[locale]/crm/products/page"
 describe("ProductsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    ;(prisma.$queryRaw as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce([{ category: "Teak" }, { category: "ไม้สน" }])
+      .mockResolvedValueOnce([
+        {
+          product_id: 1,
+          sku_code: "PINE-001",
+          product_name: "Pine Board",
+          description: null,
+          sold_qty: 25,
+          sold_amount: 50000,
+          invoice_count: BigInt(3),
+        },
+      ])
     vi.mocked(prisma.product.findMany).mockResolvedValue([
       {
         id: 1,
@@ -90,17 +108,6 @@ describe("ProductsPage", () => {
         rtCost: 120,
       },
     ] as Awaited<ReturnType<typeof prisma.product.findMany>>)
-    ;(prisma.$queryRaw as ReturnType<typeof vi.fn>).mockResolvedValue([
-      {
-        product_id: 1,
-        sku_code: "PINE-001",
-        product_name: "Pine Board",
-        description: null,
-        sold_qty: 25,
-        sold_amount: 50000,
-        invoice_count: BigInt(3),
-      },
-    ])
   })
 
   it("renders monthly best-selling products", async () => {
@@ -113,5 +120,6 @@ describe("ProductsPage", () => {
     expect(screen.getAllByText("Pine Board").length).toBeGreaterThan(0)
     expect(screen.getAllByText("฿50,000").length).toBeGreaterThan(0)
     expect(screen.getAllByText("PINE-001").length).toBeGreaterThan(0)
+    expect(productFilterMock).toHaveBeenCalledWith({ categories: ["Teak", "ไม้สน"] })
   })
 })

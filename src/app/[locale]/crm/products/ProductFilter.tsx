@@ -11,16 +11,11 @@ import { useRouter } from "@/i18n/navigation"
 import { useTranslations } from "next-intl"
 import { useSearchParams } from "next/navigation"
 
-const CATEGORIES = [
-  { value: "all", labelKey: "all" },
-  { value: "ไม้สน", labelKey: "pine" },
-  { value: "ไม้ยาง", labelKey: "rubberwood" },
-  { value: "bamboo", labelKey: "bamboo" },
-  { value: "osb", labelKey: "osb" },
-  { value: "อื่นๆ", labelKey: "other" },
-] as const
+type Props = {
+  categories: string[]
+}
 
-export default function ProductFilter() {
+export default function ProductFilter({ categories }: Props) {
   const t = useTranslations("Products.filter")
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -43,12 +38,32 @@ export default function ProductFilter() {
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {CATEGORIES.map((c) => (
-          <SelectItem key={c.value} value={c.value}>
-            {t(c.labelKey)}
+        <SelectItem value="all">{t("all")}</SelectItem>
+        {categories.map((category) => (
+          <SelectItem key={category} value={category}>
+            {formatCategoryLabel(category, t)}
           </SelectItem>
         ))}
       </SelectContent>
     </Select>
   )
+}
+
+function formatCategoryLabel(category: string, t: ReturnType<typeof useTranslations>) {
+  const labelKeys: Record<string, "pine" | "rubberwood" | "teak" | "bamboo" | "osb" | "other"> = {
+    "Pine Timber": "pine",
+    Rubberwood: "rubberwood",
+    Teak: "teak",
+    teak: "teak",
+    ไม้สัก: "teak",
+    ไม้สน: "pine",
+    ไม้ยาง: "rubberwood",
+    bamboo: "bamboo",
+    Bamboo: "bamboo",
+    osb: "osb",
+    OSB: "osb",
+    อื่นๆ: "other",
+  }
+  const key = labelKeys[category]
+  return key ? t(key) : category
 }
