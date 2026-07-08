@@ -373,6 +373,7 @@
     "description": "Воронка продаж до invoice",
     "create": "Создать сделку",
     "back": "← Сделки",
+    "unknownSalesperson": "Нет менеджера",
     "metrics": {
       "openDeals": "Открытые сделки",
       "pipelineValue": "Сумма воронки",
@@ -421,6 +422,9 @@
       "expectedValue": "Ожидаемая сумма",
       "probability": "Шанс закрытия (%)",
       "chooseDate": "Выберите дату",
+      "stage": "Стадия",
+      "expectedClose": "Ожидаемое закрытие",
+      "source": "Источник",
       "saving": "Создание...",
       "cancel": "Отмена",
       "createFailed": "Не удалось создать сделку",
@@ -434,6 +438,7 @@
     "noTaxId": "Нет TAX ID",
     "aliasPrefix": "Старые имена: {aliases}",
     "unspecified": "Не указано",
+    "unknownSalesperson": "Нет менеджера",
     "filters": {
       "all": "Все",
       "purchased": "Покупали",
@@ -504,6 +509,7 @@
     "back": "← Клиенты",
     "edit": "Редактировать",
     "noData": "Данных пока нет",
+    "unknownSalesperson": "Нет менеджера",
     "topCustomer": "Клиент из топ 100 по общей сумме покупок {total}",
     "metrics": {
       "totalSpend": "Всего покупок",

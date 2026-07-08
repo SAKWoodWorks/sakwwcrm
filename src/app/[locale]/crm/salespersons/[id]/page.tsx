@@ -53,20 +53,20 @@ export default async function SalespersonDetailPage({ params }: Props) {
         s.name,
         s.line_user_id,
         COUNT(DISTINCT c.id)                                                              AS customer_count,
-        COALESCE(SUM(d.total) FILTER (WHERE d.doc_type = 'tax_invoice'), 0)               AS total_revenue,
+        COALESCE(SUM(d.total) FILTER (WHERE d.doc_type IN ('tax_invoice', 'abb_invoice')), 0)               AS total_revenue,
         COALESCE(SUM(d.total) FILTER (
-          WHERE d.doc_type = 'tax_invoice'
+          WHERE d.doc_type IN ('tax_invoice', 'abb_invoice')
           AND d.doc_date >= date_trunc('month', CURRENT_DATE)
         ), 0)                                                                             AS monthly_revenue,
         (
           SELECT COUNT(DISTINCT c2.id)
           FROM customers c2
-          JOIN documents di ON di.customer_id = c2.id AND di.salesperson_id = s.id AND di.doc_type = 'tax_invoice'
+          JOIN documents di ON di.customer_id = c2.id AND di.salesperson_id = s.id AND di.doc_type IN ('tax_invoice', 'abb_invoice')
           WHERE NOT EXISTS (
             SELECT 1 FROM documents di2
             WHERE di2.customer_id = c2.id
               AND di2.salesperson_id = s.id
-              AND di2.doc_type = 'tax_invoice'
+              AND di2.doc_type IN ('tax_invoice', 'abb_invoice')
               AND di2.doc_date >= CURRENT_DATE - INTERVAL '90 days'
           )
         )                                                                                 AS lapsed_count
@@ -83,11 +83,11 @@ export default async function SalespersonDetailPage({ params }: Props) {
         last_inv.doc_date  AS last_purchase_date,
         last_inv.total     AS last_purchase_total
       FROM customers c
-      JOIN documents d ON d.customer_id = c.id AND d.salesperson_id = ${spId} AND d.doc_type = 'tax_invoice'
+      JOIN documents d ON d.customer_id = c.id AND d.salesperson_id = ${spId} AND d.doc_type IN ('tax_invoice', 'abb_invoice')
       LEFT JOIN LATERAL (
         SELECT doc_date, total
         FROM documents
-        WHERE customer_id = c.id AND doc_type = 'tax_invoice' AND salesperson_id = ${spId}
+        WHERE customer_id = c.id AND doc_type IN ('tax_invoice', 'abb_invoice') AND salesperson_id = ${spId}
         ORDER BY doc_date DESC
         LIMIT 1
       ) last_inv ON TRUE

@@ -121,18 +121,18 @@ describe("CustomersPage", () => {
     )
 
     expect(queryCallText(0)).toContain("NOT EXISTS")
-    expect(queryCallText(0)).toContain("purchase_doc.doc_type = 'tax_invoice'")
+    expect(queryCallText(0)).toContain("purchase_doc.doc_type IN ('tax_invoice', 'abb_invoice')")
     expect(queryCallText(1)).toContain("NOT EXISTS")
-    expect(queryCallText(1)).toContain("purchase_doc.doc_type = 'tax_invoice'")
+    expect(queryCallText(1)).toContain("purchase_doc.doc_type IN ('tax_invoice', 'abb_invoice')")
   })
 
   it("filters purchased customers by excluding not-purchase-yet status", async () => {
     await CustomersPage({ searchParams: Promise.resolve({ purchase: "purchased" }) })
 
     expect(queryCallText(0)).toContain("EXISTS")
-    expect(queryCallText(0)).toContain("purchase_doc.doc_type = 'tax_invoice'")
+    expect(queryCallText(0)).toContain("purchase_doc.doc_type IN ('tax_invoice', 'abb_invoice')")
     expect(queryCallText(1)).toContain("EXISTS")
-    expect(queryCallText(1)).toContain("purchase_doc.doc_type = 'tax_invoice'")
+    expect(queryCallText(1)).toContain("purchase_doc.doc_type IN ('tax_invoice', 'abb_invoice')")
   })
 
   it("displays purchased customers as active when status is stale", async () => {

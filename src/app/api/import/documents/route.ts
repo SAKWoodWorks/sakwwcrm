@@ -65,8 +65,8 @@ function runImport(jobId: number, scriptPath: string, uploadPath: string, cwd: s
           finishedAt: new Date(),
         },
       }).finally(() => {
-        void rm(tempDir, { recursive: true, force: true })
-      })
+        void rm(tempDir, { recursive: true, force: true }).catch(() => {})
+      }).catch((err) => console.error("importJob update failed", err))
     }
   )
 }

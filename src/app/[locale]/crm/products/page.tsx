@@ -83,7 +83,7 @@ export default async function ProductsPage({ searchParams }: Props) {
       FROM document_items di
       JOIN documents d ON d.id = di.document_id
       LEFT JOIN products p ON p.id = di.product_id
-      WHERE d.doc_type = 'tax_invoice'
+      WHERE d.doc_type IN ('tax_invoice', 'abb_invoice')
         AND d.payment_status = 'paid'
         AND d.doc_date >= ${monthStart}
         AND d.doc_date < ${nextMonthStart}
@@ -218,7 +218,7 @@ export default async function ProductsPage({ searchParams }: Props) {
             <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
               <div>
                 <p className="text-xs text-[var(--crm-muted)]">{t("table.size")}</p>
-                <p className="font-medium tabular-nums">{p.thickness && p.width && p.length ? `${p.thickness}×${p.width}×${p.length}` : "—"}</p>
+                <p className="font-medium tabular-nums">{p.thickness != null && p.width != null && p.length != null ? `${p.thickness}×${p.width}×${p.length}` : "—"}</p>
               </div>
               <div>
                 <p className="text-xs text-[var(--crm-muted)]">{t("table.wholesale")}</p>
@@ -267,7 +267,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                   {p.category ? <ProductCategoryBadge category={p.category} /> : "—"}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-right tabular-nums text-gray-600">
-                  {p.thickness && p.width && p.length
+                  {p.thickness != null && p.width != null && p.length != null
                     ? `${p.thickness}×${p.width}×${p.length}`
                     : "—"}
                 </TableCell>

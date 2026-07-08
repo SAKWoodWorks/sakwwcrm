@@ -42,12 +42,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         COUNT(d.id) AS order_count,
         (
           SELECT d2.total FROM documents d2
-          WHERE d2.customer_id = c.id AND d2.doc_type = 'tax_invoice'
+          WHERE d2.customer_id = c.id AND d2.doc_type IN ('tax_invoice', 'abb_invoice')
           ORDER BY d2.doc_date DESC LIMIT 1
         ) AS last_total
       FROM customers c
       JOIN salespersons s ON s.id = c.salesperson_id
-      JOIN documents d ON d.customer_id = c.id AND d.doc_type = 'tax_invoice'
+      JOIN documents d ON d.customer_id = c.id AND d.doc_type IN ('tax_invoice', 'abb_invoice')
       WHERE s.line_user_id IS NOT NULL
       GROUP BY c.id, c.name, s.id, s.line_user_id, s.name
       HAVING (CURRENT_DATE - MAX(d.doc_date)) >= 90

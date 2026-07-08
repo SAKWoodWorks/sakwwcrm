@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { verifySignature, replyMessage } from "@/lib/line"
 import { prisma } from "@/lib/prisma"
+import { INVOICE_DOC_TYPES } from "@/lib/document-types"
 
 interface LineEvent {
   type: string
@@ -44,7 +45,7 @@ async function handleCustomerSearch(replyToken: string, text: string): Promise<v
         select: { aliasName: true },
       },
       documents: {
-        where: { docType: "tax_invoice" },
+        where: { docType: { in: INVOICE_DOC_TYPES } },
         orderBy: { docDate: "desc" },
         take: 5,
         select: {
@@ -73,11 +74,11 @@ async function handleCustomerSearch(replyToken: string, text: string): Promise<v
     customers.map(async (c) => {
       const [agg, invoiceCount] = await Promise.all([
         prisma.document.aggregate({
-          where: { customerId: c.id, docType: "tax_invoice" },
+          where: { customerId: c.id, docType: { in: INVOICE_DOC_TYPES } },
           _sum: { total: true },
         }),
         prisma.document.count({
-          where: { customerId: c.id, docType: "tax_invoice" },
+          where: { customerId: c.id, docType: { in: INVOICE_DOC_TYPES } },
         }),
       ])
       const totalSpend = Number(agg._sum.total ?? 0)

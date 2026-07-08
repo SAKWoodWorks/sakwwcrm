@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { DEAL_STAGES, isDealStage } from "@/lib/deals"
+import { DEAL_STAGES, formatDealStage, isDealStage } from "@/lib/deals"
 import { prisma } from "@/lib/prisma"
 import type { Prisma } from "@prisma/client"
 import { Link } from "@/i18n/navigation"
@@ -137,7 +137,7 @@ export default async function DealsPage({ searchParams }: Props) {
             <SelectItem value="all">{t("filters.allStages")}</SelectItem>
             {DEAL_STAGES.map((s) => (
               <SelectItem key={s} value={s}>
-                {s}
+                {formatDealStage(s)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -178,7 +178,7 @@ export default async function DealsPage({ searchParams }: Props) {
               <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <p className="text-xs text-[var(--crm-muted)]">{t("table.salesperson")}</p>
-                  <p className="font-medium">{formatSalespersonName(deal.salesperson?.name)}</p>
+                  <p className="font-medium">{formatSalespersonName(deal.salesperson?.name, t("unknownSalesperson"))}</p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--crm-muted)]">Expected close</p>
@@ -241,7 +241,7 @@ export default async function DealsPage({ searchParams }: Props) {
                         "—"
                       )}
                     </TableCell>
-                    <TableCell className="px-4 py-3">{formatSalespersonName(deal.salesperson?.name)}</TableCell>
+                    <TableCell className="px-4 py-3">{formatSalespersonName(deal.salesperson?.name, t("unknownSalesperson"))}</TableCell>
                     <TableCell className="px-4 py-3 text-right tabular-nums">
                       {deal.expectedValue != null ? formatMoney(value, localeTag) : "—"}
                     </TableCell>

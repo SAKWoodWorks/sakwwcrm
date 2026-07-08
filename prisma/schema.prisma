@@ -21,6 +21,8 @@ model Salesperson {
   deals            Deal[]
 
   @@map("salespersons")
+  @@index([lineUserId])
+  @@index([linkCode])
 }
 
 model Customer {
@@ -126,6 +128,9 @@ model Document {
   items          DocumentItem[]
 
   @@map("documents")
+  @@index([customerId])
+  @@index([docType])
+  @@index([salespersonId])
 }
 
 model Deal {

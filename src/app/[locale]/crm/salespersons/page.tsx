@@ -34,15 +34,15 @@ export default async function SalespersonsPage() {
       s.name,
       s.line_user_id,
       COUNT(DISTINCT c.id)                                                    AS customer_count,
-      COALESCE(SUM(d.total) FILTER (WHERE d.doc_type = 'tax_invoice'), 0)    AS total_revenue,
+      COALESCE(SUM(d.total) FILTER (WHERE d.doc_type IN ('tax_invoice', 'abb_invoice')), 0)    AS total_revenue,
       (
         SELECT COUNT(DISTINCT c2.id)
         FROM customers c2
-        JOIN documents di ON di.customer_id = c2.id AND di.salesperson_id = s.id AND di.doc_type = 'tax_invoice'
+        JOIN documents di ON di.customer_id = c2.id AND di.salesperson_id = s.id AND di.doc_type IN ('tax_invoice', 'abb_invoice')
         WHERE NOT EXISTS (
           SELECT 1 FROM documents di2
           WHERE di2.customer_id = c2.id
-            AND di2.doc_type = 'tax_invoice'
+            AND di2.doc_type IN ('tax_invoice', 'abb_invoice')
             AND di2.doc_date >= CURRENT_DATE - INTERVAL '90 days'
         )
       )                                                                       AS lapsed_count
@@ -90,7 +90,7 @@ export default async function SalespersonsPage() {
                     <p className="font-semibold tabular-nums">{revenue.toLocaleString(localeTag, { notation: "compact" })}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-[var(--crm-muted)]">Lapsed</p>
+                    <p className="text-xs text-[var(--crm-muted)]">{t("table.lapsed")}</p>
                     <p className={lapsed > 0 ? "font-semibold text-[var(--crm-danger)]" : "font-semibold text-[var(--crm-muted)]"}>
                       {lapsed || "—"}
                     </p>

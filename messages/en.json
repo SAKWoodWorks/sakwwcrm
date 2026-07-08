@@ -373,6 +373,7 @@
     "description": "Sales pipeline before invoice",
     "create": "Create deal",
     "back": "← Deals",
+    "unknownSalesperson": "No salesperson",
     "metrics": {
       "openDeals": "Open deals",
       "pipelineValue": "Pipeline value",
@@ -421,6 +422,9 @@
       "expectedValue": "Expected value",
       "probability": "Close chance (%)",
       "chooseDate": "Choose date",
+      "stage": "Stage",
+      "expectedClose": "Expected close",
+      "source": "Source",
       "saving": "Creating...",
       "cancel": "Cancel",
       "createFailed": "Could not create deal",
@@ -434,6 +438,7 @@
     "noTaxId": "No TAX ID",
     "aliasPrefix": "Former names: {aliases}",
     "unspecified": "Not set",
+    "unknownSalesperson": "No salesperson",
     "filters": {
       "all": "All",
       "purchased": "Purchased",
@@ -504,6 +509,7 @@
     "back": "← Customers",
     "edit": "Edit",
     "noData": "No data yet",
+    "unknownSalesperson": "No salesperson",
     "topCustomer": "Top 100 customer by total purchases {total}",
     "metrics": {
       "totalSpend": "Total purchases",

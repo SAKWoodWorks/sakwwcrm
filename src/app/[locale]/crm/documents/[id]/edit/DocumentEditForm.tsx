@@ -95,6 +95,7 @@ export default function DocumentEditForm({
           <select name="docType" defaultValue={document.docType} className="h-11 w-full rounded-md border border-[var(--crm-line)] bg-white px-3 text-sm">
             <option value="tax_invoice">TAX Invoice</option>
             <option value="quotation">Quotation</option>
+            <option value="abb_invoice">Abb Invoice</option>
           </select>
         </label>
         <label className="block">

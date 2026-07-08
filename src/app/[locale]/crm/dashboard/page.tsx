@@ -52,32 +52,32 @@ export default async function DashboardPage() {
         (SELECT COUNT(*) FROM customers)                                           AS total_customers,
         (SELECT COALESCE(SUM(total), 0)
          FROM documents
-         WHERE doc_type = 'tax_invoice'
+         WHERE doc_type IN ('tax_invoice', 'abb_invoice')
            AND doc_date >= date_trunc('month', CURRENT_DATE))                     AS monthly_revenue,
         (SELECT COUNT(*)
          FROM documents
-         WHERE doc_type = 'tax_invoice'
+         WHERE doc_type IN ('tax_invoice', 'abb_invoice')
            AND doc_date >= date_trunc('month', CURRENT_DATE))                     AS monthly_invoices,
         (SELECT COUNT(DISTINCT customer_id)
          FROM documents
-         WHERE doc_type = 'tax_invoice'
+         WHERE doc_type IN ('tax_invoice', 'abb_invoice')
            AND customer_id IS NOT NULL
            AND customer_id NOT IN (
              SELECT DISTINCT customer_id
              FROM documents
-             WHERE doc_type = 'tax_invoice'
+             WHERE doc_type IN ('tax_invoice', 'abb_invoice')
                AND doc_date >= CURRENT_DATE - INTERVAL '90 days'
                AND customer_id IS NOT NULL
            ))                                                                     AS lapsed_count,
         (SELECT COUNT(*)
          FROM documents
-         WHERE doc_type = 'tax_invoice'
+         WHERE doc_type IN ('tax_invoice', 'abb_invoice')
            AND payment_status = 'pending')                                        AS pending_invoices,
         (SELECT COUNT(*)
          FROM (
            SELECT customer_id, MIN(doc_date) AS first_invoice_date
            FROM documents
-           WHERE doc_type = 'tax_invoice'
+           WHERE doc_type IN ('tax_invoice', 'abb_invoice')
              AND customer_id IS NOT NULL
            GROUP BY customer_id
          ) first_purchase
@@ -99,7 +99,7 @@ export default async function DashboardPage() {
         MAX(d.doc_date)           AS last_purchase_date
       FROM customers c
       JOIN documents d ON d.customer_id = c.id
-        AND d.doc_type = 'tax_invoice'
+        AND d.doc_type IN ('tax_invoice', 'abb_invoice')
         AND d.payment_status = 'paid'
       GROUP BY c.id, c.name
       ORDER BY lifetime_total DESC
@@ -116,7 +116,7 @@ export default async function DashboardPage() {
       FROM document_items di
       JOIN documents d ON d.id = di.document_id
       LEFT JOIN products p ON p.id = di.product_id
-      WHERE d.doc_type = 'tax_invoice'
+      WHERE d.doc_type IN ('tax_invoice', 'abb_invoice')
         AND d.payment_status = 'paid'
         AND d.doc_date >= date_trunc('month', CURRENT_DATE)
         AND d.doc_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'

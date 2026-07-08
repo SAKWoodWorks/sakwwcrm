@@ -1,5 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 
+export { INVOICE_DOC_TYPES } from "@/lib/document-types"
+
 export function DocTypeBadge({ docType }: { docType: string }) {
   if (docType === "tax_invoice")
     return <Badge variant="outline" className="border-blue-200 bg-blue-100 text-blue-800">TAX Invoice</Badge>

@@ -119,7 +119,7 @@ export default function DealCreateForm({ customers, salespersons }: Props) {
 
       <div className="grid gap-4 md:grid-cols-3">
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Stage</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">{t("form.stage")}</label>
           <Select name="stage" defaultValue="lead">
             <SelectTrigger className="h-11 bg-white">
               <SelectValue />
@@ -147,12 +147,12 @@ export default function DealCreateForm({ customers, salespersons }: Props) {
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Expected close</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">{t("form.expectedClose")}</label>
           <DatePickerField name="expectedCloseDate" placeholder={t("form.chooseDate")} />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Source</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">{t("form.source")}</label>
           <Input name="source" className="h-11 bg-white" placeholder="LINE, walk-in, referral" />
         </div>
       </div>

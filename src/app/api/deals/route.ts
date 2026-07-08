@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { isAuthBypassed } from "@/lib/auth-bypass"
 import { prisma } from "@/lib/prisma"
 import { isDealStage } from "@/lib/deals"
+import { Prisma } from "@prisma/client"
 
 function optionalNumber(value: unknown): number | null {
   if (value === null || value === undefined || value === "") return null
@@ -51,20 +52,27 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Invalid close date" }, { status: 400 })
   }
 
-  const deal = await prisma.deal.create({
-    data: {
-      title,
-      customerId,
-      salespersonId,
-      stage,
-      expectedValue,
-      probability,
-      expectedCloseDate: closeDate,
-      source: optionalString(body?.source),
-      notes: optionalString(body?.notes),
-    },
-    select: { id: true },
-  })
+  try {
+    const deal = await prisma.deal.create({
+      data: {
+        title,
+        customerId,
+        salespersonId,
+        stage,
+        expectedValue,
+        probability,
+        expectedCloseDate: closeDate,
+        source: optionalString(body?.source),
+        notes: optionalString(body?.notes),
+      },
+      select: { id: true },
+    })
 
-  return NextResponse.json({ ok: true, id: deal.id })
+    return NextResponse.json({ ok: true, id: deal.id })
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2003") {
+      return NextResponse.json({ error: "Invalid customerId or salespersonId" }, { status: 400 })
+    }
+    return NextResponse.json({ error: "Internal error" }, { status: 500 })
+  }
 }

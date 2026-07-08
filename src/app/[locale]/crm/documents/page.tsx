@@ -13,7 +13,7 @@ import {
 import { Link } from "@/i18n/navigation"
 import { Suspense } from "react"
 import DocumentFilters from "./DocumentFilters"
-import { DocTypeBadge } from "./DocTypeBadge"
+import { DocTypeBadge, INVOICE_DOC_TYPES } from "./DocTypeBadge"
 import PaymentToggle from "./PaymentToggle"
 import type { Prisma } from "@prisma/client"
 import { formatSalespersonName } from "@/lib/salesperson-display"
@@ -197,7 +197,7 @@ export default async function DocumentsPage({ searchParams }: Props) {
                 </p>
               </div>
             </div>
-            {d.docType === "tax_invoice" && (
+            {INVOICE_DOC_TYPES.includes(d.docType) && (
               <div className="mt-3">
                 <PaymentToggle documentId={d.id} currentStatus={d.paymentStatus} />
               </div>
@@ -266,7 +266,7 @@ export default async function DocumentsPage({ searchParams }: Props) {
                     : "—"}
                 </TableCell>
                 <TableCell className="px-4 py-3">
-                  {d.docType === "tax_invoice" ? (
+                  {INVOICE_DOC_TYPES.includes(d.docType) ? (
                     <PaymentToggle documentId={d.id} currentStatus={d.paymentStatus} />
                   ) : (
                     <span className="text-gray-400">—</span>

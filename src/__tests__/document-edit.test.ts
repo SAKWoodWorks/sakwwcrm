@@ -102,6 +102,19 @@ describe("PATCH /api/documents/[id]", () => {
     )
   })
 
+  it("accepts abb_invoice docType and keeps payment status like tax_invoice", async () => {
+    vi.mocked(auth).mockResolvedValue(mockSession)
+    vi.mocked(prisma.document.update).mockResolvedValue(mockDocument)
+    const res = await PATCH(makeReq({ ...validBody, docType: "abb_invoice", paymentStatus: "paid" }), makeParams("5"))
+
+    expect(res.status).toBe(200)
+    expect(prisma.document.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ docType: "abb_invoice", paymentStatus: "paid" }),
+      }),
+    )
+  })
+
   it("returns 404 on P2025", async () => {
     vi.mocked(auth).mockResolvedValue(mockSession)
     const err = Object.assign(new Error("Not found"), { code: "P2025", clientVersion: "0.0.0" })

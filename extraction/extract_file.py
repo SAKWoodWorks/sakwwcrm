@@ -5,6 +5,7 @@ Usage:
 
   # Google Drive file:
   python extract_file.py --file-id DRIVE_FILE_ID --filename "TI_B No 256V..."
+  python extract_file.py --file-id DRIVE_FILE_ID   # filename fetched from Drive
 """
 import argparse
 import io
@@ -123,6 +124,8 @@ def process(filepath: str, filename: str, file_id: str, dry_run: bool = False, s
             "channel": meta.channel,
             "salesperson": meta.salesperson,
             "customer_name": doc_data.customer.name,
+            "subtotal": float(doc_data.subtotal),
+            "vat": float(doc_data.vat),
             "total": float(doc_data.total),
             "payment_status": meta.payment_status,
             "gdrive_filename": filename,
@@ -170,7 +173,9 @@ def process_local(local_path: str, dry_run: bool = False, salesperson_override: 
 
 
 def process_drive(file_id: str, filename: str, dry_run: bool = False) -> None:
-    from gdrive_client import download_file
+    from gdrive_client import download_file, get_file_name
+    if not filename:
+        filename = get_file_name(file_id)
     with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
         tmp_path = tmp.name
     try:
@@ -188,13 +193,11 @@ if __name__ == "__main__":
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--local-path", help="Path to local xlsx file")
     group.add_argument("--file-id", help="Google Drive file ID")
-    parser.add_argument("--filename", help="Original filename (required with --file-id)")
+    parser.add_argument("--filename", help="Original filename (optional with --file-id; fetched from Drive if omitted)")
     parser.add_argument("--dry-run", action="store_true", help="Parse only, no DB/Sheets write")
     args = parser.parse_args()
 
     if args.local_path:
         process_local(args.local_path, dry_run=args.dry_run)
     else:
-        if not args.filename:
-            parser.error("--filename required with --file-id")
         process_drive(args.file_id, args.filename, dry_run=args.dry_run)

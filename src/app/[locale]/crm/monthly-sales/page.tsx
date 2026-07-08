@@ -46,7 +46,7 @@ export default async function MonthlySalesPage({ searchParams }: Props = {}) {
       COUNT(DISTINCT d.customer_id) AS customer_count,
       COALESCE(SUM(d.total), 0) AS total_paid
     FROM documents d
-    WHERE d.doc_type = 'tax_invoice'
+    WHERE d.doc_type IN ('tax_invoice', 'abb_invoice')
       AND d.payment_status = 'paid'
       AND d.doc_date >= ${range.start}
       AND d.doc_date < ${range.endExclusive}

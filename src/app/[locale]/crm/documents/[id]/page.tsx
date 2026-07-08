@@ -14,7 +14,7 @@ import { prisma } from "@/lib/prisma"
 import { Link } from "@/i18n/navigation"
 import { getLocale, getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
-import { DocTypeBadge } from "../DocTypeBadge"
+import { DocTypeBadge, INVOICE_DOC_TYPES } from "../DocTypeBadge"
 import PaymentToggle from "../PaymentToggle"
 import { formatSalespersonName } from "@/lib/salesperson-display"
 
@@ -80,7 +80,7 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
             <div className="mb-4 grid gap-3 md:grid-cols-3">
               <MetricCard label="Total" value={doc.total != null ? fmt(doc.total) : "—"} tone="gold" />
               <MetricCard label={t("detail.date")} value={doc.docDate.toLocaleDateString(localeTag)} tone="blue" />
-              <MetricCard label={t("table.status")} value={doc.docType === "tax_invoice" ? getPaymentLabel(doc.paymentStatus, t) : "—"} tone="green" />
+              <MetricCard label={t("table.status")} value={INVOICE_DOC_TYPES.includes(doc.docType) ? getPaymentLabel(doc.paymentStatus, t) : "—"} tone="green" />
             </div>
             <dl className="grid gap-x-8 gap-y-3 text-sm md:grid-cols-3">
               <InfoRow label={t("detail.number")} value={doc.docNumber} />
@@ -105,7 +105,7 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
               <div>
                 <dt className="font-medium text-gray-500">{t("detail.paymentStatus")}</dt>
                 <dd className="mt-0.5">
-                  {doc.docType === "tax_invoice" ? (
+                  {INVOICE_DOC_TYPES.includes(doc.docType) ? (
                     <PaymentToggle documentId={doc.id} currentStatus={doc.paymentStatus} />
                   ) : (
                     <span className="text-gray-400">—</span>

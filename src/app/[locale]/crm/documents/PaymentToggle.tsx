@@ -25,6 +25,7 @@ export default function PaymentToggle({
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const isPaid = currentStatus === "paid"
+  const isPending = currentStatus === "pending"
 
   async function toggle() {
     setLoading(true)
@@ -50,9 +51,13 @@ export default function PaymentToggle({
         <Badge variant="outline" className="border-green-200 bg-green-100 text-green-800">
           {t("paid")}
         </Badge>
-      ) : (
+      ) : isPending ? (
         <Badge variant="outline" className="border-yellow-200 bg-yellow-100 text-yellow-800">
           {t("pending")}
+        </Badge>
+      ) : (
+        <Badge variant="outline" className="border-gray-200 bg-gray-100 text-gray-700">
+          —
         </Badge>
       )}
       <DropdownMenu>

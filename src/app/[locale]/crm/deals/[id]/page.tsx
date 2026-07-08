@@ -8,6 +8,7 @@ import { notFound } from "next/navigation"
 import DealStageBadge from "../DealStageBadge"
 import DealStageSelect from "../DealStageSelect"
 import { formatSalespersonName } from "@/lib/salesperson-display"
+import { formatDealStage } from "@/lib/deals"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -67,7 +68,7 @@ export default async function DealDetailPage({ params }: Props) {
               )
             }
           />
-          <InfoRow label={t("form.salesperson")} value={formatSalespersonName(deal.salesperson?.name)} />
+          <InfoRow label={t("form.salesperson")} value={formatSalespersonName(deal.salesperson?.name, t("unknownSalesperson"))} />
           <InfoRow label={t("detail.source")} value={deal.source ?? "—"} />
           <InfoRow
             label={t("table.expectedClose")}
@@ -76,7 +77,7 @@ export default async function DealDetailPage({ params }: Props) {
           <InfoRow label={t("detail.expectedValue")} value={deal.expectedValue != null ? formatMoney(expectedValue, localeTag) : "—"} />
           <InfoRow label={t("detail.probability")} value={`${deal.probability}%`} />
           <InfoRow label={t("metrics.weightedForecast")} value={deal.expectedValue != null ? formatMoney(weighted, localeTag) : "—"} />
-          <InfoRow label={t("table.stage")} value={deal.stage} />
+          <InfoRow label={t("table.stage")} value={formatDealStage(deal.stage)} />
         </dl>
 
         {deal.customer && (

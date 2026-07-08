@@ -101,7 +101,7 @@ describe("PATCH /api/customers/[id]", () => {
     )
   })
 
-  it("returns 400 on P2002 duplicate taxId", async () => {
+  it("returns 500 on unexpected Prisma error (e.g. P2002, no unique constraint on taxId)", async () => {
     vi.mocked(auth).mockResolvedValue(mockSession)
     const err = Object.assign(
       new Error("Unique constraint"),
@@ -110,9 +110,7 @@ describe("PATCH /api/customers/[id]", () => {
     Object.setPrototypeOf(err, Prisma.PrismaClientKnownRequestError.prototype)
     vi.mocked(prisma.customer.update).mockRejectedValue(err)
     const res = await PATCH(makeReq(validBody), makeParams("1"))
-    expect(res.status).toBe(400)
-    const json = await res.json()
-    expect(json.error).toContain("TAX ID")
+    expect(res.status).toBe(500)
   })
 
   it("returns 404 on P2025 not found", async () => {

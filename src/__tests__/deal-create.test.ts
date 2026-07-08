@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { NextRequest } from "next/server"
+import { Prisma } from "@prisma/client"
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -108,5 +109,29 @@ describe("POST /api/deals", () => {
       },
       select: { id: true },
     })
+  })
+
+  it("returns 400 on P2003 foreign key violation for invalid customerId/salespersonId", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: { email: "test@sakww.com" } } as never)
+    const err = Object.assign(
+      new Error("Foreign key constraint failed"),
+      { code: "P2003", clientVersion: "0.0.0" }
+    )
+    Object.setPrototypeOf(err, Prisma.PrismaClientKnownRequestError.prototype)
+    vi.mocked(prisma.deal.create).mockRejectedValue(err)
+
+    const res = await POST(makeRequest(validBody))
+
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: "Invalid customerId or salespersonId" })
+  })
+
+  it("returns 500 on unexpected error during create", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: { email: "test@sakww.com" } } as never)
+    vi.mocked(prisma.deal.create).mockRejectedValue(new Error("db down"))
+
+    const res = await POST(makeRequest(validBody))
+
+    expect(res.status).toBe(500)
   })
 })

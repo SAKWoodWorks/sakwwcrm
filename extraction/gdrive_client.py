@@ -26,6 +26,12 @@ def download_file(file_id: str, dest_path: str) -> None:
             _, done = downloader.next_chunk()
 
 
+def get_file_name(file_id: str) -> str:
+    service = _get_service()
+    meta = service.files().get(fileId=file_id, fields="name").execute()
+    return meta["name"]
+
+
 def list_files_in_folder(folder_id: str, mime_type: str = None) -> Generator[dict, None, None]:
     service = _get_service()
     query = f"'{folder_id}' in parents and trashed = false"

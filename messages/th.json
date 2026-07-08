@@ -373,6 +373,7 @@
     "description": "Pipeline งานขายก่อนออก invoice",
     "create": "สร้างดีล",
     "back": "← ดีล",
+    "unknownSalesperson": "ไม่มีชื่อพนักงาน",
     "metrics": {
       "openDeals": "Open deals",
       "pipelineValue": "Pipeline value",
@@ -421,6 +422,9 @@
       "expectedValue": "มูลค่าคาดการณ์",
       "probability": "โอกาสปิด (%)",
       "chooseDate": "เลือกวันที่",
+      "stage": "Stage",
+      "expectedClose": "Expected close",
+      "source": "Source",
       "saving": "กำลังสร้าง...",
       "cancel": "ยกเลิก",
       "createFailed": "สร้างดีลไม่สำเร็จ",
@@ -434,6 +438,7 @@
     "noTaxId": "ไม่มี TAX ID",
     "aliasPrefix": "ชื่อเดิม: {aliases}",
     "unspecified": "ไม่ระบุ",
+    "unknownSalesperson": "ไม่มีชื่อพนักงาน",
     "filters": {
       "all": "ทั้งหมด",
       "purchased": "ซื้อแล้ว",
@@ -504,6 +509,7 @@
     "back": "← รายชื่อลูกค้า",
     "edit": "แก้ไข",
     "noData": "ยังไม่มีข้อมูล",
+    "unknownSalesperson": "ไม่มีชื่อพนักงาน",
     "topCustomer": "ลูกค้า Top 100 จากยอดซื้อรวม {total}",
     "metrics": {
       "totalSpend": "ยอดซื้อรวม",

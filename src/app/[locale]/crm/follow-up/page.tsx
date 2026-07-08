@@ -215,7 +215,7 @@ async function getFollowUpRows() {
         d.salesperson_id
       FROM documents d
       WHERE d.customer_id IS NOT NULL
-        AND d.doc_type = 'tax_invoice'
+        AND d.doc_type IN ('tax_invoice', 'abb_invoice')
         AND d.payment_status = 'paid'
     ),
     customer_totals AS (

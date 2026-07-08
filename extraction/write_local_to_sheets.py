@@ -61,6 +61,8 @@ def collect_rows():
                 "channel": meta.channel,
                 "salesperson": meta.salesperson,
                 "customer_name": doc.customer.name,
+                "subtotal": float(doc.subtotal),
+                "vat": float(doc.vat),
                 "total": float(doc.total),
                 "payment_status": meta.payment_status,
                 "gdrive_filename": filename,

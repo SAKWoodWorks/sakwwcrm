@@ -124,7 +124,7 @@ export default async function TopCustomersPage({
         SELECT d.*
         FROM documents d
         LEFT JOIN salespersons sp ON sp.id = d.salesperson_id
-        WHERE d.doc_type = 'tax_invoice'
+        WHERE d.doc_type IN ('tax_invoice', 'abb_invoice')
           AND d.payment_status = 'paid'
           AND d.doc_date >= ${range.start}
           AND d.doc_date < ${range.endExclusive}
@@ -133,7 +133,7 @@ export default async function TopCustomersPage({
       all_paid AS (
         SELECT customer_id, COALESCE(SUM(total), 0) AS total_paid_all
         FROM documents
-        WHERE doc_type = 'tax_invoice'
+        WHERE doc_type IN ('tax_invoice', 'abb_invoice')
           AND payment_status = 'paid'
         GROUP BY customer_id
       )
@@ -621,7 +621,7 @@ function getSalespersonFilter(value: string | undefined) {
 function formatSalespersonList(names: string | null | undefined, fallback: string) {
   const formatted = (names ?? "")
     .split(",")
-    .map((name) => formatSalespersonName(name))
+    .map((name) => formatSalespersonName(name, fallback))
     .filter((name, index, all) => all.indexOf(name) === index)
 
   return formatted.length > 0 ? formatted.join(", ") : fallback

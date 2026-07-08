@@ -3,8 +3,9 @@ import { auth } from "@/auth"
 import { isAuthBypassed } from "@/lib/auth-bypass"
 import { prisma } from "@/lib/prisma"
 import { Prisma } from "@prisma/client"
+import { INVOICE_DOC_TYPES } from "@/lib/document-types"
 
-const VALID_DOC_TYPES = ["tax_invoice", "quotation"]
+const VALID_DOC_TYPES = ["tax_invoice", "quotation", "abb_invoice"]
 const VALID_PAYMENT_STATUSES = ["paid", "pending", null]
 
 export async function PATCH(
@@ -28,7 +29,7 @@ export async function PATCH(
   if (!docDate) return NextResponse.json({ error: "Invalid docDate" }, { status: 400 })
 
   const paymentStatus =
-    body.docType === "tax_invoice" ? normalizePaymentStatus(body.paymentStatus) : null
+    INVOICE_DOC_TYPES.includes(body.docType) ? normalizePaymentStatus(body.paymentStatus) : null
   if (!VALID_PAYMENT_STATUSES.includes(paymentStatus)) {
     return NextResponse.json({ error: "Invalid paymentStatus" }, { status: 400 })
   }

@@ -93,13 +93,13 @@ export default async function CustomersPage({ searchParams }: Props) {
       ? Prisma.sql`AND EXISTS (
           SELECT 1 FROM documents purchase_doc
           WHERE purchase_doc.customer_id = c.id
-            AND purchase_doc.doc_type = 'tax_invoice'
+            AND purchase_doc.doc_type IN ('tax_invoice', 'abb_invoice')
         )`
       : purchaseStatus === "not_purchased"
         ? Prisma.sql`AND NOT EXISTS (
             SELECT 1 FROM documents purchase_doc
             WHERE purchase_doc.customer_id = c.id
-              AND purchase_doc.doc_type = 'tax_invoice'
+              AND purchase_doc.doc_type IN ('tax_invoice', 'abb_invoice')
           )`
         : Prisma.sql``
 
@@ -114,7 +114,7 @@ export default async function CustomersPage({ searchParams }: Props) {
         LEFT JOIN LATERAL (
           SELECT doc_date
           FROM documents
-          WHERE customer_id = c.id AND doc_type = 'tax_invoice'
+          WHERE customer_id = c.id AND doc_type IN ('tax_invoice', 'abb_invoice')
           ORDER BY doc_date DESC
           LIMIT 1
         ) last_inv ON TRUE
@@ -155,7 +155,7 @@ export default async function CustomersPage({ searchParams }: Props) {
       LEFT JOIN LATERAL (
         SELECT doc_date, total, salesperson_id
         FROM documents
-        WHERE customer_id = c.id AND doc_type = 'tax_invoice'
+        WHERE customer_id = c.id AND doc_type IN ('tax_invoice', 'abb_invoice')
         ORDER BY doc_date DESC
         LIMIT 1
       ) last_inv ON TRUE
@@ -324,7 +324,7 @@ export default async function CustomersPage({ searchParams }: Props) {
                 </div>
                 <div>
                   <p className="text-xs text-[var(--crm-muted)]">{t("table.salesperson")}</p>
-                  <p className="font-medium">{formatSalespersonName(c.salesperson_name)}</p>
+                  <p className="font-medium">{formatSalespersonName(c.salesperson_name, t("unknownSalesperson"))}</p>
                 </div>
               </div>
             </Link>
@@ -396,7 +396,7 @@ export default async function CustomersPage({ searchParams }: Props) {
                       })
                     : "—"}
                 </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500">{formatSalespersonName(c.salesperson_name)}</TableCell>
+                <TableCell className="px-4 py-3 text-gray-500">{formatSalespersonName(c.salesperson_name, t("unknownSalesperson"))}</TableCell>
               </TableRow>
             ))}
           </TableBody>

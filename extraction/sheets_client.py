@@ -48,6 +48,8 @@ def append_document_row(sheet_id: str, row_data: dict) -> None:
         row_data.get("channel", ""),
         row_data.get("salesperson", ""),
         row_data.get("customer_name", ""),
+        float(row_data["subtotal"]) if row_data.get("subtotal") is not None else "",
+        float(row_data["vat"]) if row_data.get("vat") is not None else "",
         float(row_data["total"]) if row_data.get("total") is not None else "",
         row_data.get("payment_status", ""),
         row_data.get("gdrive_filename", ""),
@@ -66,6 +68,8 @@ def batch_append_rows(sheet_id: str, rows: List[dict]) -> None:
         r["doc_type"], r["doc_number"], _fmt_date(r["doc_date"]),
         r.get("channel", ""), r.get("salesperson", ""),
         r.get("customer_name", ""),
+        float(r["subtotal"]) if r.get("subtotal") is not None else "",
+        float(r["vat"]) if r.get("vat") is not None else "",
         float(r["total"]) if r.get("total") is not None else "",
         r.get("payment_status", ""), r.get("gdrive_filename", ""),
     ] for r in rows]

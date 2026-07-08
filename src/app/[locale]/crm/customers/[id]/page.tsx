@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { DocTypeBadge } from "@/app/[locale]/crm/documents/DocTypeBadge"
+import { DocTypeBadge, INVOICE_DOC_TYPES } from "@/app/[locale]/crm/documents/DocTypeBadge"
 import { CustomerDocumentFilters } from "@/app/[locale]/crm/customers/[id]/CustomerDocumentFilters"
 import { UndoMergeButton } from "@/app/[locale]/crm/customers/[id]/UndoMergeButton"
 import { Link } from "@/i18n/navigation"
@@ -136,7 +136,7 @@ export default async function CustomerDetailPage({ params, searchParams }: Props
           COUNT(d.id) AS total_invoices,
           RANK() OVER (ORDER BY SUM(d.total) DESC) AS purchase_rank
         FROM documents d
-        WHERE d.doc_type = 'tax_invoice'
+        WHERE d.doc_type IN ('tax_invoice', 'abb_invoice')
           AND d.payment_status = 'paid'
         GROUP BY d.customer_id
       )
@@ -148,8 +148,8 @@ export default async function CustomerDetailPage({ params, searchParams }: Props
     `,
     prisma.$queryRaw<CustomerDocumentStatsRow[]>`
       SELECT
-        COALESCE(SUM(d.total) FILTER (WHERE d.doc_type = 'tax_invoice'), 0) AS total_spend,
-        MAX(d.doc_date) FILTER (WHERE d.doc_type = 'tax_invoice') AS last_purchase,
+        COALESCE(SUM(d.total) FILTER (WHERE d.doc_type IN ('tax_invoice', 'abb_invoice')), 0) AS total_spend,
+        MAX(d.doc_date) FILTER (WHERE d.doc_type IN ('tax_invoice', 'abb_invoice')) AS last_purchase,
         COALESCE(csp.name, MAX(sp.name)) AS salesperson_name
       FROM customers c
       LEFT JOIN documents d ON d.customer_id = c.id
@@ -172,7 +172,7 @@ export default async function CustomerDetailPage({ params, searchParams }: Props
       JOIN documents d ON d.id = di.document_id
       LEFT JOIN products p ON p.id = di.product_id
       WHERE d.customer_id = ${customerId}
-        AND d.doc_type = 'tax_invoice'
+        AND d.doc_type IN ('tax_invoice', 'abb_invoice')
         AND d.payment_status = 'paid'
       GROUP BY di.product_id, p.sku_code, p.full_name, CASE WHEN di.product_id IS NULL THEN di.description ELSE NULL END
       ORDER BY total_amount DESC
@@ -272,7 +272,7 @@ export default async function CustomerDetailPage({ params, searchParams }: Props
           <InfoRow label={t("info.type")} value={customer.type ?? "—"} />
           <InfoRow label={t("info.status")} value={formatCustomerStatus(customer.status, t)} />
           <InfoRow label="VAT" value={customer.vatRegistered ? t("info.vatRegistered") : t("info.vatNotRegistered")} />
-          <InfoRow label="Salesperson" value={formatSalespersonName(salespersonName)} />
+          <InfoRow label="Salesperson" value={formatSalespersonName(salespersonName, t("unknownSalesperson"))} />
           <InfoRow label={t("info.phone")} value={customer.phone ?? "—"} />
           <InfoRow label={t("info.email")} value={customer.email ?? "—"} />
           <InfoRow label="LINE" value={customer.lineId ?? "—"} />
@@ -399,14 +399,14 @@ export default async function CustomerDetailPage({ params, searchParams }: Props
                   <DocTypeBadge docType={d.doc_type} />
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500">{d.channel ?? "—"}</TableCell>
-                <TableCell className="px-4 py-3">{formatSalespersonName(d.salesperson_name)}</TableCell>
+                <TableCell className="px-4 py-3">{formatSalespersonName(d.salesperson_name, t("unknownSalesperson"))}</TableCell>
                 <TableCell className="px-4 py-3 text-right tabular-nums">
                   {d.total != null
                     ? formatCurrency(d.total, localeTag)
                     : "—"}
                 </TableCell>
                 <TableCell className="px-4 py-3">
-                  {d.doc_type === "tax_invoice" ? (
+                  {INVOICE_DOC_TYPES.includes(d.doc_type) ? (
                     <PaymentBadge status={d.payment_status} t={t} />
                   ) : (
                     <span className="text-gray-400">—</span>
@@ -778,9 +778,16 @@ function PaymentBadge({ status, t }: { status: string | null; t: Awaited<ReturnT
       </Badge>
     )
   }
+  if (status === "pending") {
+    return (
+      <Badge variant="outline" className="border-yellow-200 bg-yellow-100 text-yellow-800">
+        {t("payment.pending")}
+      </Badge>
+    )
+  }
   return (
-    <Badge variant="outline" className="border-yellow-200 bg-yellow-100 text-yellow-800">
-      {t("payment.pending")}
+    <Badge variant="outline" className="border-gray-200 bg-gray-100 text-gray-700">
+      —
     </Badge>
   )
 }

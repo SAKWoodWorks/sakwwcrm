@@ -83,13 +83,13 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
     }),
     prisma.$queryRaw<ProductStatsRow[]>`
       SELECT
-        COALESCE(SUM(di.quantity) FILTER (WHERE d.doc_type = 'tax_invoice' AND d.payment_status = 'paid'), 0) AS paid_qty,
-        COALESCE(SUM(di.total) FILTER (WHERE d.doc_type = 'tax_invoice' AND d.payment_status = 'paid'), 0) AS paid_amount,
-        COUNT(DISTINCT d.id) FILTER (WHERE d.doc_type = 'tax_invoice' AND d.payment_status = 'paid') AS paid_invoice_count,
+        COALESCE(SUM(di.quantity) FILTER (WHERE d.doc_type IN ('tax_invoice', 'abb_invoice') AND d.payment_status = 'paid'), 0) AS paid_qty,
+        COALESCE(SUM(di.total) FILTER (WHERE d.doc_type IN ('tax_invoice', 'abb_invoice') AND d.payment_status = 'paid'), 0) AS paid_amount,
+        COUNT(DISTINCT d.id) FILTER (WHERE d.doc_type IN ('tax_invoice', 'abb_invoice') AND d.payment_status = 'paid') AS paid_invoice_count,
         COALESCE(SUM(di.quantity) FILTER (WHERE d.doc_type = 'quotation'), 0) AS quoted_qty,
         COALESCE(SUM(di.total) FILTER (WHERE d.doc_type = 'quotation'), 0) AS quoted_amount,
         COUNT(DISTINCT d.id) FILTER (WHERE d.doc_type = 'quotation') AS quote_count,
-        MAX(d.doc_date) FILTER (WHERE d.doc_type = 'tax_invoice' AND d.payment_status = 'paid') AS last_invoice_date
+        MAX(d.doc_date) FILTER (WHERE d.doc_type IN ('tax_invoice', 'abb_invoice') AND d.payment_status = 'paid') AS last_invoice_date
       FROM document_items di
       JOIN documents d ON d.id = di.document_id
       WHERE di.product_id = ${productId}
