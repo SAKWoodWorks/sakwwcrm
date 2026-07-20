@@ -67,3 +67,7 @@ docs/db-column.pdf
 
 # Claude memory
 .claude/
+
+# Local scripts (contain server IP)
+tunnel.bat
+dump_db.bat
