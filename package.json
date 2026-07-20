@@ -13,6 +13,8 @@
     "db:generate": "dotenv -e .env.local -- npx prisma generate"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.110.0",
+    "@google/generative-ai": "^0.24.1",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@types/pg": "^8.20.0",
