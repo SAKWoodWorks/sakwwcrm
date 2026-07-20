@@ -301,7 +301,7 @@ export function createGeminiModel() {
   if (!apiKey) return null
   const genAI = new GoogleGenerativeAI(apiKey)
   return genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     systemInstruction: SYSTEM_INSTRUCTION,
     tools: [{ functionDeclarations: toolDeclarations as FunctionDeclaration[] }],
   })
