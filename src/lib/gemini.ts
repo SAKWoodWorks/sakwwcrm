@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI, SchemaType, type FunctionDeclaration } from "@google/generative-ai"
 import { Prisma } from "@prisma/client"
 import { prisma } from "./prisma"
+import { getDeliveryCosts } from "./delivery-costs"
 
 const SYSTEM_INSTRUCTION = `You are a CRM assistant for a Thai timber and wood-products company. Answer questions about customers, sales, deals, and products using the provided tools. Always respond in the same language the user writes in (Thai, English, or Russian). Be concise. Format currency as Thai Baht with commas (e.g. ฿1,234,567). Format dates as DD/MM/YYYY. Never make up data — only report what the tools return.`
 
@@ -84,6 +85,17 @@ export const toolDeclarations = [
         year: { type: SchemaType.NUMBER, description: "4-digit year e.g. 2026 (optional)" },
       },
       required: [] as string[],
+    },
+  },
+  {
+    name: "get_delivery_cost",
+    description: "Get delivery cost tiers for a province. Returns pricing by vehicle type (4-wheel, 6-wheel) and invoice amount bracket.",
+    parameters: {
+      type: SchemaType.OBJECT,
+      properties: {
+        province: { type: SchemaType.STRING, description: "Province name in Thai or English (substring search)" },
+      },
+      required: ["province"],
     },
   },
 ]
@@ -321,6 +333,24 @@ export async function executeTool(name: string, args: Record<string, unknown>): 
       last_purchase_date: r.last_date.toISOString().slice(0, 10),
       total_thb: Number(r.total),
     }))
+  }
+
+  if (name === "get_delivery_cost") {
+    const provinceQuery = String(args.province ?? "").toLowerCase()
+    const rows = await getDeliveryCosts()
+    const match = rows.find(
+      (r) =>
+        r.provinceThai.toLowerCase().includes(provinceQuery) ||
+        r.provinceEnglish.toLowerCase().includes(provinceQuery),
+    )
+    if (!match) return { found: false, searched: args.province }
+    return {
+      found: true,
+      province_thai: match.provinceThai,
+      province_english: match.provinceEnglish,
+      vehicle_4_wheel: match.tiers["4w"].map((t) => ({ range: t.label, cost_thb: t.cost })),
+      vehicle_6_wheel: match.tiers["6w"].map((t) => ({ range: t.label, cost_thb: t.cost })),
+    }
   }
 
   return { error: `Unknown tool: ${name}` }
