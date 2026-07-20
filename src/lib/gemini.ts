@@ -63,6 +63,17 @@ export const toolDeclarations = [
     },
   },
   {
+    name: "get_recent_customers",
+    description: "Get customers who purchased most recently, sorted by latest purchase date descending",
+    parameters: {
+      type: SchemaType.OBJECT,
+      properties: {
+        limit: { type: SchemaType.NUMBER, description: "How many customers to return (default 10)" },
+      },
+      required: [] as string[],
+    },
+  },
+  {
     name: "get_top_products",
     description: "Get top-selling products by revenue. Optionally filter by month and/or year.",
     parameters: {
@@ -291,6 +302,25 @@ export async function executeTool(name: string, args: Record<string, unknown>): 
       `
     }
     return rows.map((r, i) => ({ rank: i + 1, product: r.product_name, sku: r.sku_code ?? "—", revenue_thb: Number(r.revenue) }))
+  }
+
+  if (name === "get_recent_customers") {
+    const limit = Math.min(Number(args.limit ?? 10), 50)
+    type Row = { name: string; last_date: Date; total: Prisma.Decimal }
+    const rows = await prisma.$queryRaw<Row[]>`
+      SELECT c.name, MAX(d.doc_date) AS last_date, COALESCE(SUM(d.total), 0) AS total
+      FROM customers c JOIN documents d ON d.customer_id = c.id
+      WHERE d.doc_type IN ('tax_invoice', 'abb_invoice')
+      GROUP BY c.id, c.name
+      ORDER BY last_date DESC
+      LIMIT ${limit}
+    `
+    return rows.map((r, i) => ({
+      rank: i + 1,
+      name: r.name,
+      last_purchase_date: r.last_date.toISOString().slice(0, 10),
+      total_thb: Number(r.total),
+    }))
   }
 
   return { error: `Unknown tool: ${name}` }
