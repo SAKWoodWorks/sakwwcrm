@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { pushMessage } from "@/lib/line"
+import { draftFollowUpMessage } from "@/lib/ai"
 
 interface LapsedCustomer {
   id: number
@@ -66,12 +67,24 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       const lastTotalFormatted = row.last_total != null
         ? Number(row.last_total).toLocaleString("th-TH")
         : "—"
-      const text = [
+      const templateText = [
         `⚠️ ${row.customer_name} ไม่ได้ซื้อมา ${Number(row.days_since)} วันแล้ว`,
         `📦 ซื้อทั้งหมด ${Number(row.order_count)} ครั้ง`,
         `💰 ยอดล่าสุด ฿${lastTotalFormatted}`,
       ].join("\n")
-      await pushMessage(row.line_user_id, text)
+      let aiMessage: string | null = null
+      try {
+        aiMessage = await draftFollowUpMessage({
+          customerName: row.customer_name,
+          salespersonName: row.salesperson_name,
+          daysSince: Number(row.days_since),
+          orderCount: Number(row.order_count),
+          lastTotal: row.last_total != null ? Number(row.last_total) : null,
+        })
+      } catch (err) {
+        console.error(`AI draft failed for customer ${row.id}:`, err)
+      }
+      await pushMessage(row.line_user_id, aiMessage ?? templateText)
       sent++
     } catch (err) {
       console.error(`LINE push failed for customer ${row.id}:`, err)

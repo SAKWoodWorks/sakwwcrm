@@ -137,6 +137,19 @@ def insert_document_items(conn, document_id: int, items: list, product_ids: list
             ))
 
 
+def fetch_all_products(conn) -> list:
+    """Returns [{"id": int, "sku_code": str, "full_name": str}, ...] for every product.
+
+    Used to build the compact catalog sent to the LLM tier-4 product matcher.
+    """
+    with conn.cursor() as cur:
+        cur.execute("SELECT id, sku_code, full_name FROM products ORDER BY id")
+        return [
+            {"id": row[0], "sku_code": row[1] or "", "full_name": row[2] or ""}
+            for row in cur.fetchall()
+        ]
+
+
 def fetch_products_by_ids(conn, ids: list) -> dict:
     """Returns {product_id: {"sku_code": str, "full_name": str}}"""
     valid_ids = [i for i in ids if i is not None]

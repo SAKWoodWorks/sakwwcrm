@@ -1,6 +1,9 @@
 import re
 from typing import Optional
 
+from db import fetch_all_products
+from llm_client import ask_json, llm_available
+
 
 def _decimal_text(value: float) -> str:
     text = f"{value:.3f}".rstrip("0").rstrip(".")
@@ -178,13 +181,88 @@ def _description_candidates(description: str) -> list[str]:
     return candidates
 
 
+_LLM_MATCH_SYSTEM_PROMPT = """You match line-item descriptions from Thai timber/wood product \
+invoices to a product catalog for a CRM system.
+
+You will be given one line-item description and a catalog of products, each listed as \
+"id\tsku_code\tfull_name". Identify the single catalog product the description refers to, \
+if any. Descriptions may mix Thai and English, include dimensions (thickness x width x \
+length, in various units), packing notes, or other free text.
+
+Respond with JSON only, no other text, no markdown fences:
+{"product_id": <int or null>, "confidence": "high" or "low"}
+
+Only use "high" confidence when you are confident the product_id is an exact, unambiguous \
+match. If uncertain, no clear match exists, or more than one product could plausibly match, \
+respond with "confidence": "low" (product_id may still be your best guess, but it will be \
+ignored unless confidence is "high")."""
+
+# In-process memo so repeated descriptions in one run don't re-hit the API.
+_llm_match_cache: dict[str, Optional[int]] = {}
+
+
+def _insert_transform_rule(conn, description: str, product_id: int) -> None:
+    """Persist an LLM tier-4 match as a deterministic tier-3 rule for future runs."""
+    pattern = f"^{re.escape(description)}$"
+    with conn.cursor() as cur:
+        cur.execute(
+            "INSERT INTO product_transform_rules (pattern, product_id) VALUES (%s, %s)",
+            (pattern, product_id),
+        )
+
+
+def _llm_match_product_id(conn, description: str) -> Optional[int]:
+    """Strategy 4: ask Claude to match against the full product catalog.
+
+    Only called when strategies 1-3 miss. Returns None (never raises) if the
+    API key is missing, the API call fails, or the response isn't a confident,
+    valid match.
+    """
+    if not llm_available():
+        return None
+    if description in _llm_match_cache:
+        return _llm_match_cache[description]
+
+    products = fetch_all_products(conn)
+    if not products:
+        _llm_match_cache[description] = None
+        return None
+
+    catalog_text = "\n".join(f"{p['id']}\t{p['sku_code']}\t{p['full_name']}" for p in products)
+    user_prompt = f"Description:\n{description}\n\nCatalog (id\\tsku_code\\tfull_name):\n{catalog_text}"
+
+    result = ask_json(_LLM_MATCH_SYSTEM_PROMPT, user_prompt)
+
+    matched_id: Optional[int] = None
+    if result:
+        candidate = result.get("product_id")
+        confidence = result.get("confidence")
+        valid_ids = {p["id"] for p in products}
+        if confidence == "high" and isinstance(candidate, int) and not isinstance(candidate, bool) and candidate in valid_ids:
+            matched_id = candidate
+            _insert_transform_rule(conn, description, matched_id)
+
+    _llm_match_cache[description] = matched_id
+    return matched_id
+
+
 def match_product_id(conn, description: str) -> Optional[int]:
     """Match description to product_id.
 
     Strategy 1: full_name prefix match
     Strategy 2: dimension + product keyword, with stricter Bamboo profile/color matching
     Strategy 3: product_transform_rules regex (manual overrides)
+    Strategy 4: LLM-assisted match against the full catalog (only when 1-3 miss
+      and an Anthropic API key is configured); accepted matches are persisted
+      as a new tier-3 rule so future runs don't need the API.
     """
+    product_id = _match_product_id_by_rules(conn, description)
+    if product_id is not None:
+        return product_id
+    return _llm_match_product_id(conn, description)
+
+
+def _match_product_id_by_rules(conn, description: str) -> Optional[int]:
     with conn.cursor() as cur:
         # Strategy 1: full_name prefix
         for candidate in _description_candidates(description):

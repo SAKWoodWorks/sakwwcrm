@@ -30,11 +30,95 @@ from db import (
     is_already_synced, upsert_salesperson, upsert_customer,
     insert_document, insert_document_items, log_sync, fetch_products_by_ids,
 )
-from parsers.filename_parser import parse_filename
+from llm_client import ask_json, llm_available
+from parsers.filename_parser import parse_filename, FilenameMetadata
 from parsers.province_parser import extract_province_from_address
 from parsers.xlsx_parser import parse_tax_invoice, parse_quotation
 from product_matcher import match_product_id
 from sheets_client import append_document_row, batch_append_items, ensure_items_header
+
+
+_FILENAME_LLM_SYSTEM_PROMPT = """You extract structured metadata from CRM document \
+filenames used by a Thai timber/wood trading company. There are two known filename \
+conventions:
+
+1) Tax invoices start with "TI_B No", "TI&B No", or "I_B No", followed by a document \
+number, a date as DD-MM-YYYY (the year may be Thai Buddhist Era, e.g. 2569; if year > \
+2500, convert to Gregorian by subtracting 543), then usually a sales channel and \
+salesperson name, then a parenthesized payment marker (contains "PAID" when paid, \
+otherwise it means pending), an optional second parenthesized reference document number \
+("--" or empty means none), then the customer name and province/region at the end. \
+Example: "TI_B No 256V 15-05-2026 Web Pickachu(-PAID-)(--) เคไอที PTPU.xlsx"
+
+2) Quotations start with "Quotation No", followed by a document number, a date DD-MM-YYYY \
+(same Buddhist Era rule), a sales channel, a salesperson, a parenthesized payment marker, \
+then the customer name and province. Example: \
+"Quotation No 177PR 14-05-2026 Web Pickachu (--) คุณภูริ PTPU.xlsx"
+
+You will be given one filename that does not match these patterns cleanly. Do your best \
+to extract the same fields anyway. Respond with JSON only, no other text, no markdown \
+fences:
+{"doc_type": "tax_invoice" or "quotation", "doc_number": string, \
+"doc_date": "YYYY-MM-DD" (Gregorian — already converted from Buddhist Era if needed), \
+"channel": string or null, "salesperson": string or null, \
+"payment_status": "paid" or "pending", "ref_doc_number": string or null, \
+"customer_short": string, "province": string}
+
+If a field can't be confidently determined, use null for the optional fields (channel, \
+salesperson, ref_doc_number) or your best guess for the required ones."""
+
+
+def _llm_parse_filename(filename: str) -> FilenameMetadata | None:
+    """Best-effort LLM fallback for filenames the regex parser (parse_filename) can't
+    handle. Returns None if the LLM is unavailable, errors, or returns data that fails
+    validation — callers must fall back to the original ValueError in that case.
+    """
+    if not llm_available():
+        return None
+
+    result = ask_json(_FILENAME_LLM_SYSTEM_PROMPT, f"Filename: {filename}")
+    if not result:
+        return None
+
+    try:
+        doc_type = result.get("doc_type")
+        if doc_type not in ("tax_invoice", "quotation"):
+            return None
+
+        doc_date = datetime.strptime(result.get("doc_date"), "%Y-%m-%d").date()
+        if not (2000 <= doc_date.year <= 2100):
+            return None
+
+        payment_status = result.get("payment_status")
+        if payment_status not in ("paid", "pending"):
+            return None
+
+        doc_number = result.get("doc_number")
+        if not isinstance(doc_number, str) or not doc_number.strip():
+            return None
+
+        customer_short = result.get("customer_short")
+        province = result.get("province")
+        if not isinstance(customer_short, str) or not isinstance(province, str):
+            return None
+
+        def _opt_str(value):
+            return value.strip() if isinstance(value, str) and value.strip() else None
+
+        return FilenameMetadata(
+            doc_type=doc_type,
+            doc_number=doc_number.strip(),
+            doc_date=doc_date,
+            channel=_opt_str(result.get("channel")),
+            salesperson=_opt_str(result.get("salesperson")),
+            payment_status=payment_status,
+            ref_doc_number=_opt_str(result.get("ref_doc_number")),
+            customer_short=customer_short.strip(),
+            province=province.strip(),
+        )
+    except Exception as e:
+        print(f"[extract_file] warning: LLM filename parse produced invalid data: {e}", file=sys.stderr)
+        return None
 
 
 def _to_gregorian(raw) -> date:
@@ -66,7 +150,13 @@ def process(filepath: str, filename: str, file_id: str, dry_run: bool = False, s
             conn.close()
             return
 
-        meta = parse_filename(filename)
+        try:
+            meta = parse_filename(filename)
+        except ValueError:
+            meta = _llm_parse_filename(filename)
+            if meta is None:
+                raise
+
         if salesperson_override:
             meta.salesperson = salesperson_override
 

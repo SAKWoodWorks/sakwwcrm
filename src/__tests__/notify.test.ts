@@ -11,8 +11,13 @@ vi.mock("@/lib/line", () => ({
   pushMessage: vi.fn(),
 }))
 
+vi.mock("@/lib/ai", () => ({
+  draftFollowUpMessage: vi.fn(),
+}))
+
 import { prisma } from "@/lib/prisma"
 import { pushMessage } from "@/lib/line"
+import { draftFollowUpMessage } from "@/lib/ai"
 import { GET } from "@/app/api/notify/route"
 
 function makeRequest(token: string): NextRequest {
@@ -23,6 +28,7 @@ describe("GET /api/notify", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.stubEnv("NOTIFY_SECRET", "my-secret")
+    ;(draftFollowUpMessage as ReturnType<typeof vi.fn>).mockResolvedValue(null)
   })
   afterEach(() => {
     vi.unstubAllEnvs()
@@ -122,5 +128,91 @@ describe("GET /api/notify", () => {
     )
     const res = await GET(makeRequest("my-secret"))
     expect(res.status).toBe(500)
+  })
+
+  it("uses the AI-drafted message when draftFollowUpMessage returns text", async () => {
+    ;(prisma.$queryRaw as ReturnType<typeof vi.fn>).mockResolvedValue([
+      {
+        id: 1,
+        customer_name: "บริษัท เคไอที จำกัด",
+        line_user_id: "Uabc111",
+        salesperson_name: "Pickachu",
+        last_purchase: new Date("2026-01-01"),
+        days_since: 137,
+        order_count: BigInt(12),
+        last_total: 27960,
+      },
+    ])
+    ;(pushMessage as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
+    ;(draftFollowUpMessage as ReturnType<typeof vi.fn>).mockResolvedValue(
+      "สวัสดีค่ะคุณลูกค้า ไม่ได้ติดต่อกันนานเลยนะคะ"
+    )
+
+    const res = await GET(makeRequest("my-secret"))
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(data.sent).toBe(1)
+    expect(pushMessage).toHaveBeenCalledWith(
+      "Uabc111",
+      "สวัสดีค่ะคุณลูกค้า ไม่ได้ติดต่อกันนานเลยนะคะ"
+    )
+  })
+
+  it("falls back to the template message when draftFollowUpMessage returns null", async () => {
+    ;(prisma.$queryRaw as ReturnType<typeof vi.fn>).mockResolvedValue([
+      {
+        id: 1,
+        customer_name: "บริษัท เคไอที จำกัด",
+        line_user_id: "Uabc111",
+        salesperson_name: "Pickachu",
+        last_purchase: new Date("2026-01-01"),
+        days_since: 137,
+        order_count: BigInt(12),
+        last_total: 27960,
+      },
+    ])
+    ;(pushMessage as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
+    ;(draftFollowUpMessage as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+
+    const res = await GET(makeRequest("my-secret"))
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(data.sent).toBe(1)
+    expect(pushMessage).toHaveBeenCalledWith(
+      "Uabc111",
+      "⚠️ บริษัท เคไอที จำกัด ไม่ได้ซื้อมา 137 วันแล้ว\n📦 ซื้อทั้งหมด 12 ครั้ง\n💰 ยอดล่าสุด ฿27,960"
+    )
+  })
+
+  it("falls back to the template message when draftFollowUpMessage throws", async () => {
+    ;(prisma.$queryRaw as ReturnType<typeof vi.fn>).mockResolvedValue([
+      {
+        id: 1,
+        customer_name: "บริษัท เคไอที จำกัด",
+        line_user_id: "Uabc111",
+        salesperson_name: "Pickachu",
+        last_purchase: new Date("2026-01-01"),
+        days_since: 137,
+        order_count: BigInt(12),
+        last_total: 27960,
+      },
+    ])
+    ;(pushMessage as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
+    ;(draftFollowUpMessage as ReturnType<typeof vi.fn>).mockRejectedValue(
+      new Error("network error")
+    )
+
+    const res = await GET(makeRequest("my-secret"))
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(data.sent).toBe(1)
+    expect(data.errors).toHaveLength(0)
+    expect(pushMessage).toHaveBeenCalledWith(
+      "Uabc111",
+      "⚠️ บริษัท เคไอที จำกัด ไม่ได้ซื้อมา 137 วันแล้ว\n📦 ซื้อทั้งหมด 12 ครั้ง\n💰 ยอดล่าสุด ฿27,960"
+    )
   })
 })

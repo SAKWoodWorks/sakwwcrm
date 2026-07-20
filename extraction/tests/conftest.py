@@ -1,5 +1,14 @@
 import pytest
 
+
+@pytest.fixture(autouse=True)
+def _no_ambient_anthropic_key(monkeypatch):
+    """Tests must not depend on whichever ANTHROPIC_API_KEY happens to be in the
+    ambient shell environment (e.g. the agent's own key). Default it to absent;
+    LLM-fallback tests opt back in explicitly via monkeypatch.setenv."""
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+
 SAMPLE_TI_FILENAMES = [
     "TI_B No 256V 15-05-2026 Web Pickachu(-PAID-)(--) เคไอที PTPU.xlsx",
     "TI_B No 258V 18-05-2026 Web Pickachu (-PAID-)(179PW) ดีดี PTPU.xlsx",
