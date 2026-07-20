@@ -12,7 +12,7 @@ export default async function NewDealPage() {
     prisma.customer.findMany({
       select: { id: true, name: true },
       orderBy: { name: "asc" },
-      take: 300,
+
     }),
     prisma.salesperson.findMany({
       where: { active: true },
