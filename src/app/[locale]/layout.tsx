@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { routing } from "@/i18n/routing"
 import { hasLocale, NextIntlClientProvider } from "next-intl"
 import { notFound } from "next/navigation"
+import ChatBubble from "./crm/ChatBubble"
 
 type Props = {
   children: React.ReactNode
@@ -18,6 +19,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       <NavBar />
       <main className="crm-main">{children}</main>
       <Toaster richColors position="top-right" />
+      <ChatBubble />
     </NextIntlClientProvider>
   )
 }
