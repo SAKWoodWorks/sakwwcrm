@@ -16,6 +16,7 @@ import { formatSalespersonName } from "@/lib/salesperson-display"
 import { Link, useRouter } from "@/i18n/navigation"
 import { useTranslations } from "next-intl"
 import { useState } from "react"
+import CustomerCombobox from "./CustomerCombobox"
 
 type Props = {
   customers: { id: number; name: string }[]
@@ -84,19 +85,7 @@ export default function DealCreateForm({ customers, salespersons }: Props) {
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">{t("form.customer")}</label>
-          <Select name="customerId" defaultValue="none">
-            <SelectTrigger className="h-11 bg-white">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-            <SelectItem value="none">{t("form.noCustomer")}</SelectItem>
-            {customers.map((customer) => (
-              <SelectItem key={customer.id} value={String(customer.id)}>
-                {customer.name}
-              </SelectItem>
-            ))}
-            </SelectContent>
-          </Select>
+          <CustomerCombobox customers={customers} noCustomerLabel={t("form.noCustomer")} />
         </div>
 
         <div>
