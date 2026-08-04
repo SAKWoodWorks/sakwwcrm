@@ -34,7 +34,7 @@ type FollowUpRow = {
   line_id: string | null
   salesperson_id: number | null
   salesperson_name: string | null
-  last_paid_date: Date
+  last_paid_date: Date | string
   days_since_purchase: number | bigint
   last_invoice_total: Prisma.Decimal | number | null
   total_paid: Prisma.Decimal | number
@@ -387,8 +387,8 @@ function formatContact(row: FollowUpRow, fallback: string) {
   return values.length > 0 ? values.join(" / ") : fallback
 }
 
-function formatDate(value: Date, localeTag: string) {
-  return value.toLocaleDateString(localeTag)
+function formatDate(value: Date | string, localeTag: string) {
+  return new Date(value).toLocaleDateString(localeTag)
 }
 
 function formatCurrency(value: Prisma.Decimal | number | null, localeTag: string) {
