@@ -17,10 +17,13 @@ import { getLocale, getTranslations } from "next-intl/server"
 import { unstable_cache } from "next/cache"
 import FollowUpFilters from "./FollowUpFilters"
 
+const PAGE_SIZE = 50
+
 type Props = {
   searchParams: Promise<{
     bucket?: string
     salesperson?: string
+    page?: string
   }>
 }
 
@@ -51,6 +54,7 @@ export default async function FollowUpPage({ searchParams }: Props) {
   const query = await searchParams
   const selectedBucket = normalizeBucket(query.bucket)
   const selectedSalesperson = normalizeSalesperson(query.salesperson)
+  const page = Math.max(1, parseInt(query.page ?? "1") || 1)
   const [t, locale, rows, salespersons] = await Promise.all([
     getTranslations("FollowUp"),
     getLocale(),
@@ -69,6 +73,18 @@ export default async function FollowUpPage({ searchParams }: Props) {
   const salespersonFilteredRows = rows.filter((row) => matchesSalesperson(row, selectedSalesperson))
   const bucketCounts = countBuckets(salespersonFilteredRows)
   const filteredRows = salespersonFilteredRows.filter((row) => matchesBucket(row, selectedBucket))
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const pagedRows = filteredRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
+  function pageUrl(p: number) {
+    const params = new URLSearchParams()
+    if (selectedBucket) params.set("bucket", selectedBucket)
+    if (selectedSalesperson) params.set("salesperson", selectedSalesperson)
+    if (p > 1) params.set("page", String(p))
+    const qs = params.toString()
+    return `/crm/follow-up${qs ? `?${qs}` : ""}`
+  }
 
   return (
     <div className="crm-page">
@@ -100,12 +116,12 @@ export default async function FollowUpPage({ searchParams }: Props) {
       </div>
 
       <div className="grid gap-3 md:hidden">
-        {filteredRows.length === 0 ? (
+        {pagedRows.length === 0 ? (
           <Card className="rounded-lg border-[var(--crm-line)] bg-white shadow-[var(--crm-shadow)]">
             <CardContent className="p-5 text-sm text-[var(--crm-muted)]">{t("empty")}</CardContent>
           </Card>
         ) : (
-          filteredRows.map((row) => (
+          pagedRows.map((row) => (
             <Card key={row.customer_id} className="rounded-lg border-[var(--crm-line)] bg-white shadow-[var(--crm-shadow)]">
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -148,14 +164,14 @@ export default async function FollowUpPage({ searchParams }: Props) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredRows.length === 0 ? (
+            {pagedRows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="px-4 py-6 text-center text-gray-400">
                   {t("empty")}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredRows.map((row) => (
+              pagedRows.map((row) => (
                 <TableRow key={row.customer_id} className="hover:bg-gray-50">
                   <TableCell className="px-4 py-3 font-medium">
                     <Link href={`/crm/customers/${row.customer_id}`} className="text-[var(--crm-ink)] hover:text-[var(--crm-brand)] hover:underline">
@@ -180,6 +196,26 @@ export default async function FollowUpPage({ searchParams }: Props) {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+        <span>
+          {filteredRows.length === 0
+            ? ""
+            : `${((currentPage - 1) * PAGE_SIZE + 1).toLocaleString(localeTag)}–${Math.min(currentPage * PAGE_SIZE, filteredRows.length).toLocaleString(localeTag)} / ${filteredRows.length.toLocaleString(localeTag)}`}
+        </span>
+        <div className="flex gap-2">
+          {currentPage > 1 && (
+            <Link href={pageUrl(currentPage - 1)} className="rounded border px-3 py-1 hover:bg-gray-100">
+              ←
+            </Link>
+          )}
+          {currentPage < totalPages && (
+            <Link href={pageUrl(currentPage + 1)} className="rounded border px-3 py-1 hover:bg-gray-100">
+              →
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   )
