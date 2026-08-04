@@ -52,9 +52,10 @@ function runImport(jobId: number, scriptPath: string, uploadPath: string, cwd: s
       maxBuffer: 20 * 1024 * 1024,
     },
     (error, stdout, stderr) => {
-      const payload = stdout ? parseImportOutput(stdout) : { ok: false, results: [], error: stderr || "Import failed" }
+      const execError = error?.message ?? null
+      const payload = stdout ? parseImportOutput(stdout) : { ok: false, results: [], error: stderr || execError || "Import failed" }
       const status = error ? "failed" : "completed"
-      const errorMessage = error ? ((payload.error ?? stderr) || "Import failed") : null
+      const errorMessage = error ? ((payload.error ?? stderr ?? execError) || "Import failed") : null
 
       void prisma.importJob.update({
         where: { id: jobId },

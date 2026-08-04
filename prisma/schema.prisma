@@ -128,7 +128,7 @@ model Document {
   items          DocumentItem[]
 
   @@map("documents")
-  @@index([customerId])
+  @@index([customerId, docType, docDate(sort: Desc)])
   @@index([docType])
   @@index([salespersonId])
 }
