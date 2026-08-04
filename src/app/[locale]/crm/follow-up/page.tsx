@@ -14,6 +14,7 @@ import { Link } from "@/i18n/navigation"
 import { prisma } from "@/lib/prisma"
 import { Prisma } from "@prisma/client"
 import { getLocale, getTranslations } from "next-intl/server"
+import { unstable_cache } from "next/cache"
 import FollowUpFilters from "./FollowUpFilters"
 
 type Props = {
@@ -53,7 +54,7 @@ export default async function FollowUpPage({ searchParams }: Props) {
   const [t, locale, rows, salespersons] = await Promise.all([
     getTranslations("FollowUp"),
     getLocale(),
-    getFollowUpRows(),
+    getCachedFollowUpRows(),
     prisma.salesperson.findMany({
       where: { active: true },
       select: { id: true, name: true },
@@ -204,6 +205,12 @@ function Info({ label, value }: { label: string; value: string }) {
   )
 }
 
+const getCachedFollowUpRows = unstable_cache(
+  getFollowUpRows,
+  ["follow-up-rows"],
+  { revalidate: 300 },
+)
+
 async function getFollowUpRows() {
   return prisma.$queryRaw<FollowUpRow[]>`
     WITH paid_docs AS (
@@ -226,13 +233,19 @@ async function getFollowUpRows() {
       FROM paid_docs
       GROUP BY customer_id
     ),
+    lapsed AS (
+      SELECT customer_id, last_paid_date, total_paid
+      FROM customer_totals
+      WHERE last_paid_date <= CURRENT_DATE - INTERVAL '30 days'
+    ),
     last_docs AS (
-      SELECT DISTINCT ON (customer_id)
-        customer_id,
-        total AS last_invoice_total,
-        salesperson_id
-      FROM paid_docs
-      ORDER BY customer_id, doc_date DESC, id DESC
+      SELECT DISTINCT ON (pd.customer_id)
+        pd.customer_id,
+        pd.total AS last_invoice_total,
+        pd.salesperson_id
+      FROM paid_docs pd
+      JOIN lapsed l ON l.customer_id = pd.customer_id
+      ORDER BY pd.customer_id, pd.doc_date DESC, pd.id DESC
     ),
     product_rank AS (
       SELECT
@@ -244,9 +257,11 @@ async function getFollowUpRows() {
           ORDER BY MAX(pd.doc_date) DESC, COALESCE(p.full_name, di.description) ASC
         ) AS product_rank
       FROM paid_docs pd
+      JOIN lapsed l ON l.customer_id = pd.customer_id
       JOIN document_items di ON di.document_id = pd.id
       LEFT JOIN products p ON p.id = di.product_id
       WHERE COALESCE(p.full_name, di.description) IS NOT NULL
+        AND pd.doc_date >= CURRENT_DATE - INTERVAL '3 years'
       GROUP BY pd.customer_id, COALESCE(p.full_name, di.description)
     ),
     recent_products AS (
@@ -264,19 +279,18 @@ async function getFollowUpRows() {
       c.line_id,
       COALESCE(c.salesperson_id, ld.salesperson_id) AS salesperson_id,
       COALESCE(csp.name, lsp.name) AS salesperson_name,
-      ct.last_paid_date,
-      GREATEST(0, FLOOR(EXTRACT(EPOCH FROM (CURRENT_DATE::timestamp - ct.last_paid_date)) / 86400))::int AS days_since_purchase,
+      l.last_paid_date,
+      GREATEST(0, FLOOR(EXTRACT(EPOCH FROM (CURRENT_DATE::timestamp - l.last_paid_date)) / 86400))::int AS days_since_purchase,
       ld.last_invoice_total,
-      ct.total_paid,
+      l.total_paid,
       rp.recent_products
-    FROM customer_totals ct
-    JOIN customers c ON c.id = ct.customer_id
-    LEFT JOIN last_docs ld ON ld.customer_id = ct.customer_id
+    FROM lapsed l
+    JOIN customers c ON c.id = l.customer_id
+    LEFT JOIN last_docs ld ON ld.customer_id = l.customer_id
     LEFT JOIN salespersons csp ON csp.id = c.salesperson_id
     LEFT JOIN salespersons lsp ON lsp.id = ld.salesperson_id
-    LEFT JOIN recent_products rp ON rp.customer_id = ct.customer_id
-    WHERE ct.last_paid_date <= CURRENT_DATE - INTERVAL '30 days'
-    ORDER BY days_since_purchase DESC, ct.total_paid DESC, c.name ASC
+    LEFT JOIN recent_products rp ON rp.customer_id = l.customer_id
+    ORDER BY days_since_purchase DESC, l.total_paid DESC, c.name ASC
   `
 }
 

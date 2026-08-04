@@ -129,7 +129,7 @@ model Document {
 
   @@map("documents")
   @@index([customerId, docType, docDate(sort: Desc)])
-  @@index([docType])
+  @@index([docType, paymentStatus, customerId, docDate(sort: Desc)])
   @@index([salespersonId])
 }
 
