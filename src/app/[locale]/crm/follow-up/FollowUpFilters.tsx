@@ -17,15 +17,18 @@ type SalespersonOption = {
   label: string
 }
 
+const LIMIT_OPTIONS = ["25", "50", "100", "200"] as const
+
 type Props = {
   bucket: string
   salesperson: string
   salespersons: SalespersonOption[]
+  limit: string
 }
 
 const BUCKETS = ["30_59", "60_89", "90_179", "180_plus"] as const
 
-export default function FollowUpFilters({ bucket, salesperson, salespersons }: Props) {
+export default function FollowUpFilters({ bucket, salesperson, salespersons, limit }: Props) {
   const t = useTranslations("FollowUp")
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -34,6 +37,7 @@ export default function FollowUpFilters({ bucket, salesperson, salespersons }: P
     const params = new URLSearchParams(searchParams.toString())
     const nextBucket = String(formData.get("bucket") ?? "all")
     const nextSalesperson = String(formData.get("salesperson") ?? "all")
+    const nextLimit = String(formData.get("limit") ?? "50")
 
     if (nextBucket === "all") params.delete("bucket")
     else params.set("bucket", nextBucket)
@@ -41,12 +45,17 @@ export default function FollowUpFilters({ bucket, salesperson, salespersons }: P
     if (nextSalesperson === "all") params.delete("salesperson")
     else params.set("salesperson", nextSalesperson)
 
+    if (nextLimit === "50") params.delete("limit")
+    else params.set("limit", nextLimit)
+
+    params.delete("page")
+
     const query = params.toString()
     router.push(query ? `/crm/follow-up?${query}` : "/crm/follow-up")
   }
 
   return (
-    <form action={submit} className="grid gap-3 md:grid-cols-[minmax(12rem,14rem)_minmax(12rem,16rem)_auto] md:items-end">
+    <form action={submit} className="grid gap-3 md:grid-cols-[minmax(10rem,12rem)_minmax(12rem,16rem)_minmax(8rem,10rem)_auto] md:items-end">
       <label className="block">
         <span className="mb-1 block text-sm font-medium text-[var(--crm-muted)]">{t("filters.bucket")}</span>
         <Select name="bucket" defaultValue={bucket || "all"}>
@@ -77,6 +86,20 @@ export default function FollowUpFilters({ bucket, salesperson, salespersons }: P
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </label>
+
+      <label className="block">
+        <span className="mb-1 block text-sm font-medium text-[var(--crm-muted)]">{t("filters.perPage")}</span>
+        <Select name="limit" defaultValue={limit}>
+          <SelectTrigger className="h-11 bg-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {LIMIT_OPTIONS.map((opt) => (
+              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
             ))}
           </SelectContent>
         </Select>

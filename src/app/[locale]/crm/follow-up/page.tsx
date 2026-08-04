@@ -17,13 +17,14 @@ import { getLocale, getTranslations } from "next-intl/server"
 import { unstable_cache } from "next/cache"
 import FollowUpFilters from "./FollowUpFilters"
 
-const PAGE_SIZE = 50
+const VALID_LIMITS = [25, 50, 100, 200] as const
 
 type Props = {
   searchParams: Promise<{
     bucket?: string
     salesperson?: string
     page?: string
+    limit?: string
   }>
 }
 
@@ -55,6 +56,8 @@ export default async function FollowUpPage({ searchParams }: Props) {
   const selectedBucket = normalizeBucket(query.bucket)
   const selectedSalesperson = normalizeSalesperson(query.salesperson)
   const page = Math.max(1, parseInt(query.page ?? "1") || 1)
+  const parsedLimit = parseInt(query.limit ?? "50")
+  const pageSize = (VALID_LIMITS as readonly number[]).includes(parsedLimit) ? parsedLimit : 50
   const [t, locale, rows, salespersons] = await Promise.all([
     getTranslations("FollowUp"),
     getLocale(),
@@ -73,14 +76,15 @@ export default async function FollowUpPage({ searchParams }: Props) {
   const salespersonFilteredRows = rows.filter((row) => matchesSalesperson(row, selectedSalesperson))
   const bucketCounts = countBuckets(salespersonFilteredRows)
   const filteredRows = salespersonFilteredRows.filter((row) => matchesBucket(row, selectedBucket))
-  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE))
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize))
   const currentPage = Math.min(page, totalPages)
-  const pagedRows = filteredRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  const pagedRows = filteredRows.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   function pageUrl(p: number) {
     const params = new URLSearchParams()
     if (selectedBucket) params.set("bucket", selectedBucket)
     if (selectedSalesperson) params.set("salesperson", selectedSalesperson)
+    if (pageSize !== 50) params.set("limit", String(pageSize))
     if (p > 1) params.set("page", String(p))
     const qs = params.toString()
     return `/crm/follow-up${qs ? `?${qs}` : ""}`
@@ -97,6 +101,7 @@ export default async function FollowUpPage({ searchParams }: Props) {
           bucket={selectedBucket ?? "all"}
           salesperson={selectedSalesperson ?? "all"}
           salespersons={salespersonOptions}
+          limit={String(pageSize)}
         />
       </div>
 
@@ -202,7 +207,7 @@ export default async function FollowUpPage({ searchParams }: Props) {
         <span>
           {filteredRows.length === 0
             ? ""
-            : `${((currentPage - 1) * PAGE_SIZE + 1).toLocaleString(localeTag)}–${Math.min(currentPage * PAGE_SIZE, filteredRows.length).toLocaleString(localeTag)} / ${filteredRows.length.toLocaleString(localeTag)}`}
+            : `${((currentPage - 1) * pageSize + 1).toLocaleString(localeTag)}–${Math.min(currentPage * pageSize, filteredRows.length).toLocaleString(localeTag)} / ${filteredRows.length.toLocaleString(localeTag)}`}
         </span>
         <div className="flex gap-2">
           {currentPage > 1 && (

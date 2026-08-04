@@ -107,6 +107,7 @@
     "filters": {
       "bucket": "ช่วงเวลาที่ไม่ได้ซื้อ",
       "salesperson": "พนักงานขาย",
+      "perPage": "แสดงต่อหน้า",
       "allBuckets": "ทุกช่วง",
       "allSalespersons": "พนักงานทั้งหมด",
       "noSalesperson": "ไม่มีพนักงาน",

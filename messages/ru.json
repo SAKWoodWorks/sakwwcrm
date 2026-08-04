@@ -107,6 +107,7 @@
     "filters": {
       "bucket": "Давность контакта",
       "salesperson": "Менеджер",
+      "perPage": "На странице",
       "allBuckets": "Все периоды",
       "allSalespersons": "Все менеджеры",
       "noSalesperson": "Без менеджера",

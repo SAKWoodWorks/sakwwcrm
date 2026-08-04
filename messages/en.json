@@ -107,6 +107,7 @@
     "filters": {
       "bucket": "Follow-up age",
       "salesperson": "Salesperson",
+      "perPage": "Per page",
       "allBuckets": "All ages",
       "allSalespersons": "All salespersons",
       "noSalesperson": "No salesperson",
