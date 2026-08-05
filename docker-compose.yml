@@ -28,9 +28,14 @@ services:
       - "8008:8007"
     env_file:
       - .env
+    environment:
+      GDRIVE_STATE_FILE: /app/data/gdrive_watch_state.json
+    volumes:
+      - crmdata:/app/data
     depends_on:
       - db
     restart: unless-stopped
 
 volumes:
   pgdata:
+  crmdata:

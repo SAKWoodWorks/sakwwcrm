@@ -52,6 +52,7 @@ next-env.d.ts
 extraction/.venv/
 extraction/__pycache__/
 extraction/**/__pycache__/
+extraction/.gdrive_watch_state.json
 *.pyc
 expensereceipt*.json
 extraction/error_report_*.csv
