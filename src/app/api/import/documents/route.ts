@@ -8,7 +8,6 @@ import os from "os"
 import path from "path"
 import { NextRequest, NextResponse } from "next/server"
 
-export const runtime = "nodejs"
 
 const allowedExtensions = new Set([".xlsx", ".zip"])
 

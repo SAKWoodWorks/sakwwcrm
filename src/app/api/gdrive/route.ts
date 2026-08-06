@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { spawn } from 'child_process'
 import path from 'path'
 
-export const runtime = "nodejs"
 
 // Dedupe guard: key -> last-spawned timestamp
 const inFlight = new Map<string, number>()

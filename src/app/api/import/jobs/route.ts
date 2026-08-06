@@ -3,7 +3,6 @@ import { isAuthBypassed } from "@/lib/auth-bypass"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 
-export const runtime = "nodejs"
 
 export async function GET(): Promise<NextResponse> {
   const session = await auth()
