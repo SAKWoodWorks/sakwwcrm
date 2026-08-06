@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic"
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"

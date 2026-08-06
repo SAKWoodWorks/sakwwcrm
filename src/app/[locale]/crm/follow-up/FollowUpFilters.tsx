@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/select"
 import { useRouter } from "@/i18n/navigation"
 import { useTranslations } from "next-intl"
-import { useSearchParams } from "next/navigation"
 
 type SalespersonOption = {
   value: string
@@ -31,24 +30,16 @@ const BUCKETS = ["30_59", "60_89", "90_179", "180_plus"] as const
 export default function FollowUpFilters({ bucket, salesperson, salespersons, limit }: Props) {
   const t = useTranslations("FollowUp")
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   function submit(formData: FormData) {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams()
     const nextBucket = String(formData.get("bucket") ?? "all")
     const nextSalesperson = String(formData.get("salesperson") ?? "all")
     const nextLimit = String(formData.get("limit") ?? "50")
 
-    if (nextBucket === "all") params.delete("bucket")
-    else params.set("bucket", nextBucket)
-
-    if (nextSalesperson === "all") params.delete("salesperson")
-    else params.set("salesperson", nextSalesperson)
-
-    if (nextLimit === "50") params.delete("limit")
-    else params.set("limit", nextLimit)
-
-    params.delete("page")
+    if (nextBucket !== "all") params.set("bucket", nextBucket)
+    if (nextSalesperson !== "all") params.set("salesperson", nextSalesperson)
+    if (nextLimit !== "50") params.set("limit", nextLimit)
 
     const query = params.toString()
     router.push(query ? `/crm/follow-up?${query}` : "/crm/follow-up")

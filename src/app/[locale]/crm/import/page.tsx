@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { getTranslations } from "next-intl/server"

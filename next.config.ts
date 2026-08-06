@@ -11,8 +11,17 @@ const nextConfig: NextConfig = {
   outputFileTracingExcludes: {
     "*": ["./docs/**", "./extraction/**", "./.superpowers/**"],
   },
+  // 16.3: one loading shell per route instead of one prefetch per link
+  cacheComponents: true,
+  partialPrefetching: true,
+  // 16.3: React Compiler auto-memoization at build time
+  reactCompiler: true,
   experimental: {
     proxyClientMaxBodySize: 100 * 1024 * 1024,
+    // 16.3: Rust-based React Compiler — skips Babel round-trip, ~34-46% faster cold/warm dev start
+    turbopackRustReactCompiler: true,
+    // 16.3: keep pending on network drop, retry on reconnect
+    useOffline: true,
   },
 };
 

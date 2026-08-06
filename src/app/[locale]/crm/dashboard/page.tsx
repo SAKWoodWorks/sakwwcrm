@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic"
 
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -13,6 +12,7 @@ import { prisma } from "@/lib/prisma"
 import { Prisma } from "@prisma/client"
 import { Link } from "@/i18n/navigation"
 import { getLocale, getTranslations } from "next-intl/server"
+import { connection } from "next/server"
 
 interface Stats {
   total_customers: bigint
@@ -44,6 +44,7 @@ interface TopProduct {
 export default async function DashboardPage() {
   const [t, locale] = await Promise.all([getTranslations("Dashboard"), getLocale()])
   const localeTag = toLocaleTag(locale)
+  await connection()
   const selectedMonth = new Date()
   const bestProductsHref = `/crm/products?bestMonth=${selectedMonth.getMonth() + 1}&bestYear=${selectedMonth.getFullYear()}`
   const [[stats], topCustomers, topProducts] = await Promise.all([

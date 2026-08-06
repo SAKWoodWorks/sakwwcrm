@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic"
 
 import DeliveryCostExplorer from "./DeliveryCostExplorer"
 import { getDeliveryCosts } from "@/lib/delivery-costs"

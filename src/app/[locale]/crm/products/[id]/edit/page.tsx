@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Link } from "@/i18n/navigation"
