@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useLocale, useTranslations } from "next-intl"
+import { ExternalLink } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 type ImportResult = {
@@ -41,6 +42,15 @@ type CreateJobResponse = {
   ok: boolean
   job?: ImportJob
   error?: string
+}
+
+type GoogleDriveImport = {
+  id: number
+  filename: string | null
+  status: string
+  errorMsg: string | null
+  processedAt: string
+  url: string | null
 }
 
 function normalizeImportPayload(value: unknown): ImportPayload {
@@ -84,6 +94,21 @@ function normalizeJob(value: unknown): ImportJob | null {
     createdAt: String(job.createdAt ?? new Date().toISOString()),
     startedAt: job.startedAt ? String(job.startedAt) : null,
     finishedAt: job.finishedAt ? String(job.finishedAt) : null,
+  }
+}
+
+function normalizeGoogleDriveImport(value: unknown): GoogleDriveImport | null {
+  if (!value || typeof value !== "object") return null
+  const item = value as Partial<GoogleDriveImport>
+  if (typeof item.id !== "number" || typeof item.status !== "string" || !item.processedAt) return null
+
+  return {
+    id: item.id,
+    filename: typeof item.filename === "string" ? item.filename : null,
+    status: item.status,
+    errorMsg: typeof item.errorMsg === "string" ? item.errorMsg : null,
+    processedAt: String(item.processedAt),
+    url: typeof item.url === "string" ? item.url : null,
   }
 }
 
@@ -144,15 +169,18 @@ export default function ImportDocumentForm() {
   const [error, setError] = useState<string | null>(null)
   const [activeJob, setActiveJob] = useState<ImportJob | null>(null)
   const [jobs, setJobs] = useState<ImportJob[]>([])
+  const [latestGoogleDriveImport, setLatestGoogleDriveImport] = useState<GoogleDriveImport | null>(null)
 
   async function loadJobs() {
     try {
       const res = await fetch("/api/import/jobs", { cache: "no-store" })
       if (!res.ok) return
-      const payload = (await res.json().catch(() => null)) as { jobs?: unknown[] } | null
+      const payload = (await res.json().catch(() => null)) as { jobs?: unknown[]; latestGoogleDriveImport?: unknown } | null
       setJobs(Array.isArray(payload?.jobs) ? payload.jobs.map(normalizeJob).filter((job): job is ImportJob => Boolean(job)) : [])
+      setLatestGoogleDriveImport(normalizeGoogleDriveImport(payload?.latestGoogleDriveImport))
     } catch {
       setJobs([])
+      setLatestGoogleDriveImport(null)
     }
   }
 
@@ -276,7 +304,53 @@ export default function ImportDocumentForm() {
         </div>
       ) : null}
 
+      <LatestGoogleDriveImport item={latestGoogleDriveImport} locale={locale} />
+
       <ImportHistory jobs={jobs} onSelect={setActiveJob} locale={locale} />
+    </div>
+  )
+}
+
+function LatestGoogleDriveImport({ item, locale }: { item: GoogleDriveImport | null; locale: string }) {
+  const t = useTranslations("Import")
+  const succeeded = item?.status === "success"
+
+  return (
+    <div className="rounded-lg border border-[var(--crm-line)] bg-white">
+      <div className="border-b border-[var(--crm-line)] px-4 py-3">
+        <h2 className="font-semibold text-[var(--crm-ink)]">{t("googleDriveLatest.title")}</h2>
+      </div>
+      {item ? (
+        <div className="px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="min-w-0">
+              {item.url ? (
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex max-w-full items-center gap-1.5 font-medium text-[var(--crm-brand)] hover:underline"
+                >
+                  <span className="truncate">{item.filename ?? t("googleDriveLatest.unknownFile")}</span>
+                  <ExternalLink aria-hidden="true" className="size-3.5 shrink-0" />
+                </a>
+              ) : (
+                <p className="truncate font-medium text-gray-900">{item.filename ?? t("googleDriveLatest.unknownFile")}</p>
+              )}
+              <p className="mt-1 text-xs text-[var(--crm-muted)]">{new Date(item.processedAt).toLocaleString(locale)}</p>
+            </div>
+            <Badge
+              variant="outline"
+              className={succeeded ? "border-green-200 bg-green-100 text-green-800" : "border-red-200 bg-red-100 text-red-800"}
+            >
+              {succeeded ? t("googleDriveLatest.success") : t("googleDriveLatest.failed")}
+            </Badge>
+          </div>
+          {item.errorMsg ? <p className="mt-2 whitespace-pre-wrap text-xs text-red-600">{item.errorMsg}</p> : null}
+        </div>
+      ) : (
+        <p className="px-4 py-4 text-sm text-[var(--crm-muted)]">{t("googleDriveLatest.empty")}</p>
+      )}
     </div>
   )
 }

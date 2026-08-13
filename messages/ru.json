@@ -180,6 +180,13 @@
     "historyTitle": "История импорта",
     "noHistory": "Истории импорта пока нет",
     "historySummary": "новые {imported} · пропущено {skipped} · ошибки {failed}",
+    "googleDriveLatest": {
+      "title": "Последняя синхронизация",
+      "empty": "Автоматических импортов из Google Drive пока нет",
+      "unknownFile": "Неизвестный файл",
+      "success": "Успешно",
+      "failed": "Ошибка"
+    },
     "resultBadges": {
       "skippedExisting": "Пропущено: уже есть",
       "success": "Успешно",

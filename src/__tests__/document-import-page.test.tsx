@@ -143,6 +143,35 @@ describe("ImportPage", () => {
     expect(await screen.findByText("ok.xlsx")).toBeInTheDocument()
   })
 
+  it("shows the latest automatic Google Drive import", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          jobs: [],
+          latestGoogleDriveImport: {
+            id: 9,
+            filename: "TI_B No 009.xlsx",
+            status: "success",
+            errorMsg: null,
+            processedAt: "2026-06-05T09:30:00.000Z",
+            url: "https://drive.google.com/file/d/drive-file-9/view",
+          },
+        }),
+        { status: 200 },
+      ),
+    )
+
+    render(await ImportPage())
+
+    expect(await screen.findByText("ซิงค์ล่าสุด")).toBeInTheDocument()
+    const fileLink = await screen.findByRole("link", { name: "TI_B No 009.xlsx" })
+    expect(fileLink).toHaveAttribute("href", "https://drive.google.com/file/d/drive-file-9/view")
+    expect(fileLink).toHaveAttribute("target", "_blank")
+    expect(fileLink).toHaveAttribute("rel", "noopener noreferrer")
+    expect(screen.getByText("สำเร็จ")).toBeInTheDocument()
+  })
+
   it("shows API errors when job creation fails", async () => {
     vi.mocked(fetch).mockImplementation(async (input) => {
       const url = String(input)

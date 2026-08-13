@@ -25,6 +25,38 @@ STATE_FILE = Path(os.environ.get("GDRIVE_STATE_FILE", str(_DEFAULT_STATE)))
 XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 
+def is_in_folder_tree(service, parent_ids: list[str], root_folder_id: str, cache: dict[str, bool]) -> bool:
+    """Return whether any parent is the configured root or one of its descendants."""
+    visiting: set[str] = set()
+
+    def folder_is_inside(folder_id: str) -> bool:
+        if folder_id == root_folder_id:
+            return True
+        if folder_id in cache:
+            return cache[folder_id]
+        if folder_id in visiting:
+            return False
+
+        visiting.add(folder_id)
+        try:
+            folder = service.files().get(
+                fileId=folder_id,
+                fields="id,parents",
+                supportsAllDrives=True,
+            ).execute()
+            result = any(folder_is_inside(parent_id) for parent_id in folder.get("parents", []))
+        except Exception as error:
+            print(f"Warning: could not verify Drive folder {folder_id}: {error}", file=sys.stderr)
+            result = False
+        finally:
+            visiting.discard(folder_id)
+
+        cache[folder_id] = result
+        return result
+
+    return any(folder_is_inside(parent_id) for parent_id in parent_ids)
+
+
 def load_state() -> dict:
     if not STATE_FILE.exists():
         print(f"ERROR: state file not found: {STATE_FILE}", file=sys.stderr)
@@ -56,7 +88,7 @@ def run_extract(file_id: str, filename: str) -> None:
 def process_changes() -> None:
     state = load_state()
     page_token = state.get("pageToken")
-    folder_id = state.get("folderId")
+    folder_id = os.environ.get("GDRIVE_FOLDER_ID") or state.get("folderId")
 
     if not page_token:
         print("ERROR: no pageToken in state — re-run setup_gdrive_watch.py", file=sys.stderr)
@@ -64,6 +96,7 @@ def process_changes() -> None:
 
     service = _get_service()
     current_token = page_token
+    folder_cache: dict[str, bool] = {}
 
     while True:
         resp = service.changes().list(
@@ -90,7 +123,7 @@ def process_changes() -> None:
 
             if folder_id:
                 parents = file_info.get("parents", [])
-                if folder_id not in parents:
+                if not is_in_folder_tree(service, parents, folder_id, folder_cache):
                     continue
 
             print(f"New xlsx: {filename} ({file_id})")

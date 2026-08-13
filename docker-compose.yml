@@ -30,6 +30,7 @@ services:
       - .env
     environment:
       GDRIVE_STATE_FILE: /app/data/gdrive_watch_state.json
+      GDRIVE_FOLDER_ID: 1UrO8IvTlpYlltBNXZzTLiBgN4lyEEmtZ
     volumes:
       - crmdata:/app/data
     depends_on:

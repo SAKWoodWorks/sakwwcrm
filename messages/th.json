@@ -180,6 +180,13 @@
     "historyTitle": "ประวัติ import",
     "noHistory": "ยังไม่มีประวัติ import",
     "historySummary": "ใหม่ {imported} · ข้าม {skipped} · fail {failed}",
+    "googleDriveLatest": {
+      "title": "ซิงค์ล่าสุด",
+      "empty": "ยังไม่มีประวัติ import อัตโนมัติจาก Google Drive",
+      "unknownFile": "ไม่ทราบชื่อไฟล์",
+      "success": "สำเร็จ",
+      "failed": "ไม่สำเร็จ"
+    },
     "resultBadges": {
       "skippedExisting": "ข้าม: มีอยู่แล้ว",
       "success": "สำเร็จ",

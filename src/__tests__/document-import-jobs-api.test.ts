@@ -14,6 +14,9 @@ vi.mock("@/lib/prisma", () => ({
       findMany: vi.fn(),
       findUnique: vi.fn(),
     },
+    syncLog: {
+      findFirst: vi.fn(),
+    },
   },
 }))
 
@@ -42,6 +45,14 @@ describe("import job API", () => {
         finishedAt: null,
       },
     ])
+    vi.mocked(prisma.syncLog.findFirst).mockResolvedValue({
+      id: 9,
+      gdriveFileId: "drive-file-9",
+      filename: "TI_B No 009.xlsx",
+      status: "success",
+      errorMsg: null,
+      processedAt: new Date("2026-06-05T09:30:00.000Z"),
+    })
 
     const res = await GET_JOBS()
 
@@ -55,11 +66,38 @@ describe("import job API", () => {
           status: "completed",
         }),
       ],
+      latestGoogleDriveImport: {
+        id: 9,
+        filename: "TI_B No 009.xlsx",
+        status: "success",
+        errorMsg: null,
+        processedAt: "2026-06-05T09:30:00.000Z",
+        url: "https://drive.google.com/file/d/drive-file-9/view",
+      },
     })
     expect(prisma.importJob.findMany).toHaveBeenCalledWith(expect.objectContaining({
       orderBy: { createdAt: "desc" },
       take: 20,
     }))
+    expect(prisma.syncLog.findFirst).toHaveBeenCalledWith({
+      where: {
+        gdriveFileId: {
+          not: null,
+        },
+        NOT: {
+          gdriveFileId: { startsWith: "local::" },
+        },
+      },
+      orderBy: { processedAt: "desc" },
+      select: {
+        id: true,
+        gdriveFileId: true,
+        filename: true,
+        status: true,
+        errorMsg: true,
+        processedAt: true,
+      },
+    })
   })
 
   it("returns one import job by id", async () => {

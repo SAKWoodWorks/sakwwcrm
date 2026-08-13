@@ -125,7 +125,11 @@ def stop_only() -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--webhook-url", help="Public HTTPS URL of /api/gdrive")
-    parser.add_argument("--folder-id", help="Only process xlsx files whose parent folder matches this ID")
+    parser.add_argument(
+        "--folder-id",
+        default=os.environ.get("GDRIVE_FOLDER_ID"),
+        help="Only process xlsx files in this folder or its subfolders (defaults to GDRIVE_FOLDER_ID)",
+    )
     parser.add_argument("--stop", action="store_true", help="Stop existing channel and exit")
     args = parser.parse_args()
 

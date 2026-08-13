@@ -180,6 +180,13 @@
     "historyTitle": "Import history",
     "noHistory": "No import history yet",
     "historySummary": "new {imported} · skipped {skipped} · failed {failed}",
+    "googleDriveLatest": {
+      "title": "Latest sync",
+      "empty": "No automatic Google Drive imports yet",
+      "unknownFile": "Unknown file",
+      "success": "Success",
+      "failed": "Failed"
+    },
     "resultBadges": {
       "skippedExisting": "Skipped: already exists",
       "success": "Success",
