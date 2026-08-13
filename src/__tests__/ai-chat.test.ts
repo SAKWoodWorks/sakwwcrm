@@ -58,6 +58,7 @@ describe("POST /api/ai/chat", () => {
     mockSendMessage.mockResolvedValue({
       response: {
         candidates: [{ content: { parts: [{ text: "มี 42 ลูกค้า" }] } }],
+        functionCalls: () => undefined,
         text: () => "มี 42 ลูกค้า",
       },
     })
@@ -90,6 +91,7 @@ describe("POST /api/ai/chat", () => {
               parts: [{ functionCall: { name: "get_dashboard_stats", args: {} } }],
             },
           }],
+          functionCalls: () => [{ name: "get_dashboard_stats", args: {} }],
           text: () => "",
         },
       })
@@ -97,6 +99,7 @@ describe("POST /api/ai/chat", () => {
       .mockResolvedValueOnce({
         response: {
           candidates: [{ content: { parts: [{ text: "มี 99 ลูกค้า" }] } }],
+          functionCalls: () => undefined,
           text: () => "มี 99 ลูกค้า",
         },
       })

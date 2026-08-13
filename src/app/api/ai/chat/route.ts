@@ -27,14 +27,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const result = await chat.sendMessage(message)
     const response = result.response
 
-    // Check if Gemini wants to call a tool
-    const parts = response.candidates?.[0]?.content?.parts ?? []
-    const functionCallPart = parts.find(
-      (p: Record<string, unknown>) => "functionCall" in p
-    ) as { functionCall: { name: string; args: Record<string, unknown> } } | undefined
+    const functionCall = response.functionCalls()?.[0]
 
-    if (functionCallPart?.functionCall?.name) {
-      const { name, args } = functionCallPart.functionCall
+    if (functionCall?.name) {
+      const { name } = functionCall
+      const args = functionCall.args as Record<string, unknown> | undefined
       let toolResult: unknown
       try {
         toolResult = await executeTool(name, args ?? {})
