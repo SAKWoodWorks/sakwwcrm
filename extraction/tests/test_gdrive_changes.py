@@ -89,3 +89,21 @@ def test_reuses_parent_cache_for_files_in_same_subfolder():
     assert gdrive_changes.is_in_folder_tree(service, ["shared-folder"], ROOT_FOLDER_ID, cache) is True
     assert gdrive_changes.is_in_folder_tree(service, ["shared-folder"], ROOT_FOLDER_ID, cache) is True
     assert service.files.return_value.get.call_count == 1
+
+
+def test_process_changes_requests_shared_drive_changes(monkeypatch):
+    service = MagicMock()
+    changes = service.changes.return_value
+    changes.list.return_value.execute.return_value = {"changes": [], "newStartPageToken": "next-token"}
+    monkeypatch.setattr(gdrive_changes, "_get_service", lambda: service)
+    monkeypatch.setattr(gdrive_changes, "load_state", lambda: {"pageToken": "start-token"})
+    saved_tokens = []
+    monkeypatch.setattr(gdrive_changes, "save_page_token", saved_tokens.append)
+
+    gdrive_changes.process_changes()
+
+    changes.list.assert_called_once()
+    kwargs = changes.list.call_args.kwargs
+    assert kwargs["supportsAllDrives"] is True
+    assert kwargs["includeItemsFromAllDrives"] is True
+    assert saved_tokens == ["next-token"]

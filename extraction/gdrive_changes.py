@@ -103,6 +103,8 @@ def process_changes() -> None:
             pageToken=current_token,
             fields="nextPageToken,newStartPageToken,changes(changeType,removed,fileId,file(id,name,mimeType,parents,trashed))",
             includeRemoved=False,
+            supportsAllDrives=True,
+            includeItemsFromAllDrives=True,
             spaces="drive",
         ).execute()
 

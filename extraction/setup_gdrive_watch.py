@@ -73,7 +73,7 @@ def register(webhook_url: str, folder_id: str | None) -> None:
     stop_channel(service, state)
 
     # Fresh start page token — only future changes will be processed
-    page_token = service.changes().getStartPageToken().execute()["startPageToken"]
+    page_token = service.changes().getStartPageToken(supportsAllDrives=True).execute()["startPageToken"]
 
     body = {
         "id": str(uuid.uuid4()),
@@ -81,7 +81,12 @@ def register(webhook_url: str, folder_id: str | None) -> None:
         "address": webhook_url,
         "token": token,
     }
-    result = service.changes().watch(pageToken=page_token, body=body).execute()
+    result = service.changes().watch(
+        pageToken=page_token,
+        body=body,
+        supportsAllDrives=True,
+        includeItemsFromAllDrives=True,
+    ).execute()
 
     expiration_ms = int(result.get("expiration", 0))
     expiration_iso = (
