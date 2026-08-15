@@ -59,6 +59,7 @@ extraction/error_report_*.csv
 
 # Google OAuth client secret JSON
 client_secret_*.json
+ezerp-475504-*.json
 
 # Local docs / xlsx source files
 docs/Quoatation/
