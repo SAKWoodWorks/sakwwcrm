@@ -18,7 +18,7 @@ def _get_service():
 
 def download_file(file_id: str, dest_path: str) -> None:
     service = _get_service()
-    request = service.files().get_media(fileId=file_id)
+    request = service.files().get_media(fileId=file_id, supportsAllDrives=True)
     with open(dest_path, "wb") as fh:
         downloader = MediaIoBaseDownload(fh, request)
         done = False
@@ -28,7 +28,7 @@ def download_file(file_id: str, dest_path: str) -> None:
 
 def get_file_name(file_id: str) -> str:
     service = _get_service()
-    meta = service.files().get(fileId=file_id, fields="name").execute()
+    meta = service.files().get(fileId=file_id, fields="name", supportsAllDrives=True).execute()
     return meta["name"]
 
 
@@ -45,6 +45,8 @@ def list_files_in_folder(folder_id: str, mime_type: str = None) -> Generator[dic
             fields="nextPageToken, files(id, name, mimeType)",
             pageToken=page_token,
             pageSize=100,
+            supportsAllDrives=True,
+            includeItemsFromAllDrives=True,
         ).execute()
         for f in resp.get("files", []):
             if f["mimeType"] == "application/vnd.google-apps.folder":
