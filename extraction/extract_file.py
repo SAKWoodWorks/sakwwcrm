@@ -137,9 +137,33 @@ def _to_gregorian(raw) -> date:
     return None
 
 
+def sync_sheets_if_configured(row_data: dict, items: list, product_ids: list, product_info: dict) -> None:
+    sheet_id = os.environ.get("GOOGLE_SHEETS_ID")
+    if not sheet_id:
+        print("[sheets] GOOGLE_SHEETS_ID not set; skipping Sheets sync")
+        return
+
+    ensure_items_header(sheet_id)
+    append_document_row(sheet_id, row_data)
+    batch_append_items(sheet_id, [
+        {
+            "doc_number": row_data["doc_number"],
+            "doc_type": row_data["doc_type"],
+            "line_no": item.line_no,
+            "description": item.description,
+            "quantity": float(item.quantity),
+            "unit": item.unit,
+            "unit_price": float(item.unit_price),
+            "total": float(item.total),
+            "sku_code": product_info.get(product_ids[i], {}).get("sku_code", ""),
+            "product_name": product_info.get(product_ids[i], {}).get("full_name", ""),
+        }
+        for i, item in enumerate(items)
+    ])
+
+
 def process(filepath: str, filename: str, file_id: str, dry_run: bool = False, salesperson_override: str = None) -> None:
     db_url = os.environ["DATABASE_URL"]
-    sheet_id = os.environ.get("GOOGLE_SHEETS_ID", "12jWo3Ra4L_jvL72o6Jbhq7E0bD0RQqNUfQRft-ZqwpI")
 
     conn = psycopg2.connect(db_url)
     conn.autocommit = False
@@ -206,8 +230,7 @@ def process(filepath: str, filename: str, file_id: str, dry_run: bool = False, s
         insert_document_items(conn, doc_id, doc_data.items, product_ids)
         conn.commit()
 
-        ensure_items_header(sheet_id)
-        append_document_row(sheet_id, {
+        sync_sheets_if_configured({
             "doc_type": effective_doc_type,
             "doc_number": meta.doc_number,
             "doc_date": doc_date,
@@ -219,23 +242,7 @@ def process(filepath: str, filename: str, file_id: str, dry_run: bool = False, s
             "total": float(doc_data.total),
             "payment_status": meta.payment_status,
             "gdrive_filename": filename,
-        })
-
-        batch_append_items(sheet_id, [
-            {
-                "doc_number": meta.doc_number,
-                "doc_type": meta.doc_type,
-                "line_no": item.line_no,
-                "description": item.description,
-                "quantity": float(item.quantity),
-                "unit": item.unit,
-                "unit_price": float(item.unit_price),
-                "total": float(item.total),
-                "sku_code": product_info.get(product_ids[i], {}).get("sku_code", ""),
-                "product_name": product_info.get(product_ids[i], {}).get("full_name", ""),
-            }
-            for i, item in enumerate(doc_data.items)
-        ])
+        }, doc_data.items, product_ids, product_info)
 
         log_sync(conn, file_id, filename, "success", None)
         print(f"[ok] {filename}  →  doc_id={doc_id}  customer={doc_data.customer.name}  ฿{float(doc_data.total):,.2f}")
