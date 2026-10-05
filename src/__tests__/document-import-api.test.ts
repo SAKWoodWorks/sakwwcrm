@@ -106,6 +106,21 @@ describe("POST /api/import/documents", () => {
     )
   })
 
+  it("preserves the uploaded xlsx filename for Python metadata parsing", async () => {
+    vi.mocked(auth).mockResolvedValue(mockSession)
+    const filename = "TI_B No 429V 07-08-2026 Incall020 Yaowalee.xlsx"
+
+    const res = await POST(makeReq(new File(["xlsx"], filename)))
+
+    expect(res.status).toBe(202)
+    expect(execFile).toHaveBeenCalledWith(
+      expect.any(String),
+      [expect.stringContaining("import_upload.py"), "--path", expect.stringMatching(/TI_B No 429V 07-08-2026 Incall020 Yaowalee\.xlsx$/)],
+      expect.any(Object),
+      expect.any(Function)
+    )
+  })
+
   it("accepts zip uploads", async () => {
     vi.mocked(auth).mockResolvedValue(mockSession)
     vi.mocked(prisma.importJob.create).mockResolvedValue({

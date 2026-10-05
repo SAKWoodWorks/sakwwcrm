@@ -2,6 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Link } from "@/i18n/navigation"
 import { prisma } from "@/lib/prisma"
+import { formatDate } from "@/lib/utils"
 import { getLocale, getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
 import DealStageBadge from "../DealStageBadge"
@@ -48,7 +49,7 @@ export default async function DealDetailPage({ params }: Props) {
           <div>
             <h1 className="text-2xl font-semibold">{deal.title}</h1>
             <p className="mt-1 text-sm text-gray-500">
-              {t("detail.updated", { date: deal.updatedAt.toLocaleDateString(localeTag) })}
+              {t("detail.updated", { date: formatDate(deal.updatedAt) })}
             </p>
           </div>
           <DealStageSelect dealId={deal.id} currentStage={deal.stage} />
@@ -71,7 +72,7 @@ export default async function DealDetailPage({ params }: Props) {
           <InfoRow label={t("detail.source")} value={deal.source ?? "—"} />
           <InfoRow
             label={t("table.expectedClose")}
-            value={deal.expectedCloseDate ? deal.expectedCloseDate.toLocaleDateString(localeTag) : "—"}
+            value={deal.expectedCloseDate ? formatDate(deal.expectedCloseDate) : "—"}
           />
           <InfoRow label={t("detail.expectedValue")} value={deal.expectedValue != null ? formatMoney(expectedValue, localeTag) : "—"} />
           <InfoRow label={t("detail.probability")} value={`${deal.probability}%`} />

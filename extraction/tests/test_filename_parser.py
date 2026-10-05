@@ -34,6 +34,23 @@ def test_tax_invoice_long_customer_name():
     assert meta.province == "Pathum Thani"
 
 
+def test_tax_invoice_without_year_uses_supplied_document_date():
+    meta = parse_filename(
+        "TI_B No 429V 07-08 Incall020 Yaowalee (-PAID-)(203YR) "
+        "บริษัท ซันเทค เทคโนโลยี จำกัด Nakhon Ratchasima.xlsx",
+        fallback_date=date(2026, 8, 7),
+    )
+
+    assert meta.doc_number == "429V"
+    assert meta.doc_date == date(2026, 8, 7)
+    assert meta.channel == "Incall020"
+    assert meta.salesperson == "Yaowalee"
+    assert meta.payment_status == "paid"
+    assert meta.ref_doc_number == "203YR"
+    assert meta.customer_short == "บริษัท ซันเทค เทคโนโลยี จำกัด"
+    assert meta.province == "Nakhon Ratchasima"
+
+
 def test_tax_invoice_underscore_paid_format():
     meta = parse_filename("I_B No 033KL 29-04-2026 KLWI Wanida_PAID_ (--) KLPU.xlsx")
     assert meta.doc_number == "033KL"

@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { prisma } from "@/lib/prisma"
+import { formatDate } from "@/lib/utils"
 import { Prisma } from "@prisma/client"
 import { Link } from "@/i18n/navigation"
 import { getLocale, getTranslations } from "next-intl/server"
@@ -193,7 +194,7 @@ export default async function SalespersonDetailPage({ params }: Props) {
                   </TableCell>
                   <TableCell className="px-4 py-3 tabular-nums text-gray-600">
                     {c.last_purchase_date
-                      ? c.last_purchase_date.toLocaleDateString(localeTag)
+                      ? formatDate(c.last_purchase_date)
                       : "—"}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right tabular-nums">
@@ -230,7 +231,7 @@ export default async function SalespersonDetailPage({ params }: Props) {
               documents.map((d) => (
                 <TableRow key={d.id} className="hover:bg-gray-50">
                   <TableCell className="px-4 py-3 tabular-nums">
-                    {d.docDate.toLocaleDateString(localeTag)}
+                    {formatDate(d.docDate)}
                   </TableCell>
                   <TableCell className="px-4 py-3 font-mono text-xs">
                     <Link href={`/crm/documents/${d.id}`} className="text-blue-600 hover:underline">

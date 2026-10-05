@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table"
 import { DEAL_STAGES, formatDealStage, isDealStage } from "@/lib/deals"
 import { prisma } from "@/lib/prisma"
+import { formatDate } from "@/lib/utils"
 import type { Prisma } from "@prisma/client"
 import { Link } from "@/i18n/navigation"
 import { getLocale, getTranslations } from "next-intl/server"
@@ -181,7 +182,7 @@ export default async function DealsPage({ searchParams }: Props) {
                 </div>
                 <div>
                   <p className="text-xs text-[var(--crm-muted)]">Expected close</p>
-                  <p className="font-medium">{deal.expectedCloseDate ? deal.expectedCloseDate.toLocaleDateString(localeTag) : "—"}</p>
+                  <p className="font-medium">{deal.expectedCloseDate ? formatDate(deal.expectedCloseDate) : "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--crm-muted)]">{t("table.value")}</p>
@@ -248,7 +249,7 @@ export default async function DealsPage({ searchParams }: Props) {
                       {deal.expectedValue != null ? formatMoney((value * deal.probability) / 100, localeTag) : "—"}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-600">
-                      {deal.expectedCloseDate ? deal.expectedCloseDate.toLocaleDateString(localeTag) : "—"}
+                      {deal.expectedCloseDate ? formatDate(deal.expectedCloseDate) : "—"}
                     </TableCell>
                   </TableRow>
                 )

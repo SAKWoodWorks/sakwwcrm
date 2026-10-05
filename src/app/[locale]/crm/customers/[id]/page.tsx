@@ -15,6 +15,7 @@ import { CustomerDocumentFilters } from "@/app/[locale]/crm/customers/[id]/Custo
 import { UndoMergeButton } from "@/app/[locale]/crm/customers/[id]/UndoMergeButton"
 import { Link } from "@/i18n/navigation"
 import { prisma } from "@/lib/prisma"
+import { formatDate as formatDisplayDate, formatDateTime as formatDisplayDateTime } from "@/lib/utils"
 import { Prisma } from "@prisma/client"
 import { getLocale, getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
@@ -631,12 +632,14 @@ function formatNumber(value: number, localeTag: string) {
   return value.toLocaleString(localeTag)
 }
 
-function formatDate(value: Date, localeTag: string) {
-  return value.toLocaleDateString(localeTag)
+function formatDate(value: Date, _localeTag: string) {
+  void _localeTag
+  return formatDisplayDate(value)
 }
 
-function formatDateTime(value: Date, localeTag: string) {
-  return value.toLocaleString(localeTag)
+function formatDateTime(value: Date, _localeTag: string) {
+  void _localeTag
+  return formatDisplayDateTime(value)
 }
 
 function toLocaleTag(locale: string) {

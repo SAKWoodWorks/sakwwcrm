@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table"
 import DatePickerField from "@/components/DatePickerField"
 import { prisma } from "@/lib/prisma"
+import { formatDate as formatDisplayDate } from "@/lib/utils"
 import { Prisma } from "@prisma/client"
 import { getLocale, getTranslations } from "next-intl/server"
 
@@ -197,12 +198,9 @@ function formatBaht(value: Prisma.Decimal | number, locale: string) {
   })
 }
 
-function formatDate(value: Date, locale: string) {
-  return new Date(value).toLocaleDateString(locale, {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  })
+function formatDate(value: Date, _locale: string) {
+  void _locale
+  return formatDisplayDate(value)
 }
 
 function formatMonth(value: Date, locale: string) {

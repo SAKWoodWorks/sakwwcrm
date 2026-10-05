@@ -1,5 +1,6 @@
 
 import { prisma } from "@/lib/prisma"
+import { formatDate } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 import {
   Table,
@@ -168,7 +169,7 @@ export default async function DocumentsPage({ searchParams }: Props) {
                 <Link href={documentDetailHref(d.id)} className="font-mono text-sm font-bold text-[var(--crm-brand)]">
                   {d.docNumber}
                 </Link>
-                <p className="mt-1 text-xs text-[var(--crm-muted)]">{d.docDate.toLocaleDateString(localeTag)} · {d.channel ?? "—"}</p>
+                <p className="mt-1 text-xs text-[var(--crm-muted)]">{formatDate(d.docDate)} · {d.channel ?? "—"}</p>
               </div>
               <DocTypeBadge docType={d.docType} />
             </div>
@@ -231,7 +232,7 @@ export default async function DocumentsPage({ searchParams }: Props) {
             {documents.map((d) => (
               <TableRow key={d.id} className="hover:bg-gray-50">
                 <TableCell className="px-4 py-3 tabular-nums">
-                  {d.docDate.toLocaleDateString(localeTag)}
+                  {formatDate(d.docDate)}
                 </TableCell>
                 <TableCell className="px-4 py-3 font-mono text-xs">
                   <Link

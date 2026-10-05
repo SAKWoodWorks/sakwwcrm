@@ -6,7 +6,7 @@ describe("DatePickerField", () => {
   it("renders a shadcn date picker button and hidden form value", () => {
     render(<DatePickerField name="from" defaultValue="2026-05-27" />)
 
-    expect(screen.getByRole("button", { name: /27\/05\/2569/ })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /27\/05\/2026/ })).toBeInTheDocument()
     expect(screen.getByDisplayValue("2026-05-27")).toHaveAttribute("type", "hidden")
   })
 
@@ -20,6 +20,6 @@ describe("DatePickerField", () => {
     const onChange = vi.fn()
     render(<DatePickerField value="2026-05-27" onChange={onChange} />)
 
-    expect(screen.getByRole("button", { name: /27\/05\/2569/ })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /27\/05\/2026/ })).toBeInTheDocument()
   })
 })

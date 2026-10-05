@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { useLocale, useTranslations } from "next-intl"
 import { ExternalLink } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { formatDateTime } from "@/lib/utils"
 
 type ImportResult = {
   filename: string
@@ -304,14 +305,14 @@ export default function ImportDocumentForm() {
         </div>
       ) : null}
 
-      <LatestGoogleDriveImport item={latestGoogleDriveImport} locale={locale} />
+      <LatestGoogleDriveImport item={latestGoogleDriveImport} />
 
       <ImportHistory jobs={jobs} onSelect={setActiveJob} locale={locale} />
     </div>
   )
 }
 
-function LatestGoogleDriveImport({ item, locale }: { item: GoogleDriveImport | null; locale: string }) {
+function LatestGoogleDriveImport({ item }: { item: GoogleDriveImport | null }) {
   const t = useTranslations("Import")
   const succeeded = item?.status === "success"
 
@@ -337,7 +338,7 @@ function LatestGoogleDriveImport({ item, locale }: { item: GoogleDriveImport | n
               ) : (
                 <p className="truncate font-medium text-gray-900">{item.filename ?? t("googleDriveLatest.unknownFile")}</p>
               )}
-              <p className="mt-1 text-xs text-[var(--crm-muted)]">{new Date(item.processedAt).toLocaleString(locale)}</p>
+              <p className="mt-1 text-xs text-[var(--crm-muted)]">{formatDateTime(item.processedAt)}</p>
             </div>
             <Badge
               variant="outline"
@@ -428,7 +429,7 @@ function ImportHistory({ jobs, onSelect, locale }: { jobs: ImportJob[]; onSelect
                 <div className="min-w-0">
                   <p className="truncate font-medium text-gray-900">#{job.id} · {job.filename}</p>
                   <p className="mt-1 text-xs text-[var(--crm-muted)]">
-                    {new Date(job.createdAt).toLocaleString(locale)}
+                    {formatDateTime(job.createdAt)}
                     {summary ? ` · ${t("historySummary", {
                       imported: summary.imported.toLocaleString(locale),
                       skipped: summary.skippedExisting.toLocaleString(locale),

@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { prisma } from "@/lib/prisma"
+import { formatDate } from "@/lib/utils"
 import { Prisma } from "@prisma/client"
 import { Pencil } from "lucide-react"
 import { getLocale, getTranslations } from "next-intl/server"
@@ -153,7 +154,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
         <MetricCard label={t("metrics.totalSales")} value={formatBaht(stats?.paid_amount ?? 0, localeTag)} tone="gold" />
         <MetricCard label={t("metrics.soldQty")} value={formatQty(stats?.paid_qty ?? 0, localeTag)} tone="green" />
         <MetricCard label={t("metrics.paidInvoices")} value={Number(stats?.paid_invoice_count ?? 0).toLocaleString(localeTag)} tone="blue" />
-        <MetricCard label={t("metrics.lastSale")} value={stats?.last_invoice_date ? stats.last_invoice_date.toLocaleDateString(localeTag) : "—"} tone="gray" />
+        <MetricCard label={t("metrics.lastSale")} value={stats?.last_invoice_date ? formatDate(stats.last_invoice_date) : "—"} tone="gray" />
       </div>
 
       <div className="mb-6 grid gap-4 lg:grid-cols-[1fr_1fr]">
@@ -166,7 +167,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
               <InfoRow label={t("info.volume")} value={product.volume != null ? Number(product.volume).toLocaleString(localeTag, { maximumFractionDigits: 4 }) : "—"} />
               <InfoRow label={t("info.wholesale")} value={product.wsCost != null ? formatPlainMoney(product.wsCost, localeTag) : "—"} />
               <InfoRow label={t("info.retail")} value={product.rtCost != null ? formatPlainMoney(product.rtCost, localeTag) : "—"} />
-              <InfoRow label={t("info.lastCost")} value={product.dateLastCostAdj ? product.dateLastCostAdj.toLocaleDateString(localeTag) : "—"} />
+              <InfoRow label={t("info.lastCost")} value={product.dateLastCostAdj ? formatDate(product.dateLastCostAdj) : "—"} />
             </dl>
           </CardContent>
         </Card>
@@ -214,7 +215,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
               ) : (
                 documents.map((doc) => (
                   <TableRow key={doc.document_id} className="hover:bg-gray-50">
-                    <TableCell className="px-3 py-2 tabular-nums">{doc.doc_date.toLocaleDateString(localeTag)}</TableCell>
+                    <TableCell className="px-3 py-2 tabular-nums">{formatDate(doc.doc_date)}</TableCell>
                     <TableCell className="px-3 py-2">
                       <Link href={`/crm/documents/${doc.document_id}`} className="font-mono text-xs text-blue-600 hover:underline">
                         {doc.doc_number}

@@ -23,8 +23,17 @@ _THAI_PAREN_END = re.compile(r'\s*\([^\x00-\x7F][^)]*\)\s*$')
 _ASCII_PAREN_END = re.compile(r'\s*\(([A-Za-z][A-Za-z\s\-]*[A-Za-z])\)\s*$')
 
 
-def _parse_date(raw: str) -> date:
-    day, month, year = raw.split("-")
+def _parse_date(raw: str, fallback_date: Optional[date] = None) -> date:
+    parts = raw.split("-")
+    if len(parts) == 2:
+        if fallback_date is None:
+            raise ValueError(f"Date is missing a year: {raw!r}")
+        day, month = (int(part) for part in parts)
+        if (day, month) != (fallback_date.day, fallback_date.month):
+            raise ValueError(f"Filename date {raw!r} does not match document date {fallback_date!s}")
+        return fallback_date
+
+    day, month, year = parts
     y = int(year)
     if y > 2500:
         y -= 543
@@ -65,13 +74,13 @@ def _split_customer_province(text: str) -> tuple[str, str]:
     return customer, province
 
 
-def _parse_ti(stem: str, filename: str) -> FilenameMetadata:
+def _parse_ti(stem: str, filename: str, fallback_date: Optional[date] = None) -> FilenameMetadata:
     # Stage 1: TI_B No <num> <date> <channel?> <rest>
-    m = re.match(r'TI_B No\s+(\S+)\s+(\d{2}-\d{2}-\d{4})\s*', stem)
+    m = re.match(r'TI_B No\s+(\S+)\s+(\d{2}-\d{2}(?:-\d{4})?)\s*', stem)
     if not m:
         raise ValueError(f"Cannot parse TAX Invoice filename: {filename!r}")
     doc_number = m.group(1).strip()
-    doc_date = _parse_date(m.group(2))
+    doc_date = _parse_date(m.group(2), fallback_date)
     rest = stem[m.end():]
 
     first_token = rest.strip().split(None, 1)[0] if rest.strip() else ''
@@ -182,7 +191,7 @@ def _parse_ti_without_channel_or_salesperson(
 
 _QT_RE = re.compile(
     r"Quotation No\s+(?P<doc_number>\S+)\s+"
-    r"(?P<date>\d{2}-\d{2}-\d{4})\s+"
+    r"(?P<date>\d{2}-\d{2}(?:-\d{4})?)\s+"
     r"(?P<channel>\S+)\s+"
     r"(?P<salesperson>[^(]+?)\s*"
     r"\((?P<payment>[^)]*)\)\s*"
@@ -191,7 +200,7 @@ _QT_RE = re.compile(
 )
 
 
-def _parse_qt(stem: str, filename: str) -> FilenameMetadata:
+def _parse_qt(stem: str, filename: str, fallback_date: Optional[date] = None) -> FilenameMetadata:
     m = _QT_RE.match(stem)
     if not m:
         raise ValueError(f"Cannot parse Quotation filename: {filename!r}")
@@ -201,7 +210,7 @@ def _parse_qt(stem: str, filename: str) -> FilenameMetadata:
     return FilenameMetadata(
         doc_type='quotation',
         doc_number=m.group('doc_number').strip(),
-        doc_date=_parse_date(m.group('date')),
+        doc_date=_parse_date(m.group('date'), fallback_date),
         channel=m.group('channel').strip(),
         salesperson=m.group('salesperson').strip(),
         payment_status='paid' if paid else 'pending',
@@ -211,15 +220,15 @@ def _parse_qt(stem: str, filename: str) -> FilenameMetadata:
     )
 
 
-def parse_filename(filename: str) -> FilenameMetadata:
+def parse_filename(filename: str, fallback_date: Optional[date] = None) -> FilenameMetadata:
     stem = filename.rsplit('.', 1)[0]
     if stem.startswith('TI_B') or stem.startswith('TI&B') or stem.startswith('I_B'):
         if stem.startswith('TI&B'):
             stem = 'TI_B' + stem[4:]
         elif stem.startswith('I_B'):
             stem = 'TI_B' + stem[3:]  # "I_B No ..." → "TI_B No ..."
-        return _parse_ti(stem, filename)
+        return _parse_ti(stem, filename, fallback_date)
     elif stem.startswith('Quotation'):
-        return _parse_qt(stem, filename)
+        return _parse_qt(stem, filename, fallback_date)
     else:
         raise ValueError(f"Cannot parse filename (unknown type): {filename!r}")

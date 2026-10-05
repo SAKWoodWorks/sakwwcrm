@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { prisma } from "@/lib/prisma"
+import { formatDate as formatDisplayDate } from "@/lib/utils"
 import { formatSalespersonName } from "@/lib/salesperson-display"
 import { Prisma } from "@prisma/client"
 import { Link } from "@/i18n/navigation"
@@ -555,20 +556,14 @@ function formatBaht(value: Prisma.Decimal | number, locale: string) {
   })
 }
 
-function formatDate(value: Date, locale: string) {
-  return new Date(value).toLocaleDateString(locale, {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  })
+function formatDate(value: Date, _locale: string) {
+  void _locale
+  return formatDisplayDate(value)
 }
 
-function formatShortDate(value: Date, locale: string) {
-  return new Date(value).toLocaleDateString(locale, {
-    day: "2-digit",
-    month: "2-digit",
-    year: "2-digit",
-  })
+function formatShortDate(value: Date, _locale: string) {
+  void _locale
+  return formatDisplayDate(value)
 }
 
 function recencyLabel(t: Awaited<ReturnType<typeof getTranslations>>, tone: RecencyTone) {

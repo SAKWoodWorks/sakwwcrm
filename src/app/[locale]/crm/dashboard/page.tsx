@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { prisma } from "@/lib/prisma"
+import { formatDate } from "@/lib/utils"
 import { Prisma } from "@prisma/client"
 import { Link } from "@/i18n/navigation"
 import { getLocale, getTranslations } from "next-intl/server"
@@ -308,7 +309,7 @@ export default async function DashboardPage() {
                 </TableCell>
                 <TableCell className="px-4 py-3 tabular-nums text-gray-600">
                   {c.last_purchase_date
-                    ? new Date(c.last_purchase_date).toLocaleDateString(localeTag)
+                    ? formatDate(c.last_purchase_date)
                     : "—"}
                 </TableCell>
               </TableRow>

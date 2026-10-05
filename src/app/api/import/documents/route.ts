@@ -28,9 +28,11 @@ function isUploadedFile(value: unknown): value is UploadedFile {
 }
 
 function safeFilename(name: string) {
-  const ext = path.extname(name).toLowerCase()
-  const base = path.basename(name, ext).replace(/[^a-zA-Z0-9ก-๙._-]+/g, "-").slice(0, 80)
-  return `${base || "upload"}${ext}`
+  // The Python extractor derives document metadata from the filename, so the
+  // original spaces and Thai characters must reach it unchanged. basename()
+  // removes any client-provided directory components before this is used in
+  // the temporary upload directory.
+  return path.basename(name) || "upload.xlsx"
 }
 
 function runImport(jobId: number, scriptPath: string, uploadPath: string, cwd: string, tempDir: string) {

@@ -1,5 +1,6 @@
 
 import { prisma } from "@/lib/prisma"
+import { formatDate } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -311,7 +312,7 @@ export default async function CustomersPage({ searchParams }: Props) {
                 </div>
                 <div>
                   <p className="text-xs text-[var(--crm-muted)]">{t("table.lastPurchase")}</p>
-                  <p className="font-medium">{c.last_purchase_date ? c.last_purchase_date.toLocaleDateString(localeTag) : "—"}</p>
+                  <p className="font-medium">{c.last_purchase_date ? formatDate(c.last_purchase_date) : "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--crm-muted)]">{t("table.lastTotal")}</p>
@@ -383,7 +384,7 @@ export default async function CustomersPage({ searchParams }: Props) {
                 }} /></TableCell>
                 <TableCell className="px-4 py-3 text-gray-600">
                   {c.last_purchase_date
-                    ? c.last_purchase_date.toLocaleDateString(localeTag)
+                    ? formatDate(c.last_purchase_date)
                     : "—"}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-right tabular-nums">

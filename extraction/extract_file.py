@@ -174,20 +174,35 @@ def process(filepath: str, filename: str, file_id: str, dry_run: bool = False, s
             conn.close()
             return
 
+        doc_data = None
         try:
             meta = parse_filename(filename)
-        except ValueError:
-            meta = _llm_parse_filename(filename)
-            if meta is None:
-                raise
+        except ValueError as filename_error:
+            # Some legacy filenames omit the year (e.g. "07-08"). In that
+            # case use the date embedded in the spreadsheet, never a guessed
+            # current year. The parser also verifies the day and month match.
+            stem = Path(filename).stem
+            if stem.startswith(("TI_B", "TI&B", "I_B")):
+                doc_data = parse_tax_invoice(filepath)
+            elif stem.startswith("Quotation"):
+                doc_data = parse_quotation(filepath)
+
+            fallback_date = _to_gregorian(doc_data.doc_date_raw) if doc_data else None
+            try:
+                meta = parse_filename(filename, fallback_date=fallback_date)
+            except ValueError:
+                meta = _llm_parse_filename(filename)
+                if meta is None:
+                    raise filename_error
 
         if salesperson_override:
             meta.salesperson = salesperson_override
 
-        if meta.doc_type == "tax_invoice":
-            doc_data = parse_tax_invoice(filepath)
-        else:
-            doc_data = parse_quotation(filepath)
+        if doc_data is None:
+            if meta.doc_type == "tax_invoice":
+                doc_data = parse_tax_invoice(filepath)
+            else:
+                doc_data = parse_quotation(filepath)
 
         doc_date = _to_gregorian(doc_data.doc_date_raw) or meta.doc_date
 

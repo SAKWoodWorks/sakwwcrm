@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { prisma } from "@/lib/prisma"
+import { formatDate } from "@/lib/utils"
 import { Link } from "@/i18n/navigation"
 import { getLocale, getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
@@ -78,7 +79,7 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
           <CardContent className="p-5">
             <div className="mb-4 grid gap-3 md:grid-cols-3">
               <MetricCard label="Total" value={doc.total != null ? fmt(doc.total) : "—"} tone="gold" />
-              <MetricCard label={t("detail.date")} value={doc.docDate.toLocaleDateString(localeTag)} tone="blue" />
+              <MetricCard label={t("detail.date")} value={formatDate(doc.docDate)} tone="blue" />
               <MetricCard label={t("table.status")} value={INVOICE_DOC_TYPES.includes(doc.docType) ? getPaymentLabel(doc.paymentStatus, t) : "—"} tone="green" />
             </div>
             <dl className="grid gap-x-8 gap-y-3 text-sm md:grid-cols-3">

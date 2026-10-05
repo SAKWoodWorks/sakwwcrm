@@ -5,7 +5,7 @@ import { CalendarIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import { cn, formatDate } from "@/lib/utils"
 
 type Props = {
   name?: string
@@ -52,7 +52,7 @@ export default function DatePickerField({
             )}
           >
             <CalendarIcon className="mr-1.5 size-4" />
-            {selectedDate ? formatThaiDate(selectedDate) : placeholder}
+            {selectedDate ? formatDate(selectedDate) : placeholder}
           </Button>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-auto p-0">
@@ -80,12 +80,4 @@ function formatDateValue(date: Date) {
   const month = String(date.getMonth() + 1).padStart(2, "0")
   const day = String(date.getDate()).padStart(2, "0")
   return `${year}-${month}-${day}`
-}
-
-function formatThaiDate(date: Date) {
-  return date.toLocaleDateString("th-TH", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  })
 }

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table"
 import { Link } from "@/i18n/navigation"
 import { prisma } from "@/lib/prisma"
+import { formatDate as formatDisplayDate } from "@/lib/utils"
 import { Prisma } from "@prisma/client"
 import { getLocale, getTranslations } from "next-intl/server"
 import { unstable_cache } from "next/cache"
@@ -391,8 +392,9 @@ function formatContact(row: FollowUpRow, fallback: string) {
   return values.length > 0 ? values.join(" / ") : fallback
 }
 
-function formatDate(value: Date | string, localeTag: string) {
-  return new Date(value).toLocaleDateString(localeTag)
+function formatDate(value: Date | string, _localeTag: string) {
+  void _localeTag
+  return formatDisplayDate(value)
 }
 
 function formatCurrency(value: Prisma.Decimal | number | null, localeTag: string) {
